@@ -22,7 +22,7 @@ print(f'gpu is {gpu}')
 import jax
 import jax.numpy as jnp
 import plenoxel
-from jax.ops import index, index_update, index_add
+# from jax.ops import index, index_update, index_add
 from jax.lib import xla_bridge
 print(xla_bridge.get_backend().platform)
 if __name__ != "__main__":
@@ -214,6 +214,7 @@ def get_data(root, stage):
         fpath = os.path.join(data_path, os.path.basename(frame['file_path']) + '.png')
         c2w = frame['transform_matrix']
         im_gt = imageio.imread(fpath).astype(np.float32) / 255.0
+        print('shape here', im_gt.shape)
         im_gt = im_gt[..., :3] * im_gt[..., 3:] + (1.0 - im_gt[..., 3:])
         all_c2w.append(c2w)
         all_gt.append(im_gt)
@@ -348,12 +349,17 @@ def run_test_step(i, data_dict, test_c2w, test_gt, H, W, focal, FLAGS, key, name
 
 
 def update_grid(old_grid, lr, grid_grad):
-    return index_add(old_grid, index[...], -1 * lr * grid_grad)
+#     return index_add(old_grid, index[...], -1 * lr * grid_grad)
+#     return old_grid[i].at[index[...]].add(-1 * lr * grid_grad)
+    return old_grid[i] + -1 * lr * grid_grad
+    
 
 
 def update_grids(old_grid, lrs, grid_grad):
     for i in range(len(old_grid)):
-        old_grid[i] = index_add(old_grid[i], index[...], -1 * lrs[i] * grid_grad[i])
+#         old_grid[i] = index_add(old_grid[i], index[...], -1 * lrs[i] * grid_grad[i])
+#         old_grid[i] = old_grid[i].at[index[...]].add(-1 * lrs[i] * grid_grad[i])
+        old_grid[i] += -1 * lrs[i] * grid_grad[i]
     return old_grid
 
 
