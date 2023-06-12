@@ -1,30 +1,16 @@
-# Plenoxels: Radiance Fields without Neural Networks
-Alex Yu\*, Sara Fridovich-Keil\*, Matthew Tancik, Qinhong Chen, Benjamin Recht, Angjoo Kanazawa
+# Plenoxels and Diffusercam
 
-UC Berkeley
-
-Website and video: <https://alexyu.net/plenoxels>
-
-arXiv: <https://arxiv.org/abs/2112.05131>
-
-**Note:** This JAX implementation is intended to be high-level and user-serviceable, but is much slower (roughly 1 hour per epoch) than the CUDA implementation <https://github.com/sxyu/svox2> (roughly 1 minute per epoch), and there is not perfect feature alignment between the two versions. This JAX version can likely be sped up significantly, and we may push performance improvements and extra features in the future. Currently, this version only supports bounded scenes and trains using SGD without regularization.
-
-
-
-## Citation
-```
-@inproceedings{yu_and_fridovichkeil2021plenoxels,
-      title={Plenoxels: Radiance Fields without Neural Networks},
-      author={{Sara Fridovich-Keil and Alex Yu} and Matthew Tancik and Qinhong Chen and Benjamin Recht and Angjoo Kanazawa},
-      year={2022},
-      booktitle={CVPR},
-}
-```
-Note: joint first-authorship is not really supported in BibTex; you may need to modify the above if not using CVPR's format.
 
 ## Setup
 
 We recommend setup with a conda environment, using the packages provided in `requirements.txt`.
+'''
+conda create --name plenoxels python=3.9
+conda activate plenoxels
+pip install https://storage.googleapis.com/jax-releases/cuda111/jaxlib-0.1.72+cuda111-cp39-none-manylinux2010_x86_64.whl
+cd plenoxels
+pip install --upgrade -r requirements.txt
+'''
 
 ## Downloading data
 
@@ -32,6 +18,12 @@ Currently, this implementation only supports NeRF-Blender, which is available at
 
 <https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1>
 
+TODO
+
 ## Voxel Optimization (aka Training)
 
-The training file is `plenoptimize.py`; its flags specify many options to control the optimization (scene, resolution, training duration, when to prune and subdivide voxels, where the training data is, where to save rendered images and model checkpoints, etc.). You can also set the frequency of evaluation, which will compute the validation PSNR and render validation images (comparing the reconstruction to the ground truth).
+Sample training command
+
+'''
+python plenoptimize_multiplexedN.py --data_dir /home/vitran/plenoxels/blender_data/ --expname dls_psnr_multiplex100_dls_15_blocked_lenslet2 --scene lego_gen10 --log_dir jax_logs10/ --physical_batch_size 500 --lr_rmsprop 0. --logical_batch_size 1000 --resolution 128 --num_epochs 1 --val_interval 1 --render_interval 100 --dim_lens 80 --optimizer sgd --num_lens 100 --max_per_pixel 4 --d_lenses 1.6 --d_lens_sensor 15 --train_json multilens_100_dls_15_blocked_lenslet2 --tv_rgb 1e-3 --tv_sigma 1e-3 --blocked_lenslet "18, 95, 65, 5, 15, 64, 33, 70, 49, 47, 80, 96, 8, 35, 54, 74, 97, 2, 83, 84, 88, 25, 19, 23, 63, 37, 28, 87, 75, 72, 20, 81, 53, 9, 22, 29, 0, 85, 16, 27, 99, 82, 71, 3, 44, 57, 98, 50, 58, 4"
+'''
