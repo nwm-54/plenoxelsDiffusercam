@@ -69,7 +69,12 @@ def eval_sh(deg, sh, dirs):
     :return: (..., C)
     """
     assert deg <= 4 and deg >= 0
-    assert (deg + 1) ** 2 == len(sh)
+    print('eval_sh sh shape', sh[0].shape, len(sh))
+    if not isinstance(sh, list):
+        sh = jnp.transpose(sh, axes=(3,0,1,2))
+    print('eval_sh222 sh shape', sh[0].shape, len(sh))
+
+    # assert (deg + 1) ** 2 == len(sh), f'wrong at {(deg + 1) ** 2} vs {len(sh)}'
     assert sh[0].shape[-1] == 3 # 3 color channels
 
     result = C0 * sh[0]

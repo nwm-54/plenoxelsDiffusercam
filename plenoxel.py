@@ -45,7 +45,9 @@ def volumetric_rendering(rgb, sigma, z_vals, dirs, white_bkgd=True):
   disp = acc / depth
   disp = jnp.where((disp > 0) & (disp < inv_eps) & (acc > eps), disp, inv_eps) # disparity = inverse depth
   if white_bkgd:
+    # print("volumetric rendering white_bkgd", white_bkgd)
     comp_rgb = comp_rgb + (1. - acc[Ellipsis, None])  # Including the white background in the final color
+  # print('in volumetric_rendering white_bkgd', white_bkgd)
   return comp_rgb, disp, acc, weights
 
 
@@ -61,6 +63,7 @@ def nv_rendering(rgb, sigma, z_vals, dirs, white_bkgd=True):
   # jnp.concatenate(tau[Ellipsis, 1:], jnp.ones_like(tau[Ellipsis, :1])) # The absolute amount of light that gets stuck in each voxel
   comp_rgb = (weights[Ellipsis, None] * jax.nn.sigmoid(rgb[:,:-1,:])).sum(axis=-2)  # Accumulated color over the samples, ignoring background
   depth = (weights * z_vals[Ellipsis, :-2]).sum(axis=-1) # Weighted average of depths by contribution to final color
+  
   acc = weights.sum(axis=-1)  # Total amount of light absorbed along the ray
   # Equivalent to (but slightly more efficient and stable than):
   #  disp = 1 / max(eps, where(acc > eps, depth / acc, 0))
@@ -68,6 +71,7 @@ def nv_rendering(rgb, sigma, z_vals, dirs, white_bkgd=True):
   disp = acc / depth
   disp = jnp.where((disp > 0) & (disp < inv_eps) & (acc > eps), disp, inv_eps) # disparity = inverse depth
   if white_bkgd:
+    print("nv rendering white_bkgd", white_bkgd)
     comp_rgb = comp_rgb + (1. - acc[Ellipsis, None])  # Including the white background in the final color
   return comp_rgb, disp, acc, weights
 
@@ -106,6 +110,8 @@ def intersection_distances(inputs, data_dict, resolution, radius, jitter, unifor
   # Get the values at these intersection points
   ray_o, ray_d = inputs["ray_o"], inputs["ray_d"]
   voxel_sh, voxel_sigma, intersections = values_oneray(intersections, data_dict, ray_o, ray_d, resolution, key, sh_dim, radius, jitter, 1e-5, interpolation, matrix, powers)
+  print('at intersection_distance', voxel_sh[0].shape)
+
   return voxel_sh, voxel_sigma, intersections
 
 
@@ -348,7 +354,7 @@ def tricubic_interpolation(xyzs, corner_pts, grid, matrix, powers):
   things_to_multiply_by_coeffs = jnp.clip(jax.vmap(lambda power: apply_power(power, xyzs), out_axes=-1)(powers), a_min=-1e7, a_max=1e7)  # [n_pts, 64]
   result = [jnp.sum(coeff * things_to_multiply_by_coeffs[..., jnp.newaxis], axis=1) for coeff in coeffs[:-1]]  # list where each entry has shape [n_pts, ...]
   result.append(jnp.sum(coeffs[-1] * things_to_multiply_by_coeffs, axis=1))
-  return result
+  return result 
 
 
 @jax.jit
@@ -421,6 +427,9 @@ def values_oneray(intersections, grid, ray_o, ray_d, resolution, key, sh_dim, ra
       neighbor_data = grid_lookup(neighbor_ids[...,0], neighbor_ids[...,1], neighbor_ids[...,2], grid)
       neighbor_sh = neighbor_data[:-1]
       neighbor_sigma = neighbor_data[-1]
+      print('values_oneray neighbor_data shape', neighbor_data[0].shape, neighbor_data[-1].shape)
+      print('values_oneray neighbor_sh shape', neighbor_sh[0].shape)
+      print('pt_sigma shape', jnp.sum(weights * neighbor_sigma, axis=1).shape)
       pt_sigma = jnp.sum(weights * neighbor_sigma, axis=1)[:-1]
       pt_sh = [jnp.sum(weights[..., jnp.newaxis] * nsh, axis=1)[:-1,:] for nsh in neighbor_sh]
     elif interpolation == 'constant':
@@ -453,8 +462,8 @@ def values_oneray(intersections, grid, ray_o, ray_d, resolution, key, sh_dim, ra
     return [sh[idx][:-1] for sh in pt_sh], pt_sigma[idx][:-1], jittered_intersections[idx]
 
 
-@functools.partial(jax.jit, static_argnums=(2,4,5,6,7,8,9))
-def render_rays(grid, rays, resolution, keys, radius=1.3, harmonic_degree=0, jitter=0, uniform=0, interpolation='trilinear', nv=False):
+@functools.partial(jax.jit, static_argnums=(2,4,5,6,7,8,9, 10))
+def render_rays(grid, rays, resolution, keys, radius=1.3, harmonic_degree=0, jitter=0, uniform=0, interpolation='trilinear', nv=False, is_white_plenoxels=True):
   sh_dim = (harmonic_degree + 1)**2
   voxel_len = radius * 2.0 / resolution
   assert (resolution // 2) * 2 == resolution # Renderer assumes resolution is a multiple of 2
@@ -482,12 +491,14 @@ def render_rays(grid, rays, resolution, keys, radius=1.3, harmonic_degree=0, jit
   else:
     voxel_sh, voxel_sigma, intersections = get_intersections_partial({"start": start, "stop": stop, "offset": offset, "interval": interval, "ray_o": rays_o, "ray_d": rays_d}, grid, resolution, radius, jitter, uniform, keys, sh_dim, interpolation, matrix, powers)
   # Apply spherical harmonics
+  print('voxel_sh shape', voxel_sh[0].shape, len(voxel_sh))
   voxel_rgb = sh.eval_sh(harmonic_degree, voxel_sh, rays_d)
   # Call volumetric_rendering
+  print("in render_rays is_white_bkgd is ", is_white_plenoxels) 
   if nv:
-    rgb, disp, acc, weights = nv_rendering(voxel_rgb, voxel_sigma, intersections, rays_d)
+    rgb, disp, acc, weights = nv_rendering(voxel_rgb, voxel_sigma, intersections, rays_d,white_bkgd=is_white_plenoxels)
   else:
-    rgb, disp, acc, weights = volumetric_rendering(voxel_rgb, voxel_sigma, intersections, rays_d)
+    rgb, disp, acc, weights = volumetric_rendering(voxel_rgb, voxel_sigma, intersections, rays_d, white_bkgd=is_white_plenoxels)
   pts = rays_o[:, jnp.newaxis, :] + intersections[:, :, jnp.newaxis] * rays_d[:, jnp.newaxis, :]  # [n_rays, n_intersections, 3]
   ids = jnp.clip(jnp.array(jnp.floor(pts / voxel_len + eps) + resolution / 2, dtype=int), a_min=0, a_max=resolution-1)
   return rgb, disp, acc, weights, ids
