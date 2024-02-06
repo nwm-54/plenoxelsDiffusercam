@@ -10,6 +10,7 @@ import pickle
 import cv2
 import numpy as np
 from tqdm import tqdm
+from skimage import measure, filters
 
 def downsample_image(image, downsample_factor=2):
     """
@@ -47,29 +48,22 @@ def capture_image():
     return img
 
 def process_image(image):
-    # Convert the image to grayscale
-    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    
-    # Use Gaussian blur to reduce noise and improve dot detection
-    blurred = cv2.GaussianBlur(gray_image, (9, 9), 0)
-    
-    # Threshold the image to create a binary image where the dots are white
-    _, binary_image = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY)
-    # plt.imshow(binary_image)
-    
-    # Find contours in the binary image
-    contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-    
-    # Calculate the weighted average position of the contours
-    dot_pixel_locations = []
-    for contour in contours:
-        # Calculate the center of the contour
-        M = cv2.moments(contour)
-        if M["m00"] != 0:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            dot_pixel_locations.append((cX, cY))
-    
+    grayscale_image = np.array(image)[:, :, 0]
+
+    # Apply Otsu's threshold to the image
+    threshold_value = filters.threshold_otsu(grayscale_image)
+
+    # Generate the binary image
+    binary_image = grayscale_image > threshold_value
+
+    # Label the image
+    labeled_image = measure.label(binary_image)
+    # Compute the properties of the labeled image
+    properties = measure.regionprops(labeled_image)
+
+    # Get the coordinates of the centroids of the labeled regions
+    dot_pixel_locations = [(int(prop.centroid[1]), int(prop.centroid[0])) 
+                           for prop in properties if prop.area > 1]
     return dot_pixel_locations
 
 serial_port = '/dev/tty.usbserial-AB0PG7GL'
@@ -85,9 +79,9 @@ with Connection.open_serial_port(serial_port) as connection:
         print(f"Homing all axes of device with address {device.device_address}.")
         device.all_axes.home()
 
-    z_range = np.arange(31.5, 32.5, 0.2)
+    z_range = np.arange(31.9, 33.6, 0.2)
     x_range = np.arange(20, 29.1, 0.5)
-    y_range = np.arange(17.5, 24, 0.5)
+    y_range = np.arange(18.0, 24, 0.5)
 
     z_axis, x_axis, y_axis = device_list[0].get_axis(1), device_list[1].get_axis(1), device_list[2].get_axis(1)
 
@@ -108,7 +102,7 @@ with Connection.open_serial_port(serial_port) as connection:
                 x_axis.wait_until_idle()
                 print(f"Moved to point: X={x} mm, Y={y} mm, Z={z} mm")
 
-                image = capture_image()  # Capture image at this position
+                image = downsample_image(capture_image(), 8)  # Capture image at this position
                 dot_pixel_locations = process_image(image)  # Process image to find dot locations
 
                 print("Detected {} dots. Locations: {}".format(len(dot_pixel_locations), dot_pixel_locations))
