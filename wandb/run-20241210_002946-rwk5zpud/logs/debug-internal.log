@@ -1,0 +1,1332 @@
+2024-12-10 00:29:46,388 INFO    StreamThr :2541656 [internal.py:wandb_internal():86] W&B internal server running at pid: 2541656, started at: 2024-12-10 00:29:46.387281
+2024-12-10 00:29:46,391 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status
+2024-12-10 00:29:46,396 INFO    WriterThread:2541656 [datastore.py:open_for_write():87] open: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/run-rwk5zpud.wandb
+2024-12-10 00:29:46,397 DEBUG   SenderThread:2541656 [sender.py:send():388] send: header
+2024-12-10 00:29:46,398 DEBUG   SenderThread:2541656 [sender.py:send():388] send: run
+2024-12-10 00:29:46,595 INFO    SenderThread:2541656 [dir_watcher.py:__init__():211] watching files in: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files
+2024-12-10 00:29:46,595 INFO    SenderThread:2541656 [sender.py:_start_run_threads():1158] run started: rwk5zpud with start time 1733819386.385227
+2024-12-10 00:29:46,616 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: run_start
+2024-12-10 00:29:46,648 DEBUG   HandlerThread:2541656 [system_info.py:__init__():26] System info init
+2024-12-10 00:29:46,648 DEBUG   HandlerThread:2541656 [system_info.py:__init__():41] System info init done
+2024-12-10 00:29:46,648 INFO    HandlerThread:2541656 [system_monitor.py:start():194] Starting system monitor
+2024-12-10 00:29:46,648 INFO    SystemMonitor:2541656 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2024-12-10 00:29:46,648 INFO    HandlerThread:2541656 [system_monitor.py:probe():214] Collecting system info
+2024-12-10 00:29:46,649 INFO    SystemMonitor:2541656 [interfaces.py:start():188] Started cpu monitoring
+2024-12-10 00:29:46,650 INFO    SystemMonitor:2541656 [interfaces.py:start():188] Started disk monitoring
+2024-12-10 00:29:46,652 INFO    SystemMonitor:2541656 [interfaces.py:start():188] Started gpu monitoring
+2024-12-10 00:29:46,653 INFO    SystemMonitor:2541656 [interfaces.py:start():188] Started memory monitoring
+2024-12-10 00:29:46,654 INFO    SystemMonitor:2541656 [interfaces.py:start():188] Started network monitoring
+2024-12-10 00:29:46,681 DEBUG   HandlerThread:2541656 [system_info.py:probe():152] Probing system
+2024-12-10 00:29:46,688 DEBUG   HandlerThread:2541656 [system_info.py:_probe_git():137] Probing git
+2024-12-10 00:29:46,698 DEBUG   HandlerThread:2541656 [system_info.py:_probe_git():145] Probing git done
+2024-12-10 00:29:46,698 DEBUG   HandlerThread:2541656 [system_info.py:probe():200] Probing system done
+2024-12-10 00:29:46,698 DEBUG   HandlerThread:2541656 [system_monitor.py:probe():223] {'os': 'Linux-5.4.0-200-generic-x86_64-with-debian-bullseye-sid', 'python': '3.7.13', 'heartbeatAt': '2024-12-10T08:29:46.681346', 'startedAt': '2024-12-10T08:29:46.339161', 'docker': None, 'cuda': None, 'args': ('--tv_weight=0.001440875362016692',), 'state': 'running', 'program': 'train_sim.py', 'codePathLocal': 'train_sim.py', 'codePath': 'gs7/train_sim.py', 'git': {'remote': None, 'commit': None}, 'email': 'trannguyenthanhvi98@gmail.com', 'root': '/home/vitran', 'host': 'waller-fuoco', 'username': 'vitran', 'executable': '/home/vitran/miniconda3/envs/gaussian_splatting/bin/python', 'cpu_count': 6, 'cpu_count_logical': 12, 'cpu_freq': {'current': 1604.32675, 'min': 1200.0, 'max': 4000.0}, 'cpu_freq_per_core': [{'current': 1199.326, 'min': 1200.0, 'max': 4000.0}, {'current': 1200.949, 'min': 1200.0, 'max': 4000.0}, {'current': 3054.424, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.32, 'min': 1200.0, 'max': 4000.0}, {'current': 3119.307, 'min': 1200.0, 'max': 4000.0}, {'current': 1450.251, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.317, 'min': 1200.0, 'max': 4000.0}, {'current': 1200.674, 'min': 1200.0, 'max': 4000.0}, {'current': 1453.417, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.649, 'min': 1200.0, 'max': 4000.0}, {'current': 1505.739, 'min': 1200.0, 'max': 4000.0}, {'current': 1469.548, 'min': 1200.0, 'max': 4000.0}], 'disk': {'/': {'total': 915.3223114013672, 'used': 545.4031219482422}}, 'gpu': 'NVIDIA RTX A6000', 'gpu_count': 4, 'gpu_devices': [{'name': 'NVIDIA RTX A6000', 'memory_total': 51527024640}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.7130012512207}}
+2024-12-10 00:29:46,698 INFO    HandlerThread:2541656 [system_monitor.py:probe():224] Finished collecting system info
+2024-12-10 00:29:46,698 INFO    HandlerThread:2541656 [system_monitor.py:probe():227] Publishing system info
+2024-12-10 00:29:46,698 DEBUG   HandlerThread:2541656 [system_info.py:_save_conda():210] Saving list of conda packages installed into the current environment
+2024-12-10 00:29:47,599 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/conda-environment.yaml
+2024-12-10 00:29:48,597 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/conda-environment.yaml
+2024-12-10 00:29:48,670 DEBUG   HandlerThread:2541656 [system_info.py:_save_conda():224] Saving conda packages done
+2024-12-10 00:29:48,671 INFO    HandlerThread:2541656 [system_monitor.py:probe():229] Finished publishing system info
+2024-12-10 00:29:48,683 DEBUG   SenderThread:2541656 [sender.py:send():388] send: files
+2024-12-10 00:29:48,683 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-metadata.json with policy now
+2024-12-10 00:29:48,788 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: python_packages
+2024-12-10 00:29:48,788 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: python_packages
+2024-12-10 00:29:48,789 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:29:48,791 DEBUG   SenderThread:2541656 [sender.py:send():388] send: telemetry
+2024-12-10 00:29:48,791 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:29:48,792 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:29:49,077 INFO    wandb-upload_0:2541656 [upload_job.py:push():130] Uploaded file /tmp/tmp9a5hhlqqwandb/pqhf6ifv-wandb-metadata.json
+2024-12-10 00:29:49,597 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/requirements.txt
+2024-12-10 00:29:49,597 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-metadata.json
+2024-12-10 00:29:49,598 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:29:51,598 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:29:51,705 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:29:56,790 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:29:58,789 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:01,602 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:30:02,233 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:03,603 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:30:03,953 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:30:03,953 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:30:08,088 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:08,804 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:13,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:18,789 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:18,794 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:30:18,795 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:30:18,948 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:19,609 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/config.yaml
+2024-12-10 00:30:24,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:28,790 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:30,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:33,794 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:30:33,795 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:30:35,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:38,800 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:41,915 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:46,654 DEBUG   SystemMonitor:2541656 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2024-12-10 00:30:46,657 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:30:47,658 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:48,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:30:48,953 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:30:48,954 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:30:53,127 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:57,623 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:30:58,525 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:30:58,624 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:30:58,799 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:03,799 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:31:03,800 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:31:03,942 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:08,627 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:08,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:09,140 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:31:09,143 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:31:09,143 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:31:09,143 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:09,144 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:31:09,628 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:31:11,629 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:14,984 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:15,630 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:16,659 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:31:18,800 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:31:18,800 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:31:18,804 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:20,874 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:26,240 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:26,634 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:28,804 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:31,865 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:33,801 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:31:33,801 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:31:36,637 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:37,548 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:38,804 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:42,640 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:43,016 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:46,661 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:31:48,643 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:48,803 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:31:48,804 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:31:48,809 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:48,947 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:52,644 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:54,645 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:54,865 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:31:56,646 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:58,647 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:31:58,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:31:59,871 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:02,649 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:03,807 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:32:03,808 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:32:04,650 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:05,853 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:06,650 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:08,651 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:08,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:10,652 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:10,908 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:12,653 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:14,654 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:16,098 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:16,654 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:16,663 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:32:18,660 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:18,807 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:32:18,808 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:32:18,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:20,663 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:21,253 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:22,664 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:25,665 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:26,412 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:27,666 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:28,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:29,667 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:31,470 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:31,668 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:33,669 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:33,810 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:32:33,811 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:32:35,670 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:37,315 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:37,670 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:38,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:39,671 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:41,672 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:42,384 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:43,673 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:44,695 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:32:44,697 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:32:44,697 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:32:44,698 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:32:45,674 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:32:46,665 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:32:47,667 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:47,675 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:48,810 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:32:48,811 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:32:48,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:53,184 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:53,677 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:57,678 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:32:58,509 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:32:58,813 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:32:59,679 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:01,680 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:03,681 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:03,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:33:03,815 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:33:03,947 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:05,682 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:08,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:09,684 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:09,876 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:11,685 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:13,685 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:15,484 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:15,686 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:16,726 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:33:17,687 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:18,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:18,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:33:18,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:33:19,688 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:20,515 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:21,689 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:23,690 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:25,665 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:25,691 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:27,692 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:28,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:29,693 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:30,706 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:31,693 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:33,694 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:33,815 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:33:33,815 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:33:35,695 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:35,907 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:33:35,909 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:33:35,909 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:33:35,910 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:35,911 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:33:36,696 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:33:37,696 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:38,814 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:40,951 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:45,700 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:45,974 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:46,669 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:33:47,701 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:48,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:48,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:33:48,819 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:33:49,702 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:51,637 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:51,702 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:53,703 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:55,704 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:56,768 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:33:57,705 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:33:58,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:33:59,706 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:01,706 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:01,871 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:03,707 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:03,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:34:03,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:34:05,708 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:07,166 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:07,709 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:08,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:09,710 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:11,711 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:12,788 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:13,712 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:15,713 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:16,671 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:34:17,714 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:18,532 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:18,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:18,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:34:18,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:34:19,714 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:21,715 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:23,716 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:23,897 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:25,717 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:27,718 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:28,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:29,171 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:29,719 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:31,720 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:33,721 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:33,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:34:33,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:34:35,009 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:35,721 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:37,722 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:38,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:39,723 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:40,659 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:41,724 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:43,725 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:45,726 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:45,774 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:34:45,776 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:34:45,776 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:34:45,776 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:45,777 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:34:46,673 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:34:46,726 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:34:47,727 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:48,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:48,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:34:48,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:34:50,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:55,730 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:56,815 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:34:57,731 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:34:58,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:34:59,732 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:01,733 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:02,252 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:03,734 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:03,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:35:03,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:35:05,735 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:07,736 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:08,001 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:08,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:09,737 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:11,738 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:13,090 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:13,739 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:15,739 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:16,675 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:35:17,740 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:18,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:18,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:35:18,819 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:35:18,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:19,741 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:21,742 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:23,743 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:24,081 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:25,744 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:27,745 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:28,817 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:29,259 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:29,746 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:31,747 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:33,748 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:33,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:35:33,818 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:35:34,363 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:35,749 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:37,750 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:38,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:39,469 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:39,751 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:41,752 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:43,753 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:44,484 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:45,754 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:46,676 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:35:47,755 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:48,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:48,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:35:48,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:35:49,756 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:49,764 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:51,757 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:53,757 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:55,072 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:35:55,758 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:57,759 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:35:58,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:35:59,760 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:00,270 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:01,760 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:03,761 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:03,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:36:03,819 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:36:05,512 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:05,762 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:07,763 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:08,818 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:09,764 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:10,792 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:11,765 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:13,766 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:15,767 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:15,915 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:16,678 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:36:17,768 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:18,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:18,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:36:18,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:36:19,769 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:21,207 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:21,769 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:23,770 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:25,771 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:26,353 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:27,772 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:28,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:29,773 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:31,568 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:31,774 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:33,775 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:33,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:36:33,819 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:36:35,776 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:36,744 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:38,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:38,928 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:36:38,929 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:36:38,930 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:36:38,933 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:36:39,777 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:39,778 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:36:41,946 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:46,680 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:36:47,062 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:47,781 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:48,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:36:48,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:48,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:36:49,782 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:50,182 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:36:50,184 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:36:50,184 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:36:50,185 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:36:50,782 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:36:51,783 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:36:52,186 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:57,272 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:36:58,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:36:59,786 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:01,688 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:37:01,690 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:37:01,691 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:37:01,692 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:37:01,787 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:37:02,693 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:03,788 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:03,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:37:03,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:37:07,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:08,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:37:09,790 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:11,791 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:13,643 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:14,031 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 00:37:14,033 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 00:37:14,033 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 00:37:14,034 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 00:37:14,792 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 00:37:15,793 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:16,682 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:37:18,684 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:18,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:37:18,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:37:18,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:37:23,796 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:23,960 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:25,797 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:27,798 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:28,819 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:37:29,798 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:29,890 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:31,799 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:33,800 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:33,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:37:33,821 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:37:34,903 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:35,801 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:37,802 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:38,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:37:39,802 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:40,007 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:41,803 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:43,804 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:45,225 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:45,804 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:46,684 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:37:47,805 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:48,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:37:48,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:37:48,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:37:49,806 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:50,724 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:51,807 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 00:37:55,961 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:37:58,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:01,961 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:03,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:38:03,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:38:06,977 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:08,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:12,962 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:16,686 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:38:18,687 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:18,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:18,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:38:18,822 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:38:23,962 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:28,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:29,963 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:33,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:38:33,820 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:38:34,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:38,820 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:40,962 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:45,962 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:46,687 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:38:48,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:38:48,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:38:48,822 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:38:51,963 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:56,963 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:38:58,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:01,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:03,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:39:03,822 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:39:07,013 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:08,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:12,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:16,690 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:39:16,703 WARNING FileStreamThread:2541656 [file_stream.py:request_with_retry():679] requests_with_retry encountered retryable exception: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer')). func: <bound method Session.post of <requests.sessions.Session object at 0x7f3bab140850>>, args: ('https://api.wandb.ai/files/plenoxelsanddiffusercam/sweep-demo-cli/rwk5zpud/file_stream',), kwargs: {'json': {'files': {'wandb-events.jsonl': {'offset': 17, 'content': ['{"system.network.sent": 29182986.4, "system.network.recv": 34415137.2, "system.proc.memory.availableMB": 49242.22, "system.memory": 23.29, "system.proc.memory.rssMB": 3026.98, "system.proc.memory.percent": 4.71, "system.cpu": 0.01, "system.cpu.0.cpu_percent": 40.39, "system.cpu.1.cpu_percent": 43.77, "system.cpu.2.cpu_percent": 48.61, "system.cpu.3.cpu_percent": 44.22, "system.cpu.4.cpu_percent": 43.44, "system.cpu.5.cpu_percent": 43.01, "system.cpu.6.cpu_percent": 7.61, "system.cpu.7.cpu_percent": 1.17, "system.cpu.8.cpu_percent": 0.9, "system.cpu.9.cpu_percent": 0.57, "system.cpu.10.cpu_percent": 0.86, "system.cpu.11.cpu_percent": 0.7, "system.proc.cpu.threads": 28, "system.disk.\\\\.usagePercent": 62.8, "system.disk.\\\\.usageGB": 545.4, "system.disk.in": 0.06, "system.disk.out": 224.52, "system.gpu.0.memoryAllocated": 45.83, "system.gpu.1.memoryAllocated": 0.86, "system.gpu.2.memoryAllocated": 33.09, "system.gpu.process.2.memoryAllocated": 33.09, "system.gpu.3.memoryAllocated": 90.67, "system.gpu.0.memoryAllocatedBytes": 23617404928.0, "system.gpu.1.memoryAllocatedBytes": 110166016.0, "system.gpu.2.memoryAllocatedBytes": 4264230912.0, "system.gpu.process.2.memoryAllocatedBytes": 4264230912.0, "system.gpu.3.memoryAllocatedBytes": 23365484544.0, "system.gpu.0.memory": 34.2, "system.gpu.1.memory": 0.0, "system.gpu.2.memory": 0.0, "system.gpu.process.2.memory": 0.0, "system.gpu.3.memory": 0.0, "system.gpu.0.gpu": 49.47, "system.gpu.1.gpu": 0.0, "system.gpu.2.gpu": 0.0, "system.gpu.process.2.gpu": 0.0, "system.gpu.3.gpu": 0.0, "system.gpu.0.temp": 67.53, "system.gpu.1.temp": 52.0, "system.gpu.2.temp": 58.33, "system.gpu.process.2.temp": 58.33, "system.gpu.3.temp": 45.33, "system.gpu.0.powerWatts": 152.72, "system.gpu.1.powerWatts": 13.34, "system.gpu.2.powerWatts": 12.57, "system.gpu.process.2.powerWatts": 12.57, "system.gpu.3.powerWatts": 27.18, "system.gpu.0.powerPercent": 50.92, "system.gpu.1.powerPercent": 5.41, "system.gpu.2.powerPercent": 5.03, "system.gpu.process.2.powerPercent": 5.03, "system.gpu.3.powerPercent": 7.77, "_wandb": true, "_timestamp": 1733819956.687262, "_runtime": 570.302035}']}}, 'dropped': 0}}
+2024-12-10 00:39:18,691 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:18,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:18,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:39:18,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:39:23,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:28,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:29,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:33,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:39:33,822 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:39:34,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:38,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:40,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:45,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:46,692 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:39:48,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:39:48,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:39:48,864 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:39:51,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:56,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:39:58,821 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:02,966 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:03,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:40:03,822 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:40:08,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:08,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:13,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:16,694 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:40:18,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:40:18,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:40:18,864 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:19,965 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:24,966 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:28,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:30,966 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:33,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:40:33,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:40:35,986 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:38,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:41,966 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:46,695 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:40:47,696 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:48,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:48,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:40:48,824 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:40:52,988 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:40:58,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:40:58,967 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:03,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:41:03,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:41:03,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:08,822 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:41:09,967 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:14,967 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:16,697 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:41:18,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:41:18,824 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:41:18,863 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:41:19,992 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:25,968 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:28,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:41:31,968 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:33,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:41:33,823 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:41:37,967 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:38,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:41:43,967 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:46,698 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:41:48,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:41:48,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:41:48,824 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:41:49,041 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:54,968 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:41:58,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:00,968 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:03,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:42:03,824 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:42:05,996 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:08,823 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:11,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:16,701 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:42:17,702 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:18,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:42:18,825 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:42:18,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:22,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:27,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:28,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:33,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:42:33,825 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:42:33,929 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:38,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:38,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:43,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:46,702 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:42:48,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:42:48,825 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:42:48,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:42:49,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:54,970 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:42:58,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:00,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:03,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:43:03,824 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:43:06,000 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:08,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:11,970 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:16,704 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:43:17,706 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:18,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:43:18,826 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:43:18,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:22,989 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:28,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:28,970 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:33,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:43:33,825 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:43:33,995 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:38,824 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:39,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:44,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:46,706 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:43:48,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:43:48,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:43:48,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:43:50,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:55,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:43:58,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:01,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:03,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:44:03,826 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:44:07,015 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:08,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:12,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:16,708 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:44:18,710 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:18,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:18,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:44:18,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:44:23,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:28,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:28,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:33,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:44:33,825 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:44:34,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:38,825 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:39,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:44,973 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:46,710 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:44:48,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:44:48,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:44:48,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:44:50,011 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:55,973 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:44:58,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:01,973 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:03,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:45:03,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:45:06,973 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:08,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:12,974 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:16,762 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:45:18,764 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:18,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:45:18,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:45:18,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:23,974 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:28,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:29,974 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:33,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:45:33,827 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:45:35,023 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:38,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:40,974 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:45,975 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 00:45:46,715 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 00:45:48,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 00:45:48,828 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 00:45:48,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:45:53,975 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:45:58,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:03,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:08,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:13,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:18,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:23,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:28,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:33,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:38,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:43,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:48,827 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:46:52,564 INFO    SenderThread:2541656 [retry.py:__call__():172] Retry attempt failed:
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connection.py", line 207, in _new_conn
+    socket_options=self.socket_options,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/util/connection.py", line 85, in create_connection
+    raise err
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+socket.timeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connectionpool.py", line 803, in urlopen
+    **response_kw,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connectionpool.py", line 492, in _make_request
+    raise new_e
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connectionpool.py", line 468, in _make_request
+    self._validate_conn(conn)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connectionpool.py", line 1097, in _validate_conn
+    conn.connect()
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connection.py", line 611, in connect
+    self.sock = sock = self._new_conn()
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connection.py", line 215, in _new_conn
+    ) from e
+urllib3.exceptions.ConnectTimeoutError: (<urllib3.connection.HTTPSConnection object at 0x7f3baacba090>, 'Connection to api.wandb.ai timed out. (connect timeout=20)')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/adapters.py", line 497, in send
+    chunked=chunked,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/connectionpool.py", line 846, in urlopen
+    method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/urllib3/util/retry.py", line 515, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x7f3baacba090>, 'Connection to api.wandb.ai timed out. (connect timeout=20)'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 400, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 58, in execute
+    request = self.session.post(self.url, **post_args)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/sessions.py", line 637, in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/adapters.py", line 507, in send
+    raise ConnectTimeout(e, request=request)
+requests.exceptions.ConnectTimeout: HTTPSConnectionPool(host='api.wandb.ai', port=443): Max retries exceeded with url: /graphql (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x7f3baacba090>, 'Connection to api.wandb.ai timed out. (connect timeout=20)'))
+2024-12-10 00:46:53,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:46:58,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:03,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:08,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:13,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:18,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:23,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:28,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:33,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:38,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:43,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:48,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:47:53,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:47:58,828 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:03,851 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:08,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:13,853 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:18,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:23,855 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:28,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:33,857 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:38,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:43,859 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:48,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:48:53,861 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:48:58,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:03,863 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:08,829 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:13,864 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:18,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:23,866 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:28,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:33,868 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:38,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:43,870 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:48,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:49:53,872 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:49:58,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:03,874 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:08,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:13,875 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:18,830 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:23,877 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:28,831 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:33,879 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:38,831 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:43,881 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:48,831 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:50:53,883 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:50:58,831 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:03,884 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:08,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:13,886 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:18,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:23,888 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:28,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:33,890 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:38,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:43,892 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:48,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:51:53,893 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:51:58,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:03,895 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:08,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:13,897 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:18,832 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:23,899 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:28,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:33,901 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:38,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:43,903 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:48,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:52:53,904 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:52:58,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:03,906 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:08,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:13,908 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:18,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:23,910 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:28,833 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:33,912 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:38,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:43,914 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:48,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:53:53,916 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:53:58,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:03,918 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:08,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:13,919 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:18,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:23,920 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:28,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:33,922 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:38,834 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:43,924 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:48,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:54:53,926 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:54:58,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:03,928 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:08,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:13,930 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:18,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:23,932 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:28,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:33,933 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:38,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:43,935 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:48,835 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:55:53,937 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:55:58,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:03,939 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:08,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:13,941 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:18,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:23,943 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:28,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:33,944 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:38,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:43,946 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:48,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:56:53,948 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:56:58,836 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:03,950 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:08,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:13,951 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:18,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:23,953 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:28,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:33,955 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:38,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:43,957 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:48,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:57:53,959 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:57:58,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:03,960 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:08,837 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:13,962 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:18,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:23,964 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:28,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:33,966 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:38,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:43,968 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:48,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:58:53,969 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:58:58,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:03,971 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:08,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:13,972 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:18,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:23,973 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:28,838 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:33,976 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:38,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:43,977 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:48,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 00:59:53,979 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 00:59:58,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:03,981 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:08,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:13,983 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:18,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:23,985 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:28,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:33,987 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:38,839 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:43,988 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:48,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:00:53,990 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:00:58,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:03,992 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:08,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:13,994 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:18,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:23,996 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:28,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:33,997 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:38,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:43,999 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:48,840 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:01:54,001 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:01:58,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:04,003 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:08,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:14,005 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:18,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:24,007 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:28,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:34,008 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:38,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:44,010 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:48,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:02:54,012 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:02:58,841 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:04,014 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:08,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:14,016 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:18,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:24,018 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:28,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:34,019 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:38,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:44,021 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:48,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:03:54,023 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:03:58,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:04,025 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:08,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:14,027 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:18,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:24,028 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:28,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:34,029 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:38,842 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:44,031 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:48,843 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:04:54,032 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:04:58,843 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:04,034 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:08,843 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:14,036 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:18,843 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:24,038 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:28,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:34,040 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:38,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:44,042 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:48,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:05:54,043 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:05:58,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:04,045 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:08,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:14,047 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:18,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:24,049 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:28,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:34,051 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:38,844 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:44,052 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:48,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:06:54,054 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:06:58,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:04,056 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:08,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:14,058 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:18,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:24,060 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:28,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:34,062 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:38,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:44,063 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:48,845 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:07:54,065 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:07:58,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:04,067 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:08,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:14,069 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:18,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:24,071 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:28,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:34,072 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:38,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:44,074 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:48,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:08:54,075 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:08:58,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:04,077 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:08,846 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:14,078 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:18,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:24,080 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:28,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:34,082 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:38,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:44,084 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:48,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:09:54,086 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:09:58,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:04,088 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:08,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:14,089 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:18,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:24,092 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:28,847 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:34,093 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:38,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:44,095 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:48,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:10:54,097 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:10:58,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:04,099 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:08,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:14,101 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:18,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:24,102 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:28,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:34,104 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:38,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:44,106 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:48,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:11:54,107 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:11:58,848 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:04,109 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:08,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:14,111 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:18,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:24,113 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:28,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:34,114 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:38,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:44,116 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:48,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:12:54,118 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:12:58,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:04,120 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: keepalive
+2024-12-10 01:13:07,991 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,991 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:07,992 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,996 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,997 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,998 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,998 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,998 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,998 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,999 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,999 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:07,999 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,000 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,000 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,000 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,000 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,001 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,001 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,001 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,002 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,002 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,002 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,002 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,003 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,003 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,003 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,004 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,004 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,004 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,004 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,005 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,005 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,005 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,006 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,006 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,006 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,006 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,007 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,007 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,007 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,008 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,008 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,008 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,008 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,009 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,009 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,009 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,010 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,010 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,010 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,010 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,011 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,011 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,011 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,012 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:08,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:10,700 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:12,700 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:13,811 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:14,701 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:16,702 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:16,829 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:18,703 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:18,849 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:19,121 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 01:13:19,121 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 01:13:19,309 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:20,704 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:22,705 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:24,706 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:25,161 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:26,707 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:28,708 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:28,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:30,709 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:30,826 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:32,709 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:34,121 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 01:13:34,121 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 01:13:34,710 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:36,540 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:36,711 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:38,712 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:38,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:40,713 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:42,254 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:42,714 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:44,715 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:46,716 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:46,831 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:13:48,022 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:48,717 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:48,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:49,121 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 01:13:49,121 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 01:13:50,718 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:52,718 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:53,796 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:13:54,719 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:56,720 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:58,721 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:13:58,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:13:59,224 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:00,722 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:02,723 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:04,121 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 01:14:04,121 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 01:14:04,251 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:04,724 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:06,725 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:08,725 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:08,850 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:14:10,158 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:10,726 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:12,727 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:14,435 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: partial_history
+2024-12-10 01:14:14,436 DEBUG   SenderThread:2541656 [sender.py:send():388] send: history
+2024-12-10 01:14:14,436 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: summary_record
+2024-12-10 01:14:14,437 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 01:14:14,728 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 01:14:15,477 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:16,729 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:16,833 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:14:18,889 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:14:19,136 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: stop_status
+2024-12-10 01:14:19,136 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: stop_status
+2024-12-10 01:14:21,232 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:22,451 DEBUG   SenderThread:2541656 [sender.py:send():388] send: exit
+2024-12-10 01:14:22,451 INFO    SenderThread:2541656 [sender.py:send_exit():575] handling exit code: 0
+2024-12-10 01:14:22,451 INFO    SenderThread:2541656 [sender.py:send_exit():577] handling runtime: 2675
+2024-12-10 01:14:22,452 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 01:14:22,452 INFO    SenderThread:2541656 [sender.py:send_exit():583] send defer
+2024-12-10 01:14:22,452 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,452 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 0
+2024-12-10 01:14:22,453 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,453 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 0
+2024-12-10 01:14:22,453 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 1
+2024-12-10 01:14:22,453 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,453 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 1
+2024-12-10 01:14:22,453 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,453 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 1
+2024-12-10 01:14:22,453 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 2
+2024-12-10 01:14:22,454 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,454 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 2
+2024-12-10 01:14:22,454 INFO    HandlerThread:2541656 [system_monitor.py:finish():203] Stopping system monitor
+2024-12-10 01:14:22,454 DEBUG   SystemMonitor:2541656 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2024-12-10 01:14:22,455 DEBUG   SystemMonitor:2541656 [system_monitor.py:_start():183] Publishing last batch of metrics
+2024-12-10 01:14:22,456 INFO    HandlerThread:2541656 [interfaces.py:finish():200] Joined cpu monitor
+2024-12-10 01:14:22,456 INFO    HandlerThread:2541656 [interfaces.py:finish():200] Joined disk monitor
+2024-12-10 01:14:22,675 INFO    HandlerThread:2541656 [interfaces.py:finish():200] Joined gpu monitor
+2024-12-10 01:14:22,675 INFO    HandlerThread:2541656 [interfaces.py:finish():200] Joined memory monitor
+2024-12-10 01:14:22,676 INFO    HandlerThread:2541656 [interfaces.py:finish():200] Joined network monitor
+2024-12-10 01:14:22,676 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,676 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 2
+2024-12-10 01:14:22,677 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 3
+2024-12-10 01:14:22,677 DEBUG   SenderThread:2541656 [sender.py:send():388] send: stats
+2024-12-10 01:14:22,677 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,677 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 3
+2024-12-10 01:14:22,678 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,678 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 3
+2024-12-10 01:14:22,678 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 4
+2024-12-10 01:14:22,678 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,678 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 4
+2024-12-10 01:14:22,678 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,678 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 4
+2024-12-10 01:14:22,678 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 5
+2024-12-10 01:14:22,679 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,679 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 5
+2024-12-10 01:14:22,679 DEBUG   SenderThread:2541656 [sender.py:send():388] send: summary
+2024-12-10 01:14:22,680 INFO    SenderThread:2541656 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2024-12-10 01:14:22,680 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,680 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 5
+2024-12-10 01:14:22,680 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 6
+2024-12-10 01:14:22,680 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,680 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 6
+2024-12-10 01:14:22,681 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,681 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 6
+2024-12-10 01:14:22,681 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 7
+2024-12-10 01:14:22,681 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: status_report
+2024-12-10 01:14:22,681 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:22,681 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 7
+2024-12-10 01:14:22,682 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:22,682 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 7
+2024-12-10 01:14:22,731 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:22,732 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 01:14:23,452 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: poll_exit
+2024-12-10 01:14:24,732 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:26,044 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 8
+2024-12-10 01:14:26,045 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: poll_exit
+2024-12-10 01:14:26,045 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:26,045 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 8
+2024-12-10 01:14:26,046 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:26,046 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 8
+2024-12-10 01:14:26,046 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 9
+2024-12-10 01:14:26,047 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:26,047 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 9
+2024-12-10 01:14:26,047 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:26,047 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 9
+2024-12-10 01:14:26,047 INFO    SenderThread:2541656 [dir_watcher.py:finish():358] shutting down directory watcher
+2024-12-10 01:14:26,454 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: poll_exit
+2024-12-10 01:14:26,733 INFO    Thread-12 :2541656 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:26,734 INFO    SenderThread:2541656 [dir_watcher.py:finish():388] scan: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files
+2024-12-10 01:14:26,734 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/config.yaml config.yaml
+2024-12-10 01:14:26,735 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log output.log
+2024-12-10 01:14:26,741 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/requirements.txt requirements.txt
+2024-12-10 01:14:26,742 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-metadata.json wandb-metadata.json
+2024-12-10 01:14:26,742 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json wandb-summary.json
+2024-12-10 01:14:26,747 INFO    SenderThread:2541656 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/conda-environment.yaml conda-environment.yaml
+2024-12-10 01:14:26,755 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 10
+2024-12-10 01:14:26,756 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: poll_exit
+2024-12-10 01:14:26,761 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:26,761 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 10
+2024-12-10 01:14:26,768 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:26,768 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 10
+2024-12-10 01:14:26,768 INFO    SenderThread:2541656 [file_pusher.py:finish():169] shutting down file pusher
+2024-12-10 01:14:27,190 INFO    wandb-upload_1:2541656 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/config.yaml
+2024-12-10 01:14:27,193 INFO    wandb-upload_2:2541656 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/output.log
+2024-12-10 01:14:27,209 INFO    wandb-upload_5:2541656 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/conda-environment.yaml
+2024-12-10 01:14:27,211 INFO    wandb-upload_3:2541656 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/requirements.txt
+2024-12-10 01:14:27,225 INFO    wandb-upload_4:2541656 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/files/wandb-summary.json
+2024-12-10 01:14:27,425 INFO    Thread-11 :2541656 [sender.py:transition_state():603] send defer: 11
+2024-12-10 01:14:27,426 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:27,426 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 11
+2024-12-10 01:14:27,427 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:27,427 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 11
+2024-12-10 01:14:27,427 INFO    SenderThread:2541656 [file_pusher.py:join():175] waiting for file pusher
+2024-12-10 01:14:27,428 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 12
+2024-12-10 01:14:27,428 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:27,428 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 12
+2024-12-10 01:14:27,429 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:27,429 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 12
+2024-12-10 01:14:27,429 INFO    SenderThread:2541656 [file_stream.py:finish():601] file stream finish called
+2024-12-10 01:14:27,455 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: poll_exit
+2024-12-10 01:14:27,751 INFO    SenderThread:2541656 [file_stream.py:finish():605] file stream finish is done
+2024-12-10 01:14:27,751 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 13
+2024-12-10 01:14:27,752 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: poll_exit
+2024-12-10 01:14:27,752 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:27,752 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 13
+2024-12-10 01:14:27,753 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:27,753 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 13
+2024-12-10 01:14:27,753 INFO    SenderThread:2541656 [sender.py:transition_state():603] send defer: 14
+2024-12-10 01:14:27,754 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: defer
+2024-12-10 01:14:27,754 INFO    HandlerThread:2541656 [handler.py:handle_request_defer():183] handle defer: 14
+2024-12-10 01:14:27,754 DEBUG   SenderThread:2541656 [sender.py:send():388] send: final
+2024-12-10 01:14:27,755 DEBUG   SenderThread:2541656 [sender.py:send():388] send: footer
+2024-12-10 01:14:27,755 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: defer
+2024-12-10 01:14:27,755 INFO    SenderThread:2541656 [sender.py:send_request_defer():599] handle sender defer: 14
+2024-12-10 01:14:27,756 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: poll_exit
+2024-12-10 01:14:27,757 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: poll_exit
+2024-12-10 01:14:27,758 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: poll_exit
+2024-12-10 01:14:27,759 DEBUG   SenderThread:2541656 [sender.py:send_request():415] send_request: poll_exit
+2024-12-10 01:14:27,760 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: get_summary
+2024-12-10 01:14:27,761 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: sampled_history
+2024-12-10 01:14:27,762 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: internal_messages
+2024-12-10 01:14:27,762 INFO    MainThread:2541656 [wandb_run.py:_footer_history_summary_info():3960] rendering history
+2024-12-10 01:14:27,763 INFO    MainThread:2541656 [wandb_run.py:_footer_history_summary_info():3992] rendering summary
+2024-12-10 01:14:27,763 INFO    MainThread:2541656 [wandb_run.py:_footer_sync_info():3921] logging synced files
+2024-12-10 01:14:27,764 DEBUG   HandlerThread:2541656 [handler.py:handle_request():159] handle_request: shutdown
+2024-12-10 01:14:27,764 INFO    HandlerThread:2541656 [handler.py:finish():873] shutting down handler
+2024-12-10 01:14:28,759 INFO    WriterThread:2541656 [datastore.py:close():296] close: /home/vitran/gs7/wandb/run-20241210_002946-rwk5zpud/run-rwk5zpud.wandb
+2024-12-10 01:14:28,759 INFO    SenderThread:2541656 [sender.py:finish():1600] shutting down sender
+2024-12-10 01:14:28,759 INFO    SenderThread:2541656 [file_pusher.py:finish():169] shutting down file pusher
+2024-12-10 01:14:28,760 INFO    SenderThread:2541656 [file_pusher.py:join():175] waiting for file pusher

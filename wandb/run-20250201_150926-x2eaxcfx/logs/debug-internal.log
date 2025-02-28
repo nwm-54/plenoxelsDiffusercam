@@ -1,0 +1,374 @@
+2025-02-01 15:09:26,749 INFO    StreamThr :2672568 [internal.py:wandb_internal():86] W&B internal server running at pid: 2672568, started at: 2025-02-01 15:09:26.748457
+2025-02-01 15:09:26,752 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status
+2025-02-01 15:09:26,757 INFO    WriterThread:2672568 [datastore.py:open_for_write():87] open: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/run-x2eaxcfx.wandb
+2025-02-01 15:09:26,758 DEBUG   SenderThread:2672568 [sender.py:send():388] send: header
+2025-02-01 15:09:26,759 DEBUG   SenderThread:2672568 [sender.py:send():388] send: run
+2025-02-01 15:09:26,972 INFO    SenderThread:2672568 [dir_watcher.py:__init__():211] watching files in: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files
+2025-02-01 15:09:26,972 INFO    SenderThread:2672568 [sender.py:_start_run_threads():1158] run started: x2eaxcfx with start time 1738451366.746537
+2025-02-01 15:09:26,990 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: run_start
+2025-02-01 15:09:27,023 DEBUG   HandlerThread:2672568 [system_info.py:__init__():26] System info init
+2025-02-01 15:09:27,023 DEBUG   HandlerThread:2672568 [system_info.py:__init__():41] System info init done
+2025-02-01 15:09:27,024 INFO    HandlerThread:2672568 [system_monitor.py:start():194] Starting system monitor
+2025-02-01 15:09:27,024 INFO    SystemMonitor:2672568 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2025-02-01 15:09:27,024 INFO    HandlerThread:2672568 [system_monitor.py:probe():214] Collecting system info
+2025-02-01 15:09:27,025 INFO    SystemMonitor:2672568 [interfaces.py:start():188] Started cpu monitoring
+2025-02-01 15:09:27,026 INFO    SystemMonitor:2672568 [interfaces.py:start():188] Started disk monitoring
+2025-02-01 15:09:27,026 INFO    SystemMonitor:2672568 [interfaces.py:start():188] Started gpu monitoring
+2025-02-01 15:09:27,027 INFO    SystemMonitor:2672568 [interfaces.py:start():188] Started memory monitoring
+2025-02-01 15:09:27,029 INFO    SystemMonitor:2672568 [interfaces.py:start():188] Started network monitoring
+2025-02-01 15:09:27,054 DEBUG   HandlerThread:2672568 [system_info.py:probe():152] Probing system
+2025-02-01 15:09:27,062 DEBUG   HandlerThread:2672568 [system_info.py:_probe_git():137] Probing git
+2025-02-01 15:09:27,072 DEBUG   HandlerThread:2672568 [system_info.py:_probe_git():145] Probing git done
+2025-02-01 15:09:27,072 DEBUG   HandlerThread:2672568 [system_info.py:probe():200] Probing system done
+2025-02-01 15:09:27,072 DEBUG   HandlerThread:2672568 [system_monitor.py:probe():223] {'os': 'Linux-5.4.0-204-generic-x86_64-with-debian-bullseye-sid', 'python': '3.7.13', 'heartbeatAt': '2025-02-01T23:09:27.054271', 'startedAt': '2025-02-01T23:09:26.733431', 'docker': None, 'cuda': None, 'args': ('--tv_weight=0.0977961404423427',), 'state': 'running', 'program': 'train_sim.py', 'codePathLocal': 'train_sim.py', 'codePath': 'gs7/train_sim.py', 'git': {'remote': None, 'commit': None}, 'email': 'trannguyenthanhvi98@gmail.com', 'root': '/home/vitran', 'host': 'waller-fuoco', 'username': 'vitran', 'executable': '/home/vitran/miniconda3/envs/gaussian_splatting/bin/python', 'cpu_count': 6, 'cpu_count_logical': 12, 'cpu_freq': {'current': 1408.3445000000002, 'min': 1200.0, 'max': 4000.0}, 'cpu_freq_per_core': [{'current': 1200.011, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.385, 'min': 1200.0, 'max': 4000.0}, {'current': 2311.991, 'min': 1200.0, 'max': 4000.0}, {'current': 1631.809, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.329, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.486, 'min': 1200.0, 'max': 4000.0}, {'current': 1200.958, 'min': 1200.0, 'max': 4000.0}, {'current': 1200.682, 'min': 1200.0, 'max': 4000.0}, {'current': 1633.614, 'min': 1200.0, 'max': 4000.0}, {'current': 1724.109, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.327, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.433, 'min': 1200.0, 'max': 4000.0}], 'disk': {'/': {'total': 915.3223114013672, 'used': 546.0568542480469}}, 'gpu': 'NVIDIA RTX A6000', 'gpu_count': 4, 'gpu_devices': [{'name': 'NVIDIA RTX A6000', 'memory_total': 51527024640}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.7130126953125}}
+2025-02-01 15:09:27,072 INFO    HandlerThread:2672568 [system_monitor.py:probe():224] Finished collecting system info
+2025-02-01 15:09:27,072 INFO    HandlerThread:2672568 [system_monitor.py:probe():227] Publishing system info
+2025-02-01 15:09:27,072 DEBUG   HandlerThread:2672568 [system_info.py:_save_conda():210] Saving list of conda packages installed into the current environment
+2025-02-01 15:09:27,976 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/conda-environment.yaml
+2025-02-01 15:09:28,974 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/conda-environment.yaml
+2025-02-01 15:09:29,045 DEBUG   HandlerThread:2672568 [system_info.py:_save_conda():224] Saving conda packages done
+2025-02-01 15:09:29,047 INFO    HandlerThread:2672568 [system_monitor.py:probe():229] Finished publishing system info
+2025-02-01 15:09:29,052 DEBUG   SenderThread:2672568 [sender.py:send():388] send: files
+2025-02-01 15:09:29,052 INFO    SenderThread:2672568 [sender.py:_save_file():1421] saving file wandb-metadata.json with policy now
+2025-02-01 15:09:29,170 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: python_packages
+2025-02-01 15:09:29,170 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: python_packages
+2025-02-01 15:09:29,171 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:09:29,172 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:09:29,174 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:09:29,336 DEBUG   SenderThread:2672568 [sender.py:send():388] send: telemetry
+2025-02-01 15:09:29,445 INFO    wandb-upload_0:2672568 [upload_job.py:push():130] Uploaded file /tmp/tmphjo5uaxbwandb/bpudeq8b-wandb-metadata.json
+2025-02-01 15:09:29,974 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/wandb-metadata.json
+2025-02-01 15:09:29,975 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:09:29,975 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/requirements.txt
+2025-02-01 15:09:31,975 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:09:32,250 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:09:38,172 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:09:39,171 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:09:41,979 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:09:43,568 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:09:43,980 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:09:44,217 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:09:44,218 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:09:45,981 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:09:49,172 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:09:49,183 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:09:55,174 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:09:59,171 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:09:59,171 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:09:59,215 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:00,347 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:00,987 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/config.yaml
+2025-02-01 15:10:06,174 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:09,172 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:12,174 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:14,171 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:10:14,172 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:10:17,296 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:19,172 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:23,175 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:27,030 DEBUG   SystemMonitor:2672568 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2025-02-01 15:10:27,033 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:10:29,034 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:29,173 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:29,175 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:10:29,176 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:10:34,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:39,181 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:39,228 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:40,003 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:10:42,004 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:10:44,172 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:10:44,172 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:10:44,272 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:49,179 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:10:50,007 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:10:50,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:55,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:10:57,035 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:10:58,010 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:10:59,176 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:10:59,177 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:10:59,181 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:00,351 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:04,013 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:06,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:09,179 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:10,015 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:12,008 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:12,016 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:14,176 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:11:14,176 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:11:16,018 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:17,751 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:18,019 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:19,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:22,020 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:22,979 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:24,021 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:26,022 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:27,036 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:11:28,023 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:28,038 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:29,176 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:11:29,177 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:11:29,181 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:32,025 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:33,879 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:34,025 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:36,026 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:38,027 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:38,989 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:39,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:40,028 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:44,029 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:44,179 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:11:44,179 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:11:44,333 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:46,030 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:48,031 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:49,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:11:50,032 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:50,198 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:52,033 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:54,034 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:55,380 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:11:57,038 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:11:58,036 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:11:59,179 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:11:59,179 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:11:59,183 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:00,037 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:01,152 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:02,038 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:04,038 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:06,039 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:06,921 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:09,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:10,041 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:12,042 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:12,188 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:14,043 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:14,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:12:14,181 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:12:16,044 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:18,044 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:18,095 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:19,180 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:22,046 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:24,047 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:24,084 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:26,048 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:27,041 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:12:28,048 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:29,116 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:29,187 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:12:29,187 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:29,188 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:12:32,050 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:34,051 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:34,117 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:36,052 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:39,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:39,203 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:40,054 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:42,054 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:44,055 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:44,186 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:12:44,187 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:12:44,265 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:48,057 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:49,186 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:12:50,058 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:50,207 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:52,059 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:54,060 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:55,208 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:12:57,042 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:12:58,061 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:12:59,183 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:12:59,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:12:59,188 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:00,062 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:00,275 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:02,063 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:06,000 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: partial_history
+2025-02-01 15:13:06,003 DEBUG   SenderThread:2672568 [sender.py:send():388] send: history
+2025-02-01 15:13:06,003 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: summary_record
+2025-02-01 15:13:06,003 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:06,004 INFO    SenderThread:2672568 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-02-01 15:13:06,065 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:06,065 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/wandb-summary.json
+2025-02-01 15:13:08,066 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:09,188 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:09,269 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: partial_history
+2025-02-01 15:13:09,271 DEBUG   SenderThread:2672568 [sender.py:send():388] send: history
+2025-02-01 15:13:09,271 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: summary_record
+2025-02-01 15:13:09,272 INFO    SenderThread:2672568 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-02-01 15:13:10,066 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/wandb-summary.json
+2025-02-01 15:13:11,733 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:12,067 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:14,183 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:13:14,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:13:16,069 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:17,553 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:18,070 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:19,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:20,071 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:22,813 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:24,073 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:26,074 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:27,044 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:13:28,075 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:28,232 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:29,183 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:13:29,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:13:29,190 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:32,077 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:33,740 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:34,078 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:38,080 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:39,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:39,215 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:40,080 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:42,081 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:44,082 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:44,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:13:44,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:13:44,353 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:46,083 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:48,084 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:49,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:13:49,668 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:50,085 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:52,086 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:54,087 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:55,216 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:13:56,088 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:57,046 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:13:58,089 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:13:59,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:13:59,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:13:59,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:00,090 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:00,692 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:02,090 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:04,091 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:06,020 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:06,092 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:08,093 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:09,193 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:10,094 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:11,528 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:12,095 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:14,096 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:14,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:14:14,184 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:14:16,096 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:16,964 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:18,097 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:19,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:22,099 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:22,787 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:24,100 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:26,101 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:27,048 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:14:28,049 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:28,102 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:29,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:14:29,185 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:14:29,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:30,103 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:32,103 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:33,073 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:34,105 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:38,106 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:38,131 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:39,191 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:40,107 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:42,107 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:43,828 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:44,108 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:44,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:14:44,185 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:14:46,109 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:49,192 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:14:49,219 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:50,110 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:52,111 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:54,112 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:55,084 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:14:56,113 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:14:57,050 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:14:59,184 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:14:59,185 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:14:59,197 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:00,106 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:00,115 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:02,115 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:04,116 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:05,194 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:06,117 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:09,197 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:10,049 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: partial_history
+2025-02-01 15:15:10,050 DEBUG   SenderThread:2672568 [sender.py:send():388] send: history
+2025-02-01 15:15:10,050 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: summary_record
+2025-02-01 15:15:10,050 INFO    SenderThread:2672568 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-02-01 15:15:10,119 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:10,119 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/wandb-summary.json
+2025-02-01 15:15:11,092 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:12,120 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:12,679 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: partial_history
+2025-02-01 15:15:12,680 DEBUG   SenderThread:2672568 [sender.py:send():388] send: history
+2025-02-01 15:15:12,681 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: summary_record
+2025-02-01 15:15:12,682 INFO    SenderThread:2672568 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-02-01 15:15:13,120 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/wandb-summary.json
+2025-02-01 15:15:14,121 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:14,188 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:15:14,188 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:15:16,122 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:16,292 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:18,122 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:19,197 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:22,002 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:22,124 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:24,125 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:26,126 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:27,052 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:15:27,053 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:29,187 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:15:29,187 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:15:29,197 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:30,128 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:32,128 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:32,388 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:34,129 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:37,722 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:38,131 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:39,198 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:40,132 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:42,133 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:43,032 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:44,187 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:15:44,187 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:15:46,134 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:48,135 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:48,470 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:49,199 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:50,136 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:53,928 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:15:54,138 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:56,139 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:57,054 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:15:58,139 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:15:59,187 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: stop_status
+2025-02-01 15:15:59,187 DEBUG   SenderThread:2672568 [sender.py:send_request():415] send_request: stop_status
+2025-02-01 15:15:59,199 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: internal_messages
+2025-02-01 15:15:59,327 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:16:02,141 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:16:04,142 INFO    Thread-12 :2672568 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250201_150926-x2eaxcfx/files/output.log
+2025-02-01 15:16:05,232 DEBUG   HandlerThread:2672568 [handler.py:handle_request():159] handle_request: status_report
+2025-02-01 15:16:07,201 INFO    memory    :2672568 [interfaces.py:monitor():138] Process proc.memory.rssMB has exited.
+2025-02-01 15:16:07,202 DEBUG   SystemMonitor:2672568 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2025-02-01 15:16:07,202 DEBUG   SystemMonitor:2672568 [system_monitor.py:_start():183] Publishing last batch of metrics
+2025-02-01 15:16:07,206 DEBUG   SenderThread:2672568 [sender.py:send():388] send: stats
+2025-02-01 15:16:08,078 INFO    MainThread:2672568 [internal.py:handle_exit():73] Internal process exited

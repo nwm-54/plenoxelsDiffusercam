@@ -1,0 +1,27 @@
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Current SDK version is 0.18.7
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Configure stats pid to 32740
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Loading settings from /home/vitran/.config/wandb/settings
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Loading settings from /home/vitran/gs7/wandb/settings
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Loading settings from environment variables: {'_require_legacy_service': 'true', 'entity': 'plenoxelsanddiffusercam', 'project': 'sweeps_demo_v3', 'sweep_id': '5lrxp17a', 'root_dir': '/home/vitran/gs7', 'run_id': 'w5vazh6x', 'sweep_param_path': '/home/vitran/gs7/wandb/sweep-5lrxp17a/config-w5vazh6x.yaml'}
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Applying setup settings: {'mode': None, '_disable_service': None}
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Inferring run settings from compute environment: {'program_relpath': 'gs7/train_sim.py', 'program_abspath': '/home/vitran/gs7/train_sim.py', 'program': 'train_sim.py'}
+2025-01-07 23:08:31,946 INFO    MainThread:32740 [wandb_setup.py:_flush():79] Applying login settings: {}
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:_log_setup():533] Logging user logs to /home/vitran/gs7/wandb/run-20250107_230831-w5vazh6x/logs/debug.log
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:_log_setup():534] Logging internal logs to /home/vitran/gs7/wandb/run-20250107_230831-w5vazh6x/logs/debug-internal.log
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:init():619] calling init triggers
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:init():627] wandb.init called with sweep_config: {'tv_weight': 0}
+config: {'program': 'train_sim.py', 'method': 'grid', 'name': 'sweep', 'metric': {'goal': 'maximize', 'name': 'val_acc'}, 'parameters': {'tv_weight': {'values': [0.0, 0.001, 0.002, 0.005, 0.01, 0.015, 0.02, 0.04, 0.05]}}}
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:init():669] starting backend
+2025-01-07 23:08:31,947 INFO    MainThread:32740 [wandb_init.py:init():673] sending inform_init request
+2025-01-07 23:08:31,955 INFO    MainThread:32740 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2025-01-07 23:08:31,955 INFO    MainThread:32740 [wandb_init.py:init():686] backend started and connected
+2025-01-07 23:08:31,965 INFO    MainThread:32740 [wandb_run.py:_config_callback():1387] config_cb None None {'tv_weight': 0}
+2025-01-07 23:08:31,966 INFO    MainThread:32740 [wandb_init.py:init():781] updated telemetry
+2025-01-07 23:08:31,968 INFO    MainThread:32740 [wandb_init.py:init():814] communicating run to backend with 90.0 second timeout
+2025-01-07 23:08:32,189 INFO    MainThread:32740 [wandb_init.py:init():867] starting run threads in backend
+2025-01-07 23:08:34,319 INFO    MainThread:32740 [wandb_run.py:_console_start():2456] atexit reg
+2025-01-07 23:08:34,320 INFO    MainThread:32740 [wandb_run.py:_redirect():2305] redirect: wrap_raw
+2025-01-07 23:08:34,320 INFO    MainThread:32740 [wandb_run.py:_redirect():2370] Wrapping output streams.
+2025-01-07 23:08:34,320 INFO    MainThread:32740 [wandb_run.py:_redirect():2395] Redirects installed.
+2025-01-07 23:08:34,322 INFO    MainThread:32740 [wandb_init.py:init():911] run started, returning control to user process
+2025-01-07 23:31:30,649 WARNING MsgRouterThr:32740 [router.py:message_loop():75] message_loop has been closed

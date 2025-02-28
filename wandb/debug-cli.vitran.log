@@ -1,0 +1,2586 @@
+2024-12-04 14:00:28 ERROR 404 response executing GraphQL.
+2024-12-04 14:00:28 ERROR {"errors":[{"message":"failed to find entityKey e:plenoxelsanddiffusercam (version e_prefix)","path":["upsertSweep"]}],"data":{"upsertSweep":null}}
+2024-12-04 14:00:28 ERROR Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 400, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 59, in execute
+    request.raise_for_status()
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 404 Client Error: Not Found for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 892, in sweep
+    prior_runs=prior_runs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/internal.py", line 133, in upsert_sweep
+    return self.api.upsert_sweep(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 57, in wrapper
+    raise err
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 25, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3340, in upsert_sweep
+    raise e
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3337, in upsert_sweep
+    check_retry_fn=util.no_retry_4xx,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 375, in gql
+    **kwargs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 147, in __call__
+    retry_timedelta_triggered = check_retry_fn(e)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/util.py", line 880, in no_retry_4xx
+    raise UsageError(body["errors"][0]["message"])
+wandb.errors.errors.UsageError: failed to find entityKey e:plenoxelsanddiffusercam (version e_prefix)
+
+2024-12-09 22:48:25 INFO Running runs: []
+2024-12-09 22:48:25 INFO Agent received command: run
+2024-12-09 22:48:25 INFO Agent starting run with config:
+	tv_weight: 0.05304605204962416
+2024-12-09 22:48:25 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05304605204962416
+2024-12-09 22:48:30 INFO Running runs: ['f3fa4f67']
+2024-12-09 22:53:58 INFO Running runs: []
+2024-12-09 22:53:58 INFO Agent received command: run
+2024-12-09 22:53:58 INFO Agent starting run with config:
+	tv_weight: 0.0985753626643709
+2024-12-09 22:53:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0985753626643709
+2024-12-09 22:54:03 INFO Running runs: ['6t0ctnqb']
+2024-12-09 22:55:01 INFO Running runs: []
+2024-12-09 22:55:02 INFO Agent received command: run
+2024-12-09 22:55:02 INFO Agent starting run with config:
+	tv_weight: 0.04799117530539842
+2024-12-09 22:55:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04799117530539842
+2024-12-09 22:55:07 INFO Running runs: ['e5vys3rj']
+2024-12-09 23:04:20 INFO Cleaning up finished run: e5vys3rj
+2024-12-09 23:04:20 INFO Agent received command: run
+2024-12-09 23:04:20 INFO Agent starting run with config:
+	tv_weight: 0.0359320142602425
+2024-12-09 23:04:20 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0359320142602425
+2024-12-09 23:04:25 INFO Running runs: ['flj0dbf9']
+2024-12-09 23:13:33 INFO Cleaning up finished run: flj0dbf9
+2024-12-09 23:13:33 INFO Agent received command: run
+2024-12-09 23:13:33 INFO Agent starting run with config:
+	tv_weight: 0.03883829657909542
+2024-12-09 23:13:33 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.03883829657909542
+2024-12-09 23:13:38 INFO Running runs: ['o928at7d']
+2024-12-09 23:22:46 INFO Cleaning up finished run: o928at7d
+2024-12-09 23:22:46 INFO Agent received command: run
+2024-12-09 23:22:46 INFO Agent starting run with config:
+	tv_weight: 0.06643261271783071
+2024-12-09 23:22:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.06643261271783071
+2024-12-09 23:22:51 INFO Running runs: ['nkbwg621']
+2024-12-09 23:32:04 INFO Cleaning up finished run: nkbwg621
+2024-12-09 23:32:04 INFO Agent received command: run
+2024-12-09 23:32:04 INFO Agent starting run with config:
+	tv_weight: 0.08260197857830433
+2024-12-09 23:32:04 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.08260197857830433
+2024-12-09 23:32:09 INFO Running runs: ['bysoxxa2']
+2024-12-09 23:36:30 ERROR 400 response executing GraphQL.
+2024-12-09 23:36:30 ERROR {"errors":[{"message":"Invalid sweep config: Invalid search type bayesian, must be one of [\"grid\", \"random\", \"bayes\"]","path":["upsertSweep"]}],"data":{"upsertSweep":null}}
+2024-12-09 23:36:30 ERROR Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 400, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 59, in execute
+    request.raise_for_status()
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 892, in sweep
+    prior_runs=prior_runs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/internal.py", line 133, in upsert_sweep
+    return self.api.upsert_sweep(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 57, in wrapper
+    raise err
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 25, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3340, in upsert_sweep
+    raise e
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3337, in upsert_sweep
+    check_retry_fn=util.no_retry_4xx,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 375, in gql
+    **kwargs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 147, in __call__
+    retry_timedelta_triggered = check_retry_fn(e)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/util.py", line 880, in no_retry_4xx
+    raise UsageError(body["errors"][0]["message"])
+wandb.errors.errors.UsageError: Invalid sweep config: Invalid search type bayesian, must be one of ["grid", "random", "bayes"]
+
+2024-12-09 23:37:01 INFO Running runs: []
+2024-12-09 23:37:01 INFO Agent received command: run
+2024-12-09 23:37:01 INFO Agent starting run with config:
+	tv_weight: 0.09386034321366934
+2024-12-09 23:37:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.09386034321366934
+2024-12-09 23:37:06 INFO Running runs: ['2iqkpeap']
+2024-12-09 23:41:53 INFO Running runs: []
+2024-12-09 23:41:54 INFO Agent received command: run
+2024-12-09 23:41:54 INFO Agent starting run with config:
+	tv_weight: 0.28491863288454256
+2024-12-09 23:41:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.28491863288454256
+2024-12-09 23:41:59 INFO Running runs: ['y59y3pvy']
+2024-12-09 23:45:22 INFO Running runs: []
+2024-12-09 23:45:22 INFO Agent received command: run
+2024-12-09 23:45:22 INFO Agent starting run with config:
+	tv_weight: 0.4656719466146307
+2024-12-09 23:45:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.4656719466146307
+2024-12-09 23:45:27 INFO Running runs: ['z7e3jgky']
+2024-12-09 23:50:23 INFO Running runs: []
+2024-12-09 23:50:23 INFO Agent received command: run
+2024-12-09 23:50:23 INFO Agent starting run with config:
+	tv_weight: 0.2719014709588262
+2024-12-09 23:50:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.2719014709588262
+2024-12-09 23:50:28 INFO Running runs: ['f59wo7ye']
+2024-12-10 00:00:11 INFO Cleaning up finished run: f59wo7ye
+2024-12-10 00:00:12 INFO Agent received command: run
+2024-12-10 00:00:12 INFO Agent starting run with config:
+	tv_weight: 0.3523035789567532
+2024-12-10 00:00:12 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.3523035789567532
+2024-12-10 00:00:17 INFO Running runs: ['i6vl4dlh']
+2024-12-10 00:10:06 INFO Cleaning up finished run: i6vl4dlh
+2024-12-10 00:10:06 INFO Agent received command: run
+2024-12-10 00:10:06 INFO Agent starting run with config:
+	tv_weight: 0.2489350937453749
+2024-12-10 00:10:06 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.2489350937453749
+2024-12-10 00:10:11 INFO Running runs: ['010k6bmb']
+2024-12-10 00:19:55 INFO Cleaning up finished run: 010k6bmb
+2024-12-10 00:19:55 INFO Agent received command: run
+2024-12-10 00:19:55 INFO Agent starting run with config:
+	tv_weight: 0.10169085664977856
+2024-12-10 00:19:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.10169085664977856
+2024-12-10 00:20:00 INFO Running runs: ['4s7hephi']
+2024-12-10 00:29:43 INFO Cleaning up finished run: 4s7hephi
+2024-12-10 00:29:44 INFO Agent received command: run
+2024-12-10 00:29:44 INFO Agent starting run with config:
+	tv_weight: 0.001440875362016692
+2024-12-10 00:29:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001440875362016692
+2024-12-10 00:29:49 INFO Running runs: ['rwk5zpud']
+2024-12-10 01:14:34 INFO Cleaning up finished run: rwk5zpud
+2024-12-10 01:14:35 INFO Agent received command: run
+2024-12-10 01:14:35 INFO Agent starting run with config:
+	tv_weight: 0.4489132987231601
+2024-12-10 01:14:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.4489132987231601
+2024-12-10 01:14:40 INFO Running runs: ['0gf1ijsl']
+2024-12-10 21:47:15 INFO Running runs: []
+2024-12-10 21:47:15 INFO Agent received command: run
+2024-12-10 21:47:15 INFO Agent starting run with config:
+	tv_weight: 0.24186837825105129
+2024-12-10 21:47:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.24186837825105129
+2024-12-10 21:47:20 INFO Running runs: ['1z3vlapx']
+2024-12-10 21:48:19 INFO Running runs: []
+2024-12-10 21:48:20 INFO Agent received command: run
+2024-12-10 21:48:20 INFO Agent starting run with config:
+	tv_weight: 0.04613840662330872
+2024-12-10 21:48:20 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04613840662330872
+2024-12-10 21:48:25 INFO Running runs: ['hyzd6gk1']
+2024-12-10 21:59:00 INFO Cleaning up finished run: hyzd6gk1
+2024-12-10 21:59:01 INFO Agent received command: run
+2024-12-10 21:59:01 INFO Agent starting run with config:
+	tv_weight: 0.2843727118181883
+2024-12-10 21:59:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.2843727118181883
+2024-12-10 21:59:06 INFO Running runs: ['bteojizh']
+2024-12-11 02:26:18 INFO Running runs: []
+2024-12-11 02:26:18 INFO Agent received command: run
+2024-12-11 02:26:18 INFO Agent starting run with config:
+	tv_weight: 0.04998107307719121
+2024-12-11 02:26:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04998107307719121
+2024-12-11 02:26:23 INFO Running runs: ['42vv2o2o']
+2024-12-11 02:36:06 INFO Cleaning up finished run: 42vv2o2o
+2024-12-11 02:36:07 INFO Agent received command: run
+2024-12-11 02:36:07 INFO Agent starting run with config:
+	tv_weight: 0.01408901924696917
+2024-12-11 02:36:07 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.01408901924696917
+2024-12-11 02:36:12 INFO Running runs: ['7r4r8k96']
+2024-12-11 02:45:50 INFO Cleaning up finished run: 7r4r8k96
+2024-12-11 02:45:50 INFO Agent received command: run
+2024-12-11 02:45:50 INFO Agent starting run with config:
+	tv_weight: 0.04995413268405355
+2024-12-11 02:45:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04995413268405355
+2024-12-11 02:45:55 INFO Running runs: ['x3ziadfl']
+2024-12-11 02:55:34 INFO Cleaning up finished run: x3ziadfl
+2024-12-11 02:55:34 INFO Agent received command: run
+2024-12-11 02:55:34 INFO Agent starting run with config:
+	tv_weight: 0.0520748776301177
+2024-12-11 02:55:34 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0520748776301177
+2024-12-11 02:55:39 INFO Running runs: ['cpn7mqzf']
+2024-12-11 03:05:17 INFO Cleaning up finished run: cpn7mqzf
+2024-12-11 03:05:18 INFO Agent received command: run
+2024-12-11 03:05:18 INFO Agent starting run with config:
+	tv_weight: 0.008066857550277742
+2024-12-11 03:05:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008066857550277742
+2024-12-11 03:05:23 INFO Running runs: ['i1v9wqwf']
+2024-12-11 03:15:01 INFO Cleaning up finished run: i1v9wqwf
+2024-12-11 03:15:01 INFO Agent received command: run
+2024-12-11 03:15:01 INFO Agent starting run with config:
+	tv_weight: 0.01904913995500184
+2024-12-11 03:15:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.01904913995500184
+2024-12-11 03:15:06 INFO Running runs: ['hcke8y8e']
+2024-12-11 03:24:44 INFO Cleaning up finished run: hcke8y8e
+2024-12-11 03:24:45 INFO Agent received command: run
+2024-12-11 03:24:45 INFO Agent starting run with config:
+	tv_weight: 0.0689244430363757
+2024-12-11 03:24:45 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0689244430363757
+2024-12-11 03:24:50 INFO Running runs: ['7n8068ma']
+2024-12-11 03:34:23 INFO Cleaning up finished run: 7n8068ma
+2024-12-11 03:34:23 INFO Agent received command: run
+2024-12-11 03:34:23 INFO Agent starting run with config:
+	tv_weight: 0.028095973451080267
+2024-12-11 03:34:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.028095973451080267
+2024-12-11 03:34:28 INFO Running runs: ['wp22ejif']
+2024-12-11 03:44:06 INFO Cleaning up finished run: wp22ejif
+2024-12-11 03:44:07 INFO Agent received command: run
+2024-12-11 03:44:07 INFO Agent starting run with config:
+	tv_weight: 0.03425513608120693
+2024-12-11 03:44:07 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.03425513608120693
+2024-12-11 03:44:12 INFO Running runs: ['2sxxla1r']
+2024-12-11 03:53:50 INFO Cleaning up finished run: 2sxxla1r
+2024-12-11 03:53:50 INFO Agent received command: run
+2024-12-11 03:53:50 INFO Agent starting run with config:
+	tv_weight: 0.02677246026449569
+2024-12-11 03:53:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02677246026449569
+2024-12-11 03:53:55 INFO Running runs: ['im3hhk0j']
+2024-12-11 04:03:33 INFO Cleaning up finished run: im3hhk0j
+2024-12-11 04:03:34 INFO Agent received command: run
+2024-12-11 04:03:34 INFO Agent starting run with config:
+	tv_weight: 0.01092848034457912
+2024-12-11 04:03:34 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.01092848034457912
+2024-12-11 04:03:39 INFO Running runs: ['6uc75xc7']
+2024-12-11 04:13:12 INFO Cleaning up finished run: 6uc75xc7
+2024-12-11 04:13:12 INFO Agent received command: run
+2024-12-11 04:13:12 INFO Agent starting run with config:
+	tv_weight: 0.0070663092526745295
+2024-12-11 04:13:12 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0070663092526745295
+2024-12-11 04:13:17 INFO Running runs: ['bz3bfdyy']
+2024-12-11 04:22:50 INFO Cleaning up finished run: bz3bfdyy
+2024-12-11 04:22:51 INFO Agent received command: run
+2024-12-11 04:22:51 INFO Agent starting run with config:
+	tv_weight: 0.02554380713796542
+2024-12-11 04:22:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02554380713796542
+2024-12-11 04:22:56 INFO Running runs: ['hr7pp1db']
+2024-12-11 04:32:29 INFO Cleaning up finished run: hr7pp1db
+2024-12-11 04:32:29 INFO Agent received command: run
+2024-12-11 04:32:29 INFO Agent starting run with config:
+	tv_weight: 0.06126528617490517
+2024-12-11 04:32:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.06126528617490517
+2024-12-11 04:32:34 INFO Running runs: ['fetpb6o3']
+2024-12-11 04:42:13 INFO Cleaning up finished run: fetpb6o3
+2024-12-11 04:42:13 INFO Agent received command: run
+2024-12-11 04:42:13 INFO Agent starting run with config:
+	tv_weight: 0.061671910417858536
+2024-12-11 04:42:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.061671910417858536
+2024-12-11 04:42:18 INFO Running runs: ['t697nvq5']
+2024-12-11 04:51:56 INFO Cleaning up finished run: t697nvq5
+2024-12-11 04:51:57 INFO Agent received command: run
+2024-12-11 04:51:57 INFO Agent starting run with config:
+	tv_weight: 0.023767497352795805
+2024-12-11 04:51:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.023767497352795805
+2024-12-11 04:52:02 INFO Running runs: ['mjspy06w']
+2024-12-11 05:01:40 INFO Cleaning up finished run: mjspy06w
+2024-12-11 05:01:41 INFO Agent received command: run
+2024-12-11 05:01:41 INFO Agent starting run with config:
+	tv_weight: 0.036616685547247806
+2024-12-11 05:01:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.036616685547247806
+2024-12-11 05:01:46 INFO Running runs: ['kt4hzrqd']
+2024-12-11 05:11:24 INFO Cleaning up finished run: kt4hzrqd
+2024-12-11 05:11:25 INFO Agent received command: run
+2024-12-11 05:11:25 INFO Agent starting run with config:
+	tv_weight: 0.021892093969037994
+2024-12-11 05:11:25 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.021892093969037994
+2024-12-11 05:11:30 INFO Running runs: ['js5d6v1q']
+2024-12-11 05:21:08 INFO Cleaning up finished run: js5d6v1q
+2024-12-11 05:21:08 INFO Agent received command: run
+2024-12-11 05:21:08 INFO Agent starting run with config:
+	tv_weight: 0.021244285524528547
+2024-12-11 05:21:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.021244285524528547
+2024-12-11 05:21:13 INFO Running runs: ['tnf3836u']
+2024-12-11 05:30:42 INFO Cleaning up finished run: tnf3836u
+2024-12-11 05:30:42 INFO Agent received command: run
+2024-12-11 05:30:42 INFO Agent starting run with config:
+	tv_weight: 0.07295032220137042
+2024-12-11 05:30:42 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07295032220137042
+2024-12-11 05:30:47 INFO Running runs: ['mbshw6wb']
+2024-12-11 05:40:30 INFO Cleaning up finished run: mbshw6wb
+2024-12-11 05:40:31 INFO Agent received command: run
+2024-12-11 05:40:31 INFO Agent starting run with config:
+	tv_weight: 0.005281771920668603
+2024-12-11 05:40:31 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005281771920668603
+2024-12-11 05:40:36 INFO Running runs: ['c97i7sww']
+2024-12-11 05:50:09 INFO Cleaning up finished run: c97i7sww
+2024-12-11 05:50:09 INFO Agent received command: run
+2024-12-11 05:50:09 INFO Agent starting run with config:
+	tv_weight: 0.02663018019031868
+2024-12-11 05:50:09 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02663018019031868
+2024-12-11 05:50:14 INFO Running runs: ['0h5yntpl']
+2024-12-11 05:59:53 INFO Cleaning up finished run: 0h5yntpl
+2024-12-11 05:59:53 INFO Agent received command: run
+2024-12-11 05:59:53 INFO Agent starting run with config:
+	tv_weight: 0.03730954157609078
+2024-12-11 05:59:53 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.03730954157609078
+2024-12-11 05:59:58 INFO Running runs: ['gjnu4gj5']
+2024-12-11 06:09:36 INFO Cleaning up finished run: gjnu4gj5
+2024-12-11 06:09:37 INFO Agent received command: run
+2024-12-11 06:09:37 INFO Agent starting run with config:
+	tv_weight: 0.04615909433889049
+2024-12-11 06:09:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04615909433889049
+2024-12-11 06:09:42 INFO Running runs: ['z9083h1s']
+2024-12-11 06:19:20 INFO Cleaning up finished run: z9083h1s
+2024-12-11 06:19:29 INFO Agent received command: run
+2024-12-11 06:19:29 INFO Agent starting run with config:
+	tv_weight: 0.002257149635433268
+2024-12-11 06:19:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002257149635433268
+2024-12-11 06:19:34 INFO Running runs: ['6ynlczel']
+2024-12-11 06:29:02 INFO Cleaning up finished run: 6ynlczel
+2024-12-11 06:29:03 INFO Agent received command: run
+2024-12-11 06:29:03 INFO Agent starting run with config:
+	tv_weight: 0.036096949551050805
+2024-12-11 06:29:03 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.036096949551050805
+2024-12-11 06:29:08 INFO Running runs: ['a6fikl8n']
+2024-12-11 06:38:51 INFO Cleaning up finished run: a6fikl8n
+2024-12-11 06:38:51 INFO Agent received command: run
+2024-12-11 06:38:51 INFO Agent starting run with config:
+	tv_weight: 0.03791782849454207
+2024-12-11 06:38:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.03791782849454207
+2024-12-11 06:38:56 INFO Running runs: ['a7jomh2d']
+2024-12-11 06:48:35 INFO Cleaning up finished run: a7jomh2d
+2024-12-11 06:48:35 INFO Agent received command: run
+2024-12-11 06:48:35 INFO Agent starting run with config:
+	tv_weight: 0.03672195413880052
+2024-12-11 06:48:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.03672195413880052
+2024-12-11 06:48:40 INFO Running runs: ['2zgsthzv']
+2024-12-11 06:58:13 INFO Cleaning up finished run: 2zgsthzv
+2024-12-11 06:58:14 INFO Agent received command: run
+2024-12-11 06:58:14 INFO Agent starting run with config:
+	tv_weight: 0.02447888263439259
+2024-12-11 06:58:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02447888263439259
+2024-12-11 06:58:19 INFO Running runs: ['n5xvytlo']
+2024-12-11 07:07:57 INFO Cleaning up finished run: n5xvytlo
+2024-12-11 07:07:57 INFO Agent received command: run
+2024-12-11 07:07:57 INFO Agent starting run with config:
+	tv_weight: 0.021951244333639455
+2024-12-11 07:07:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.021951244333639455
+2024-12-11 07:08:02 INFO Running runs: ['qnybs99s']
+2024-12-11 07:17:41 INFO Cleaning up finished run: qnybs99s
+2025-01-07 21:57:54 INFO Running runs: []
+2025-01-07 21:57:54 INFO Agent received command: run
+2025-01-07 21:57:54 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 21:57:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 21:57:59 INFO Running runs: ['g45vwmy4']
+2025-01-07 22:07:42 INFO Cleaning up finished run: g45vwmy4
+2025-01-07 22:07:43 INFO Agent received command: run
+2025-01-07 22:07:43 INFO Agent starting run with config:
+	tv_weight: 0.1
+2025-01-07 22:07:43 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.1
+2025-01-07 22:07:48 INFO Running runs: ['uakeslae']
+2025-01-07 22:17:21 INFO Cleaning up finished run: uakeslae
+2025-01-07 22:17:22 INFO Agent received command: exit
+2025-01-07 22:17:22 INFO Received exit command. Killing runs and quitting.
+2025-01-07 22:42:03 INFO Running runs: []
+2025-01-07 22:42:04 INFO Agent received command: run
+2025-01-07 22:42:04 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 22:42:04 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 22:42:09 INFO Running runs: ['1w1cx749']
+2025-01-07 22:43:52 INFO Running runs: []
+2025-01-07 22:43:52 INFO Agent received command: run
+2025-01-07 22:43:52 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 22:43:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 22:43:57 INFO Running runs: ['hgn5vfk6']
+2025-01-07 22:45:13 INFO Cleaning up finished run: hgn5vfk6
+2025-01-07 22:45:14 INFO Agent received command: run
+2025-01-07 22:45:14 INFO Agent starting run with config:
+	tv_weight: 0.001
+2025-01-07 22:45:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001
+2025-01-07 22:45:19 INFO Running runs: ['f2zv9um7']
+2025-01-07 22:46:35 INFO Cleaning up finished run: f2zv9um7
+2025-01-07 22:46:35 INFO Agent received command: run
+2025-01-07 22:46:35 INFO Agent starting run with config:
+	tv_weight: 0.002
+2025-01-07 22:46:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002
+2025-01-07 22:46:40 INFO Running runs: ['6qseakmm']
+2025-01-07 22:48:14 INFO Running runs: []
+2025-01-07 22:48:14 INFO Agent received command: run
+2025-01-07 22:48:14 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 22:48:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 22:48:19 INFO Running runs: ['69xtbmna']
+2025-01-07 22:49:35 INFO Cleaning up finished run: 69xtbmna
+2025-01-07 22:49:35 INFO Agent received command: run
+2025-01-07 22:49:35 INFO Agent starting run with config:
+	tv_weight: 0.001
+2025-01-07 22:49:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001
+2025-01-07 22:49:40 INFO Running runs: ['ewa88ef4']
+2025-01-07 22:50:46 INFO Running runs: []
+2025-01-07 22:50:46 INFO Agent received command: run
+2025-01-07 22:50:46 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 22:50:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 22:50:51 INFO Running runs: ['g7w1t8pz']
+2025-01-07 22:52:07 INFO Cleaning up finished run: g7w1t8pz
+2025-01-07 22:52:08 INFO Agent received command: run
+2025-01-07 22:52:08 INFO Agent starting run with config:
+	tv_weight: 0.001
+2025-01-07 22:52:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001
+2025-01-07 22:52:13 INFO Running runs: ['ysrjmg5p']
+2025-01-07 22:53:31 INFO Running runs: []
+2025-01-07 22:53:32 INFO Agent received command: run
+2025-01-07 22:53:32 INFO Agent starting run with config:
+	tv_weight: 0.002
+2025-01-07 22:53:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002
+2025-01-07 22:53:37 INFO Running runs: ['1wjlven0']
+2025-01-07 22:55:06 INFO Running runs: []
+2025-01-07 22:55:06 INFO Agent received command: run
+2025-01-07 22:55:06 INFO Agent starting run with config:
+	tv_weight: 0.005
+2025-01-07 22:55:06 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005
+2025-01-07 22:55:11 INFO Running runs: ['uovu3c0p']
+2025-01-07 23:08:29 INFO Running runs: []
+2025-01-07 23:08:29 INFO Agent received command: run
+2025-01-07 23:08:29 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-07 23:08:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-07 23:08:34 INFO Running runs: ['w5vazh6x']
+2025-01-07 23:31:34 INFO Cleaning up finished run: w5vazh6x
+2025-01-07 23:31:34 INFO Agent received command: run
+2025-01-07 23:31:34 INFO Agent starting run with config:
+	tv_weight: 0.001
+2025-01-07 23:31:34 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001
+2025-01-07 23:31:39 INFO Running runs: ['30ata510']
+2025-01-07 23:56:51 INFO Cleaning up finished run: 30ata510
+2025-01-07 23:56:51 INFO Agent received command: run
+2025-01-07 23:56:51 INFO Agent starting run with config:
+	tv_weight: 0.002
+2025-01-07 23:56:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002
+2025-01-07 23:56:56 INFO Running runs: ['705hdm5o']
+2025-01-08 00:01:28 INFO Running runs: []
+2025-01-08 00:01:29 INFO Agent received command: run
+2025-01-08 00:01:29 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-08 00:01:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-08 00:01:34 INFO Running runs: ['sr6j01m5']
+2025-01-08 00:30:54 INFO Cleaning up finished run: sr6j01m5
+2025-01-08 00:30:54 INFO Agent received command: run
+2025-01-08 00:30:54 INFO Agent starting run with config:
+	tv_weight: 0.001
+2025-01-08 00:30:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001
+2025-01-08 00:30:59 INFO Running runs: ['bw3ysl1m']
+2025-01-08 01:00:45 INFO Cleaning up finished run: bw3ysl1m
+2025-01-08 01:00:46 INFO Agent received command: run
+2025-01-08 01:00:46 INFO Agent starting run with config:
+	tv_weight: 0.002
+2025-01-08 01:00:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002
+2025-01-08 01:00:51 INFO Running runs: ['ccijwwq7']
+2025-01-08 01:27:55 INFO Running runs: []
+2025-01-08 01:27:55 INFO Agent received command: run
+2025-01-08 01:27:55 INFO Agent starting run with config:
+	tv_weight: 0
+2025-01-08 01:27:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0
+2025-01-08 01:28:00 INFO Running runs: ['gcjyz6vt']
+2025-01-08 01:35:11 ERROR 400 response executing GraphQL.
+2025-01-08 01:35:11 ERROR {"errors":[{"message":"Invalid sweep config: Parameter tv_weight is a disallowed type with grid search. Grid search requires all parameters to be categorical, constant, int_uniform, or q_uniform. Specification of probabilities for categorical parameters is disallowed in grid search","path":["upsertSweep"]}],"data":{"upsertSweep":null}}
+2025-01-08 01:35:11 ERROR Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 400, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/gql_request.py", line 59, in execute
+    request.raise_for_status()
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 892, in sweep
+    prior_runs=prior_runs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/internal.py", line 133, in upsert_sweep
+    return self.api.upsert_sweep(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 57, in wrapper
+    raise err
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 25, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3340, in upsert_sweep
+    raise e
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3337, in upsert_sweep
+    check_retry_fn=util.no_retry_4xx,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 375, in gql
+    **kwargs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/lib/retry.py", line 147, in __call__
+    retry_timedelta_triggered = check_retry_fn(e)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/util.py", line 880, in no_retry_4xx
+    raise UsageError(body["errors"][0]["message"])
+wandb.errors.errors.UsageError: Invalid sweep config: Parameter tv_weight is a disallowed type with grid search. Grid search requires all parameters to be categorical, constant, int_uniform, or q_uniform. Specification of probabilities for categorical parameters is disallowed in grid search
+
+2025-01-08 01:36:28 INFO Running runs: []
+2025-01-08 01:36:28 INFO Agent received command: run
+2025-01-08 01:36:28 INFO Agent starting run with config:
+	tv_weight: 0.0007855058293896074
+2025-01-08 01:36:28 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0007855058293896074
+2025-01-08 01:36:33 INFO Running runs: ['6dut461v']
+2025-01-08 01:47:17 INFO Cleaning up finished run: 6dut461v
+2025-01-08 01:47:18 INFO Agent received command: run
+2025-01-08 01:47:18 INFO Agent starting run with config:
+	tv_weight: 0.00042764602080874227
+2025-01-08 01:47:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00042764602080874227
+2025-01-08 01:47:23 INFO Running runs: ['38m2j2dz']
+2025-01-08 01:58:07 INFO Cleaning up finished run: 38m2j2dz
+2025-01-08 01:58:14 INFO Agent received command: run
+2025-01-08 01:58:14 INFO Agent starting run with config:
+	tv_weight: 0.0007462819219774715
+2025-01-08 01:58:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0007462819219774715
+2025-01-08 01:58:19 INFO Running runs: ['kf8dmzdz']
+2025-01-08 02:09:14 INFO Cleaning up finished run: kf8dmzdz
+2025-01-08 02:09:14 INFO Agent received command: run
+2025-01-08 02:09:14 INFO Agent starting run with config:
+	tv_weight: 0.00020008219973415863
+2025-01-08 02:09:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00020008219973415863
+2025-01-08 02:09:19 INFO Running runs: ['d84nd5hs']
+2025-01-08 02:20:04 INFO Cleaning up finished run: d84nd5hs
+2025-01-08 02:20:30 INFO Agent received command: run
+2025-01-08 02:20:30 INFO Agent starting run with config:
+	tv_weight: 0.0010290733393264228
+2025-01-08 02:20:30 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0010290733393264228
+2025-01-08 02:20:35 INFO Running runs: ['7r4lv9xi']
+2025-01-08 02:31:25 INFO Cleaning up finished run: 7r4lv9xi
+2025-01-18 22:13:05 INFO Running runs: []
+2025-01-18 22:13:05 INFO Agent received command: run
+2025-01-18 22:13:05 INFO Agent starting run with config:
+	tv_weight: 0.007132187985947038
+2025-01-18 22:13:05 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007132187985947038
+2025-01-18 22:13:10 INFO Running runs: ['wlu6mmqv']
+2025-01-18 22:13:30 INFO Cleaning up finished run: wlu6mmqv
+2025-01-18 22:13:30 INFO Agent received command: run
+2025-01-18 22:13:30 INFO Agent starting run with config:
+	tv_weight: 0.008154602526412246
+2025-01-18 22:13:30 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008154602526412246
+2025-01-18 22:13:35 INFO Running runs: ['1fk2rpwg']
+2025-01-18 22:13:46 INFO Cleaning up finished run: 1fk2rpwg
+2025-01-18 22:13:46 INFO Agent received command: run
+2025-01-18 22:13:46 INFO Agent starting run with config:
+	tv_weight: 0.004642731581961819
+2025-01-18 22:13:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004642731581961819
+2025-01-18 22:13:51 INFO Running runs: ['3hx5zzyw']
+2025-01-18 22:14:01 INFO Cleaning up finished run: 3hx5zzyw
+2025-01-18 22:14:02 INFO Agent received command: run
+2025-01-18 22:14:02 INFO Agent starting run with config:
+	tv_weight: 0.004020294204156273
+2025-01-18 22:14:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004020294204156273
+2025-01-18 22:14:07 INFO Running runs: ['5p1u8ddc']
+2025-01-18 22:14:17 INFO Cleaning up finished run: 5p1u8ddc
+2025-01-18 22:14:17 INFO Agent received command: run
+2025-01-18 22:14:17 INFO Agent starting run with config:
+	tv_weight: 0.0004447189959545394
+2025-01-18 22:14:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0004447189959545394
+2025-01-18 22:14:22 INFO Running runs: ['n45wxuqg']
+2025-01-18 22:15:28 INFO Running runs: []
+2025-01-18 22:15:28 INFO Agent received command: run
+2025-01-18 22:15:28 INFO Agent starting run with config:
+	tv_weight: 0.007513197664467841
+2025-01-18 22:15:28 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007513197664467841
+2025-01-18 22:15:33 INFO Running runs: ['9e65qbjf']
+2025-01-18 22:30:01 INFO Running runs: []
+2025-01-18 22:30:01 INFO Agent received command: run
+2025-01-18 22:30:01 INFO Agent starting run with config:
+	tv_weight: 0.004666225991446679
+2025-01-18 22:30:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004666225991446679
+2025-01-18 22:30:06 INFO Running runs: ['61j0yhqw']
+2025-01-18 22:37:17 INFO Running runs: []
+2025-01-18 22:37:17 INFO Agent received command: run
+2025-01-18 22:37:17 INFO Agent starting run with config:
+	tv_weight: 0.0004908465593721834
+2025-01-18 22:37:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0004908465593721834
+2025-01-18 22:37:22 INFO Running runs: ['4lst21sl']
+2025-01-18 22:45:45 INFO Cleaning up finished run: 4lst21sl
+2025-01-18 22:45:45 INFO Agent received command: run
+2025-01-18 22:45:45 INFO Agent starting run with config:
+	tv_weight: 0.008004362083919038
+2025-01-18 22:45:45 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008004362083919038
+2025-01-18 22:45:50 INFO Running runs: ['92hhb6ku']
+2025-01-18 22:54:13 INFO Cleaning up finished run: 92hhb6ku
+2025-01-18 22:54:13 INFO Agent received command: run
+2025-01-18 22:54:13 INFO Agent starting run with config:
+	tv_weight: 0.009878133682145076
+2025-01-18 22:54:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009878133682145076
+2025-01-18 22:54:18 INFO Running runs: ['wyvs0wpv']
+2025-01-18 23:02:41 INFO Cleaning up finished run: wyvs0wpv
+2025-01-18 23:02:41 INFO Agent received command: run
+2025-01-18 23:02:41 INFO Agent starting run with config:
+	tv_weight: 0.006492275788419591
+2025-01-18 23:02:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006492275788419591
+2025-01-18 23:02:46 INFO Running runs: ['iziypojw']
+2025-01-18 23:11:14 INFO Cleaning up finished run: iziypojw
+2025-01-18 23:11:15 INFO Agent received command: run
+2025-01-18 23:11:15 INFO Agent starting run with config:
+	tv_weight: 0.0004857214167076918
+2025-01-18 23:11:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0004857214167076918
+2025-01-18 23:11:20 INFO Running runs: ['p89tlqlr']
+2025-01-18 23:19:44 INFO Cleaning up finished run: p89tlqlr
+2025-01-18 23:19:44 INFO Agent received command: run
+2025-01-18 23:19:44 INFO Agent starting run with config:
+	tv_weight: 0.006973477894865977
+2025-01-18 23:19:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006973477894865977
+2025-01-18 23:19:49 INFO Running runs: ['1289yv16']
+2025-01-18 23:28:09 INFO Cleaning up finished run: 1289yv16
+2025-01-18 23:28:09 INFO Agent received command: run
+2025-01-18 23:28:09 INFO Agent starting run with config:
+	tv_weight: 0.003877400480164768
+2025-01-18 23:28:09 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003877400480164768
+2025-01-18 23:28:14 INFO Running runs: ['oqqnoqpj']
+2025-01-18 23:36:37 INFO Cleaning up finished run: oqqnoqpj
+2025-01-18 23:36:37 INFO Agent received command: run
+2025-01-18 23:36:37 INFO Agent starting run with config:
+	tv_weight: 0.004007800205311667
+2025-01-18 23:36:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004007800205311667
+2025-01-18 23:36:42 INFO Running runs: ['zg39opca']
+2025-01-18 23:44:59 INFO Cleaning up finished run: zg39opca
+2025-01-18 23:45:00 INFO Agent received command: run
+2025-01-18 23:45:00 INFO Agent starting run with config:
+	tv_weight: 0.006788217110853094
+2025-01-18 23:45:00 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006788217110853094
+2025-01-18 23:45:05 INFO Running runs: ['6pems29i']
+2025-01-18 23:53:32 INFO Cleaning up finished run: 6pems29i
+2025-01-18 23:53:33 INFO Agent received command: run
+2025-01-18 23:53:33 INFO Agent starting run with config:
+	tv_weight: 0.004135892215249578
+2025-01-18 23:53:33 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004135892215249578
+2025-01-18 23:53:38 INFO Running runs: ['rz4dkau6']
+2025-01-19 00:00:08 INFO Running runs: []
+2025-01-19 00:00:08 INFO Agent received command: run
+2025-01-19 00:00:08 INFO Agent starting run with config:
+	tv_weight: 0.009067780660563816
+2025-01-19 00:00:08 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.009067780660563816
+2025-01-19 00:00:13 INFO Running runs: ['w4d8lfqj']
+2025-01-19 00:00:13 INFO Cleaning up finished run: w4d8lfqj
+2025-01-19 00:00:13 INFO Agent received command: run
+2025-01-19 00:00:13 INFO Agent starting run with config:
+	tv_weight: 0.004094879087983966
+2025-01-19 00:00:13 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.004094879087983966
+2025-01-19 00:00:40 INFO Running runs: []
+2025-01-19 00:00:40 INFO Agent received command: run
+2025-01-19 00:00:40 INFO Agent starting run with config:
+	tv_weight: 0.006431878024518964
+2025-01-19 00:00:40 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.006431878024518964
+2025-01-19 00:00:45 INFO Running runs: ['q6u6fq0j']
+2025-01-19 00:02:10 INFO Cleaning up finished run: rz4dkau6
+2025-01-19 00:02:11 INFO Agent received command: run
+2025-01-19 00:02:11 INFO Agent starting run with config:
+	tv_weight: 0.007689837591132287
+2025-01-19 00:02:11 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007689837591132287
+2025-01-19 00:02:16 INFO Running runs: ['grg65tyf']
+2025-01-19 00:07:36 INFO Cleaning up finished run: q6u6fq0j
+2025-01-19 00:07:36 INFO Agent received command: run
+2025-01-19 00:07:36 INFO Agent starting run with config:
+	tv_weight: 0.006952796613825896
+2025-01-19 00:07:36 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.006952796613825896
+2025-01-19 00:07:41 INFO Running runs: ['21zmdoa4']
+2025-01-19 00:13:20 INFO Cleaning up finished run: grg65tyf
+2025-01-19 00:13:21 INFO Agent received command: run
+2025-01-19 00:13:21 INFO Agent starting run with config:
+	tv_weight: 2.1760945865065828e-05
+2025-01-19 00:13:21 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=2.1760945865065828e-05
+2025-01-19 00:13:26 INFO Running runs: ['duvqr0vz']
+2025-01-19 00:14:02 INFO Cleaning up finished run: 21zmdoa4
+2025-01-19 00:14:02 INFO Agent received command: run
+2025-01-19 00:14:02 INFO Agent starting run with config:
+	tv_weight: 0.0030086407497798996
+2025-01-19 00:14:02 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0030086407497798996
+2025-01-19 00:14:07 INFO Running runs: ['ldw2pxs3']
+2025-01-19 00:23:25 INFO Cleaning up finished run: ldw2pxs3
+2025-01-19 00:23:26 INFO Agent received command: run
+2025-01-19 00:23:26 INFO Agent starting run with config:
+	tv_weight: 0.001658570835392148
+2025-01-19 00:23:26 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.001658570835392148
+2025-01-19 00:23:31 INFO Running runs: ['i9oezzn0']
+2025-01-19 00:24:45 INFO Cleaning up finished run: duvqr0vz
+2025-01-19 00:24:45 INFO Agent received command: run
+2025-01-19 00:24:45 INFO Agent starting run with config:
+	tv_weight: 0.009508780467846638
+2025-01-19 00:24:45 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009508780467846638
+2025-01-19 00:24:50 INFO Running runs: ['qqzcf1pv']
+2025-01-19 00:30:42 INFO Cleaning up finished run: i9oezzn0
+2025-01-19 00:30:42 INFO Agent received command: run
+2025-01-19 00:30:42 INFO Agent starting run with config:
+	tv_weight: 0.002036333887787828
+2025-01-19 00:30:42 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.002036333887787828
+2025-01-19 00:30:47 INFO Running runs: ['11soawlq']
+2025-01-19 00:36:05 INFO Cleaning up finished run: qqzcf1pv
+2025-01-19 00:36:06 INFO Agent received command: run
+2025-01-19 00:36:06 INFO Agent starting run with config:
+	tv_weight: 0.000567714136940275
+2025-01-19 00:36:06 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.000567714136940275
+2025-01-19 00:36:11 INFO Running runs: ['byczzcgl']
+2025-01-19 00:36:47 INFO Cleaning up finished run: 11soawlq
+2025-01-19 00:36:47 INFO Agent received command: run
+2025-01-19 00:36:47 INFO Agent starting run with config:
+	tv_weight: 0.006947202556082561
+2025-01-19 00:36:47 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.006947202556082561
+2025-01-19 00:36:52 INFO Running runs: ['8ssha6pn']
+2025-01-19 00:46:41 INFO Cleaning up finished run: 8ssha6pn
+2025-01-19 00:46:41 INFO Agent received command: run
+2025-01-19 00:46:41 INFO Agent starting run with config:
+	tv_weight: 0.009251432646475906
+2025-01-19 00:46:41 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.009251432646475906
+2025-01-19 00:46:46 INFO Running runs: ['wbwnsy6t']
+2025-01-19 00:47:25 INFO Cleaning up finished run: byczzcgl
+2025-01-19 00:47:26 INFO Agent received command: run
+2025-01-19 00:47:26 INFO Agent starting run with config:
+	tv_weight: 0.003673679893730071
+2025-01-19 00:47:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003673679893730071
+2025-01-19 00:47:31 INFO Running runs: ['utckna9p']
+2025-01-19 00:54:28 INFO Cleaning up finished run: wbwnsy6t
+2025-01-19 00:54:29 INFO Agent received command: run
+2025-01-19 00:54:29 INFO Agent starting run with config:
+	tv_weight: 0.0010833842047625675
+2025-01-19 00:54:29 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0010833842047625675
+2025-01-19 00:54:34 INFO Running runs: ['1cg7mnoy']
+2025-01-19 00:57:15 ERROR 502 response executing GraphQL.
+2025-01-19 00:57:15 ERROR 
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>502 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+
+2025-01-19 00:58:50 INFO Cleaning up finished run: utckna9p
+2025-01-19 00:58:51 INFO Agent received command: run
+2025-01-19 00:58:51 INFO Agent starting run with config:
+	tv_weight: 0.00984663738899164
+2025-01-19 00:58:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00984663738899164
+2025-01-19 00:58:56 INFO Running runs: ['wvrbif6b']
+2025-01-19 00:59:49 INFO Cleaning up finished run: 1cg7mnoy
+2025-01-19 00:59:49 INFO Agent received command: run
+2025-01-19 00:59:49 INFO Agent starting run with config:
+	tv_weight: 0.004030184205326959
+2025-01-19 00:59:49 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.004030184205326959
+2025-01-19 00:59:54 INFO Running runs: ['k887y9u5']
+2025-01-19 01:09:48 INFO Cleaning up finished run: k887y9u5
+2025-01-19 01:09:48 INFO Agent received command: run
+2025-01-19 01:09:48 INFO Agent starting run with config:
+	tv_weight: 0.009067780660563816
+2025-01-19 01:09:48 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.009067780660563816
+2025-01-19 01:09:53 INFO Running runs: ['w4d8lfqj']
+2025-01-19 01:10:21 INFO Cleaning up finished run: wvrbif6b
+2025-01-19 01:10:21 INFO Agent received command: run
+2025-01-19 01:10:21 INFO Agent starting run with config:
+	tv_weight: 0.003940074055430875
+2025-01-19 01:10:21 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003940074055430875
+2025-01-19 01:10:26 INFO Running runs: ['2n4cdi2z']
+2025-01-19 01:17:55 INFO Cleaning up finished run: w4d8lfqj
+2025-01-19 01:17:56 INFO Agent received command: run
+2025-01-19 01:17:56 INFO Agent starting run with config:
+	tv_weight: 0.004094879087983966
+2025-01-19 01:17:56 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.004094879087983966
+2025-01-19 01:18:01 INFO Running runs: ['o0euhitn']
+2025-01-19 01:21:27 INFO Cleaning up finished run: 2n4cdi2z
+2025-01-19 01:21:27 INFO Agent received command: run
+2025-01-19 01:21:27 INFO Agent starting run with config:
+	tv_weight: 0.0014189450863176024
+2025-01-19 01:21:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0014189450863176024
+2025-01-19 01:21:32 INFO Running runs: ['zh4mrxbv']
+2025-01-19 01:22:55 INFO Cleaning up finished run: o0euhitn
+2025-01-19 01:22:55 INFO Agent received command: run
+2025-01-19 01:22:55 INFO Agent starting run with config:
+	tv_weight: 0.002322785124864859
+2025-01-19 01:22:55 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.002322785124864859
+2025-01-19 01:23:00 INFO Running runs: ['yp0w1gpz']
+2025-01-19 01:32:18 INFO Cleaning up finished run: yp0w1gpz
+2025-01-19 01:32:19 INFO Agent received command: run
+2025-01-19 01:32:19 INFO Agent starting run with config:
+	tv_weight: 0.008448995273068013
+2025-01-19 01:32:19 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.008448995273068013
+2025-01-19 01:32:24 INFO Running runs: ['ow051i7f']
+2025-01-19 01:32:42 INFO Cleaning up finished run: zh4mrxbv
+2025-01-19 01:32:43 INFO Agent received command: run
+2025-01-19 01:32:43 INFO Agent starting run with config:
+	tv_weight: 0.0008364323196853951
+2025-01-19 01:32:43 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0008364323196853951
+2025-01-19 01:32:48 INFO Running runs: ['4jjq3704']
+2025-01-19 01:40:36 INFO Cleaning up finished run: ow051i7f
+2025-01-19 01:40:36 INFO Agent received command: run
+2025-01-19 01:40:36 INFO Agent starting run with config:
+	tv_weight: 0.0001320963824047927
+2025-01-19 01:40:36 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0001320963824047927
+2025-01-19 01:40:41 INFO Running runs: ['d48ae340']
+2025-01-19 01:43:57 INFO Cleaning up finished run: 4jjq3704
+2025-01-19 01:43:58 INFO Agent received command: run
+2025-01-19 01:43:58 INFO Agent starting run with config:
+	tv_weight: 0.005571774364116107
+2025-01-19 01:43:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005571774364116107
+2025-01-19 01:44:03 INFO Running runs: ['y4j1hhly']
+2025-01-19 01:45:31 INFO Cleaning up finished run: d48ae340
+2025-01-19 01:45:31 INFO Agent received command: run
+2025-01-19 01:45:31 INFO Agent starting run with config:
+	tv_weight: 0.0024030884613210723
+2025-01-19 01:45:31 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0024030884613210723
+2025-01-19 01:45:36 INFO Running runs: ['w7myk9h2']
+2025-01-19 01:54:54 INFO Cleaning up finished run: w7myk9h2
+2025-01-19 01:54:54 INFO Agent received command: run
+2025-01-19 01:54:54 INFO Agent starting run with config:
+	tv_weight: 0.0005445379191445187
+2025-01-19 01:54:54 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0005445379191445187
+2025-01-19 01:54:59 INFO Running runs: ['6u53s7wm']
+2025-01-19 01:55:12 INFO Cleaning up finished run: y4j1hhly
+2025-01-19 01:55:13 INFO Agent received command: run
+2025-01-19 01:55:13 INFO Agent starting run with config:
+	tv_weight: 0.009341787350787662
+2025-01-19 01:55:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009341787350787662
+2025-01-19 01:55:18 INFO Running runs: ['jdp607k6']
+2025-01-19 02:03:21 INFO Cleaning up finished run: 6u53s7wm
+2025-01-19 02:03:22 INFO Agent received command: run
+2025-01-19 02:03:22 INFO Agent starting run with config:
+	tv_weight: 0.0006501577446650553
+2025-01-19 02:03:22 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0006501577446650553
+2025-01-19 02:03:27 INFO Running runs: ['op4mispb']
+2025-01-19 02:06:22 INFO Cleaning up finished run: jdp607k6
+2025-01-19 02:06:23 INFO Agent received command: run
+2025-01-19 02:06:23 INFO Agent starting run with config:
+	tv_weight: 0.006012531387578782
+2025-01-19 02:06:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006012531387578782
+2025-01-19 02:06:28 INFO Running runs: ['abbbldbe']
+2025-01-19 02:08:27 INFO Cleaning up finished run: op4mispb
+2025-01-19 02:08:27 INFO Agent received command: run
+2025-01-19 02:08:27 INFO Agent starting run with config:
+	tv_weight: 0.0018889704657080264
+2025-01-19 02:08:27 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0018889704657080264
+2025-01-19 02:08:32 INFO Running runs: ['xa37f3na']
+2025-01-19 02:17:15 INFO Cleaning up finished run: xa37f3na
+2025-01-19 02:17:15 INFO Agent received command: run
+2025-01-19 02:17:15 INFO Agent starting run with config:
+	tv_weight: 0.004463548625469684
+2025-01-19 02:17:15 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.004463548625469684
+2025-01-19 02:17:20 INFO Running runs: ['aavxqmef']
+2025-01-19 02:17:27 INFO Cleaning up finished run: abbbldbe
+2025-01-19 02:17:27 INFO Agent received command: run
+2025-01-19 02:17:27 INFO Agent starting run with config:
+	tv_weight: 0.0071276530130517666
+2025-01-19 02:17:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0071276530130517666
+2025-01-19 02:17:32 INFO Running runs: ['ivsfl0sx']
+2025-01-19 02:25:47 INFO Cleaning up finished run: aavxqmef
+2025-01-19 02:25:48 INFO Agent received command: run
+2025-01-19 02:25:48 INFO Agent starting run with config:
+	tv_weight: 0.001653156833994326
+2025-01-19 02:25:48 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.001653156833994326
+2025-01-19 02:25:53 INFO Running runs: ['6aq14qho']
+2025-01-19 02:28:42 INFO Cleaning up finished run: ivsfl0sx
+2025-01-19 02:28:42 INFO Agent received command: run
+2025-01-19 02:28:42 INFO Agent starting run with config:
+	tv_weight: 0.00847683909963158
+2025-01-19 02:28:42 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00847683909963158
+2025-01-19 02:28:47 INFO Running runs: ['cdd1ht3y']
+2025-01-19 02:31:07 INFO Cleaning up finished run: 6aq14qho
+2025-01-19 02:31:07 INFO Agent received command: run
+2025-01-19 02:31:07 INFO Agent starting run with config:
+	tv_weight: 0.0031851015011068753
+2025-01-19 02:31:07 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0031851015011068753
+2025-01-19 02:31:12 INFO Running runs: ['y4oyal9t']
+2025-01-19 02:39:39 INFO Cleaning up finished run: y4oyal9t
+2025-01-19 02:39:40 INFO Agent received command: run
+2025-01-19 02:39:40 INFO Agent starting run with config:
+	tv_weight: 0.0039242216898645954
+2025-01-19 02:39:40 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0039242216898645954
+2025-01-19 02:39:45 INFO Running runs: ['mf8abr7a']
+2025-01-19 02:39:46 INFO Cleaning up finished run: cdd1ht3y
+2025-01-19 02:39:47 INFO Agent received command: run
+2025-01-19 02:39:47 INFO Agent starting run with config:
+	tv_weight: 0.0042910918529644486
+2025-01-19 02:39:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0042910918529644486
+2025-01-19 02:39:52 INFO Running runs: ['wou6wbtc']
+2025-01-19 02:48:07 INFO Cleaning up finished run: mf8abr7a
+2025-01-19 02:48:07 INFO Agent received command: run
+2025-01-19 02:48:07 INFO Agent starting run with config:
+	tv_weight: 0.0017680451274676402
+2025-01-19 02:48:07 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0017680451274676402
+2025-01-19 02:48:12 INFO Running runs: ['ffvfwevz']
+2025-01-19 02:51:16 INFO Cleaning up finished run: wou6wbtc
+2025-01-19 02:51:17 INFO Agent received command: run
+2025-01-19 02:51:17 INFO Agent starting run with config:
+	tv_weight: 0.00831615887203946
+2025-01-19 02:51:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00831615887203946
+2025-01-19 02:51:22 INFO Running runs: ['rw5kz809']
+2025-01-19 02:53:06 INFO Cleaning up finished run: ffvfwevz
+2025-01-19 02:53:07 INFO Agent received command: run
+2025-01-19 02:53:07 INFO Agent starting run with config:
+	tv_weight: 0.0006331999551650025
+2025-01-19 02:53:07 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0006331999551650025
+2025-01-19 02:53:12 INFO Running runs: ['syt3frtr']
+2025-01-19 03:02:09 INFO Cleaning up finished run: syt3frtr
+2025-01-19 03:02:10 INFO Agent received command: run
+2025-01-19 03:02:10 INFO Agent starting run with config:
+	tv_weight: 0.0007808234822935124
+2025-01-19 03:02:10 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0007808234822935124
+2025-01-19 03:02:15 INFO Running runs: ['63brgddk']
+2025-01-19 03:02:31 INFO Cleaning up finished run: rw5kz809
+2025-01-19 03:02:31 INFO Agent received command: run
+2025-01-19 03:02:31 INFO Agent starting run with config:
+	tv_weight: 0.008842916815638207
+2025-01-19 03:02:31 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008842916815638207
+2025-01-19 03:02:36 INFO Running runs: ['adnjphp3']
+2025-01-19 03:10:32 INFO Cleaning up finished run: 63brgddk
+2025-01-19 03:10:33 INFO Agent received command: run
+2025-01-19 03:10:33 INFO Agent starting run with config:
+	tv_weight: 0.008300750997283371
+2025-01-19 03:10:33 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.008300750997283371
+2025-01-19 03:10:38 INFO Running runs: ['xfz7wfwp']
+2025-01-19 03:13:36 INFO Cleaning up finished run: adnjphp3
+2025-01-19 03:13:37 INFO Agent received command: run
+2025-01-19 03:13:37 INFO Agent starting run with config:
+	tv_weight: 0.0010531131101312208
+2025-01-19 03:13:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0010531131101312208
+2025-01-19 03:13:42 INFO Running runs: ['82y43h3g']
+2025-01-19 03:15:42 INFO Cleaning up finished run: xfz7wfwp
+2025-01-19 03:15:42 INFO Agent received command: run
+2025-01-19 03:15:42 INFO Agent starting run with config:
+	tv_weight: 0.003762157370720835
+2025-01-19 03:15:42 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.003762157370720835
+2025-01-19 03:15:47 INFO Running runs: ['5kyndwpk']
+2025-01-19 03:24:30 INFO Cleaning up finished run: 5kyndwpk
+2025-01-19 03:24:30 INFO Agent received command: run
+2025-01-19 03:24:30 INFO Agent starting run with config:
+	tv_weight: 0.0018264442925127445
+2025-01-19 03:24:30 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0018264442925127445
+2025-01-19 03:24:35 INFO Running runs: ['p9svabb4']
+2025-01-19 03:24:46 INFO Cleaning up finished run: 82y43h3g
+2025-01-19 03:24:47 INFO Agent received command: run
+2025-01-19 03:24:47 INFO Agent starting run with config:
+	tv_weight: 0.006491236069892456
+2025-01-19 03:24:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006491236069892456
+2025-01-19 03:24:52 INFO Running runs: ['r4nkdjt3']
+2025-01-19 03:32:57 INFO Cleaning up finished run: p9svabb4
+2025-01-19 03:32:58 INFO Agent received command: run
+2025-01-19 03:32:58 INFO Agent starting run with config:
+	tv_weight: 0.0007448287902481843
+2025-01-19 03:32:58 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.0007448287902481843
+2025-01-19 03:33:03 INFO Running runs: ['vmafxviz']
+2025-01-19 03:35:56 INFO Cleaning up finished run: r4nkdjt3
+2025-01-19 03:35:57 INFO Agent received command: run
+2025-01-19 03:35:57 INFO Agent starting run with config:
+	tv_weight: 0.003091903682288191
+2025-01-19 03:35:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003091903682288191
+2025-01-19 03:36:02 INFO Running runs: ['g26ehds2']
+2025-01-19 03:38:02 INFO Cleaning up finished run: vmafxviz
+2025-01-19 03:38:03 INFO Agent received command: run
+2025-01-19 03:38:03 INFO Agent starting run with config:
+	tv_weight: 0.006877768351831618
+2025-01-19 03:38:03 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_weight=0.006877768351831618
+2025-01-19 03:38:08 INFO Running runs: ['gbinhj1x']
+2025-01-19 03:46:50 INFO Cleaning up finished run: gbinhj1x
+2025-01-19 03:47:01 INFO Cleaning up finished run: g26ehds2
+2025-01-19 03:47:01 INFO Agent received command: run
+2025-01-19 03:47:01 INFO Agent starting run with config:
+	tv_weight: 0.0024329605189334223
+2025-01-19 03:47:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0024329605189334223
+2025-01-19 03:47:06 INFO Running runs: ['rkxf4mu8']
+2025-01-19 03:55:54 INFO Cleaning up finished run: rkxf4mu8
+2025-01-19 03:55:54 INFO Agent received command: run
+2025-01-19 03:55:54 INFO Agent starting run with config:
+	tv_weight: 0.002892067357599898
+2025-01-19 03:55:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002892067357599898
+2025-01-19 03:55:59 INFO Running runs: ['s3tgu9b8']
+2025-01-19 04:04:22 INFO Cleaning up finished run: s3tgu9b8
+2025-01-19 04:04:22 INFO Agent received command: run
+2025-01-19 04:04:22 INFO Agent starting run with config:
+	tv_weight: 0.007696216711225575
+2025-01-19 04:04:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007696216711225575
+2025-01-19 04:04:27 INFO Running runs: ['zlh83hlr']
+2025-01-19 04:12:50 INFO Cleaning up finished run: zlh83hlr
+2025-01-19 04:12:50 INFO Agent received command: run
+2025-01-19 04:12:50 INFO Agent starting run with config:
+	tv_weight: 7.940329755954379e-05
+2025-01-19 04:12:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=7.940329755954379e-05
+2025-01-19 04:12:55 INFO Running runs: ['wdtxaq1h']
+2025-01-19 04:21:18 INFO Cleaning up finished run: wdtxaq1h
+2025-01-19 04:21:18 INFO Agent received command: run
+2025-01-19 04:21:18 INFO Agent starting run with config:
+	tv_weight: 0.003097060839779026
+2025-01-19 04:21:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003097060839779026
+2025-01-19 04:21:23 INFO Running runs: ['jztpwt95']
+2025-01-19 04:29:50 INFO Cleaning up finished run: jztpwt95
+2025-01-19 04:29:51 INFO Agent received command: run
+2025-01-19 04:29:51 INFO Agent starting run with config:
+	tv_weight: 0.007261826476903229
+2025-01-19 04:29:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007261826476903229
+2025-01-19 04:29:56 INFO Running runs: ['p17pd1d1']
+2025-01-19 04:38:23 INFO Cleaning up finished run: p17pd1d1
+2025-01-19 04:38:23 INFO Agent received command: run
+2025-01-19 04:38:23 INFO Agent starting run with config:
+	tv_weight: 0.004304587938314992
+2025-01-19 04:38:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004304587938314992
+2025-01-19 04:38:28 INFO Running runs: ['yajh1boj']
+2025-01-19 04:46:51 INFO Cleaning up finished run: yajh1boj
+2025-01-19 04:46:51 INFO Agent received command: run
+2025-01-19 04:46:51 INFO Agent starting run with config:
+	tv_weight: 0.006115558178913141
+2025-01-19 04:46:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006115558178913141
+2025-01-19 04:46:56 INFO Running runs: ['d5y728ce']
+2025-01-19 04:55:19 INFO Cleaning up finished run: d5y728ce
+2025-01-19 04:55:20 INFO Agent received command: run
+2025-01-19 04:55:20 INFO Agent starting run with config:
+	tv_weight: 0.0023065235170353616
+2025-01-19 04:55:20 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0023065235170353616
+2025-01-19 04:55:25 INFO Running runs: ['shgkun2w']
+2025-01-19 05:03:47 INFO Cleaning up finished run: shgkun2w
+2025-01-19 05:03:47 INFO Agent received command: run
+2025-01-19 05:03:47 INFO Agent starting run with config:
+	tv_weight: 1.4600633162049626e-05
+2025-01-19 05:03:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=1.4600633162049626e-05
+2025-01-19 05:03:52 INFO Running runs: ['f2hpzgp7']
+2025-01-19 05:12:15 INFO Cleaning up finished run: f2hpzgp7
+2025-01-19 05:12:15 INFO Agent received command: run
+2025-01-19 05:12:15 INFO Agent starting run with config:
+	tv_weight: 0.0036160814775903806
+2025-01-19 05:12:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0036160814775903806
+2025-01-19 05:12:20 INFO Running runs: ['wbn6uvuw']
+2025-01-19 05:20:42 INFO Cleaning up finished run: wbn6uvuw
+2025-01-19 05:20:43 INFO Agent received command: run
+2025-01-19 05:20:43 INFO Agent starting run with config:
+	tv_weight: 0.006042472516235784
+2025-01-19 05:20:43 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006042472516235784
+2025-01-19 05:20:48 INFO Running runs: ['qe13gdsw']
+2025-01-19 05:29:05 INFO Cleaning up finished run: qe13gdsw
+2025-01-19 05:29:05 INFO Agent received command: run
+2025-01-19 05:29:05 INFO Agent starting run with config:
+	tv_weight: 0.0008826873713124817
+2025-01-19 05:29:05 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0008826873713124817
+2025-01-19 05:29:10 INFO Running runs: ['k5wha5ol']
+2025-01-19 05:37:28 INFO Cleaning up finished run: k5wha5ol
+2025-01-19 05:37:28 INFO Agent received command: run
+2025-01-19 05:37:28 INFO Agent starting run with config:
+	tv_weight: 0.008144342762542856
+2025-01-19 05:37:28 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008144342762542856
+2025-01-19 05:37:33 INFO Running runs: ['r6hca3h7']
+2025-01-19 05:46:00 INFO Cleaning up finished run: r6hca3h7
+2025-01-19 05:46:01 INFO Agent received command: run
+2025-01-19 05:46:01 INFO Agent starting run with config:
+	tv_weight: 0.004267938514544504
+2025-01-19 05:46:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004267938514544504
+2025-01-19 05:46:06 INFO Running runs: ['5wigoydw']
+2025-01-19 05:54:23 INFO Cleaning up finished run: 5wigoydw
+2025-01-19 05:54:23 INFO Agent received command: run
+2025-01-19 05:54:23 INFO Agent starting run with config:
+	tv_weight: 0.008040655018708242
+2025-01-19 05:54:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008040655018708242
+2025-01-19 05:54:28 INFO Running runs: ['l9xke3g8']
+2025-01-19 06:02:51 INFO Cleaning up finished run: l9xke3g8
+2025-01-19 06:02:51 INFO Agent received command: run
+2025-01-19 06:02:51 INFO Agent starting run with config:
+	tv_weight: 0.0018399570309704483
+2025-01-19 06:02:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0018399570309704483
+2025-01-19 06:02:56 INFO Running runs: ['n2obwxpp']
+2025-01-19 06:11:13 INFO Cleaning up finished run: n2obwxpp
+2025-01-19 06:11:14 INFO Agent received command: run
+2025-01-19 06:11:14 INFO Agent starting run with config:
+	tv_weight: 0.002316179578483744
+2025-01-19 06:11:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002316179578483744
+2025-01-19 06:11:19 INFO Running runs: ['p631nnk5']
+2025-01-19 06:19:41 INFO Cleaning up finished run: p631nnk5
+2025-01-19 06:19:41 INFO Agent received command: run
+2025-01-19 06:19:41 INFO Agent starting run with config:
+	tv_weight: 0.0006751796562115997
+2025-01-19 06:19:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0006751796562115997
+2025-01-19 06:19:46 INFO Running runs: ['0hivev1u']
+2025-01-19 06:28:03 INFO Cleaning up finished run: 0hivev1u
+2025-01-19 06:28:04 INFO Agent received command: run
+2025-01-19 06:28:04 INFO Agent starting run with config:
+	tv_weight: 0.00984297362481226
+2025-01-19 06:28:04 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00984297362481226
+2025-01-19 06:28:09 INFO Running runs: ['isgoxn47']
+2025-01-19 06:36:26 INFO Cleaning up finished run: isgoxn47
+2025-01-19 06:36:26 INFO Agent received command: run
+2025-01-19 06:36:26 INFO Agent starting run with config:
+	tv_weight: 0.00527428552703172
+2025-01-19 06:36:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00527428552703172
+2025-01-19 06:36:31 INFO Running runs: ['vm2m5o2o']
+2025-01-19 06:44:53 INFO Cleaning up finished run: vm2m5o2o
+2025-01-19 06:44:54 INFO Agent received command: run
+2025-01-19 06:44:54 INFO Agent starting run with config:
+	tv_weight: 0.001754687065638122
+2025-01-19 06:44:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001754687065638122
+2025-01-19 06:44:59 INFO Running runs: ['kx095kja']
+2025-01-19 06:53:26 INFO Cleaning up finished run: kx095kja
+2025-01-19 06:53:27 INFO Agent received command: run
+2025-01-19 06:53:27 INFO Agent starting run with config:
+	tv_weight: 0.0030622283822027154
+2025-01-19 06:53:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0030622283822027154
+2025-01-19 06:53:32 INFO Running runs: ['zj0h0n2h']
+2025-01-19 07:01:49 INFO Cleaning up finished run: zj0h0n2h
+2025-01-19 07:01:49 INFO Agent received command: run
+2025-01-19 07:01:49 INFO Agent starting run with config:
+	tv_weight: 0.0067641611188361955
+2025-01-19 07:01:49 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0067641611188361955
+2025-01-19 07:01:54 INFO Running runs: ['kw7uhsg2']
+2025-01-19 07:10:27 INFO Cleaning up finished run: kw7uhsg2
+2025-01-19 07:10:27 INFO Agent received command: run
+2025-01-19 07:10:27 INFO Agent starting run with config:
+	tv_weight: 0.008599342457358678
+2025-01-19 07:10:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008599342457358678
+2025-01-19 07:10:32 INFO Running runs: ['2btdnxr4']
+2025-01-19 07:18:49 INFO Cleaning up finished run: 2btdnxr4
+2025-01-19 07:18:50 INFO Agent received command: run
+2025-01-19 07:18:50 INFO Agent starting run with config:
+	tv_weight: 0.006144163177988393
+2025-01-19 07:18:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006144163177988393
+2025-01-19 07:18:55 INFO Running runs: ['c46bxtfk']
+2025-01-19 07:27:17 INFO Cleaning up finished run: c46bxtfk
+2025-01-19 07:27:18 INFO Agent received command: run
+2025-01-19 07:27:18 INFO Agent starting run with config:
+	tv_weight: 0.006841649815507428
+2025-01-19 07:27:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006841649815507428
+2025-01-19 07:27:23 INFO Running runs: ['rrxal325']
+2025-01-19 07:35:45 INFO Cleaning up finished run: rrxal325
+2025-01-19 07:35:46 INFO Agent received command: run
+2025-01-19 07:35:46 INFO Agent starting run with config:
+	tv_weight: 0.006069664061861229
+2025-01-19 07:35:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006069664061861229
+2025-01-19 07:35:51 INFO Running runs: ['wwmqvif7']
+2025-01-19 07:44:13 INFO Cleaning up finished run: wwmqvif7
+2025-01-19 07:44:13 INFO Agent received command: run
+2025-01-19 07:44:13 INFO Agent starting run with config:
+	tv_weight: 0.009986808161168917
+2025-01-19 07:44:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009986808161168917
+2025-01-19 07:44:18 INFO Running runs: ['8p2r1zfq']
+2025-01-19 07:52:40 INFO Cleaning up finished run: 8p2r1zfq
+2025-01-19 07:52:41 INFO Agent received command: run
+2025-01-19 07:52:41 INFO Agent starting run with config:
+	tv_weight: 0.007525399320979137
+2025-01-19 07:52:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007525399320979137
+2025-01-19 07:52:46 INFO Running runs: ['r6b4udaj']
+2025-01-19 08:01:03 INFO Cleaning up finished run: r6b4udaj
+2025-01-19 08:01:03 INFO Agent received command: run
+2025-01-19 08:01:03 INFO Agent starting run with config:
+	tv_weight: 0.00969689633395737
+2025-01-19 08:01:03 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00969689633395737
+2025-01-19 08:01:08 INFO Running runs: ['nuib7k4z']
+2025-01-19 08:09:25 INFO Cleaning up finished run: nuib7k4z
+2025-01-19 08:09:26 INFO Agent received command: run
+2025-01-19 08:09:26 INFO Agent starting run with config:
+	tv_weight: 0.00907170050160524
+2025-01-19 08:09:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00907170050160524
+2025-01-19 08:09:31 INFO Running runs: ['huay4khp']
+2025-01-19 08:17:53 INFO Cleaning up finished run: huay4khp
+2025-01-19 08:17:53 INFO Agent received command: run
+2025-01-19 08:17:53 INFO Agent starting run with config:
+	tv_weight: 0.002813892072290647
+2025-01-19 08:17:53 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002813892072290647
+2025-01-19 08:17:58 INFO Running runs: ['sj9iy7u6']
+2025-01-19 08:26:20 INFO Cleaning up finished run: sj9iy7u6
+2025-01-19 08:26:21 INFO Agent received command: run
+2025-01-19 08:26:21 INFO Agent starting run with config:
+	tv_weight: 0.006861533510425637
+2025-01-19 08:26:21 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006861533510425637
+2025-01-19 08:26:26 INFO Running runs: ['3vyjb2yi']
+2025-01-19 08:34:44 INFO Cleaning up finished run: 3vyjb2yi
+2025-01-19 08:34:45 INFO Agent received command: run
+2025-01-19 08:34:45 INFO Agent starting run with config:
+	tv_weight: 0.0032020025572339805
+2025-01-19 08:34:45 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0032020025572339805
+2025-01-19 08:34:50 INFO Running runs: ['xc62z4y6']
+2025-01-19 08:43:12 INFO Cleaning up finished run: xc62z4y6
+2025-01-19 08:43:12 INFO Agent received command: run
+2025-01-19 08:43:12 INFO Agent starting run with config:
+	tv_weight: 0.005362287071205504
+2025-01-19 08:43:12 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005362287071205504
+2025-01-19 08:43:17 INFO Running runs: ['fq9mfjbe']
+2025-01-19 08:51:34 INFO Cleaning up finished run: fq9mfjbe
+2025-01-19 08:51:35 INFO Agent received command: run
+2025-01-19 08:51:35 INFO Agent starting run with config:
+	tv_weight: 0.008628174640744812
+2025-01-19 08:51:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008628174640744812
+2025-01-19 08:51:40 INFO Running runs: ['r9xlvz9d']
+2025-01-19 09:00:02 INFO Cleaning up finished run: r9xlvz9d
+2025-01-19 09:00:02 INFO Agent received command: run
+2025-01-19 09:00:02 INFO Agent starting run with config:
+	tv_weight: 0.007948018114699909
+2025-01-19 09:00:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007948018114699909
+2025-01-19 09:00:07 INFO Running runs: ['uazihrau']
+2025-01-19 09:08:24 INFO Cleaning up finished run: uazihrau
+2025-01-19 09:08:25 INFO Agent received command: run
+2025-01-19 09:08:25 INFO Agent starting run with config:
+	tv_weight: 0.0009064477666448024
+2025-01-19 09:08:25 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0009064477666448024
+2025-01-19 09:08:30 INFO Running runs: ['whuyv506']
+2025-01-19 09:16:52 INFO Cleaning up finished run: whuyv506
+2025-01-19 09:16:52 INFO Agent received command: run
+2025-01-19 09:16:52 INFO Agent starting run with config:
+	tv_weight: 0.006271098902223489
+2025-01-19 09:16:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006271098902223489
+2025-01-19 09:16:57 INFO Running runs: ['0rj55a78']
+2025-01-19 09:25:35 INFO Cleaning up finished run: 0rj55a78
+2025-01-19 09:25:35 INFO Agent received command: run
+2025-01-19 09:25:35 INFO Agent starting run with config:
+	tv_weight: 0.007120720957659467
+2025-01-19 09:25:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007120720957659467
+2025-01-19 09:25:40 INFO Running runs: ['u6l2kmxz']
+2025-01-19 09:34:43 INFO Cleaning up finished run: u6l2kmxz
+2025-01-19 09:34:44 INFO Agent received command: run
+2025-01-19 09:34:44 INFO Agent starting run with config:
+	tv_weight: 0.0032624733966716093
+2025-01-19 09:34:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0032624733966716093
+2025-01-19 09:34:49 INFO Running runs: ['am3u3tq6']
+2025-01-19 09:43:06 INFO Cleaning up finished run: am3u3tq6
+2025-01-19 09:43:07 INFO Agent received command: run
+2025-01-19 09:43:07 INFO Agent starting run with config:
+	tv_weight: 0.0047242829060255365
+2025-01-19 09:43:07 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0047242829060255365
+2025-01-19 09:43:12 INFO Running runs: ['fxli7xcl']
+2025-01-19 09:51:29 INFO Cleaning up finished run: fxli7xcl
+2025-01-19 09:51:29 INFO Agent received command: run
+2025-01-19 09:51:29 INFO Agent starting run with config:
+	tv_weight: 0.006082099434107367
+2025-01-19 09:51:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006082099434107367
+2025-01-19 09:51:34 INFO Running runs: ['lrspvaa4']
+2025-01-19 09:59:51 INFO Cleaning up finished run: lrspvaa4
+2025-01-19 09:59:52 INFO Agent received command: run
+2025-01-19 09:59:52 INFO Agent starting run with config:
+	tv_weight: 0.00912868185456582
+2025-01-19 09:59:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00912868185456582
+2025-01-19 09:59:57 INFO Running runs: ['qurmp2kw']
+2025-01-19 10:08:14 INFO Cleaning up finished run: qurmp2kw
+2025-01-19 10:08:14 INFO Agent received command: run
+2025-01-19 10:08:14 INFO Agent starting run with config:
+	tv_weight: 0.004206068234941619
+2025-01-19 10:08:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004206068234941619
+2025-01-19 10:08:19 INFO Running runs: ['jzne3m8h']
+2025-01-19 10:16:36 INFO Cleaning up finished run: jzne3m8h
+2025-01-19 10:16:37 INFO Agent received command: run
+2025-01-19 10:16:37 INFO Agent starting run with config:
+	tv_weight: 0.0065212106861237545
+2025-01-19 10:16:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0065212106861237545
+2025-01-19 10:16:42 INFO Running runs: ['ajkww17m']
+2025-01-19 10:25:09 INFO Cleaning up finished run: ajkww17m
+2025-01-19 10:25:09 INFO Agent received command: run
+2025-01-19 10:25:09 INFO Agent starting run with config:
+	tv_weight: 0.004834191309715628
+2025-01-19 10:25:09 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004834191309715628
+2025-01-19 10:25:14 INFO Running runs: ['j2fbqsrq']
+2025-01-19 10:33:32 INFO Cleaning up finished run: j2fbqsrq
+2025-01-19 10:33:32 INFO Agent received command: run
+2025-01-19 10:33:32 INFO Agent starting run with config:
+	tv_weight: 0.0050485069499503375
+2025-01-19 10:33:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0050485069499503375
+2025-01-19 10:33:37 INFO Running runs: ['jsrutljm']
+2025-01-19 10:41:54 INFO Cleaning up finished run: jsrutljm
+2025-01-19 10:41:55 INFO Agent received command: run
+2025-01-19 10:41:55 INFO Agent starting run with config:
+	tv_weight: 9.215484051760204e-05
+2025-01-19 10:41:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=9.215484051760204e-05
+2025-01-19 10:42:00 INFO Running runs: ['muwf64k9']
+2025-01-19 10:50:22 INFO Cleaning up finished run: muwf64k9
+2025-01-19 10:50:22 INFO Agent received command: run
+2025-01-19 10:50:22 INFO Agent starting run with config:
+	tv_weight: 0.002317557170897018
+2025-01-19 10:50:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002317557170897018
+2025-01-19 10:50:27 INFO Running runs: ['pzsqbkm6']
+2025-01-19 10:58:49 INFO Cleaning up finished run: pzsqbkm6
+2025-01-19 10:58:50 INFO Agent received command: run
+2025-01-19 10:58:50 INFO Agent starting run with config:
+	tv_weight: 0.0020169206851335477
+2025-01-19 10:58:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0020169206851335477
+2025-01-19 10:58:55 INFO Running runs: ['7acq9zzz']
+2025-01-19 11:07:22 INFO Cleaning up finished run: 7acq9zzz
+2025-01-19 11:07:22 INFO Agent received command: run
+2025-01-19 11:07:22 INFO Agent starting run with config:
+	tv_weight: 0.004122508592848383
+2025-01-19 11:07:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004122508592848383
+2025-01-19 11:07:27 INFO Running runs: ['26buwc5a']
+2025-01-19 11:15:55 INFO Cleaning up finished run: 26buwc5a
+2025-01-19 11:15:55 INFO Agent received command: run
+2025-01-19 11:15:55 INFO Agent starting run with config:
+	tv_weight: 0.0010015415339740374
+2025-01-19 11:15:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0010015415339740374
+2025-01-19 11:16:00 INFO Running runs: ['lhmnm3bt']
+2025-01-19 11:24:27 INFO Cleaning up finished run: lhmnm3bt
+2025-01-19 11:24:28 INFO Agent received command: run
+2025-01-19 11:24:28 INFO Agent starting run with config:
+	tv_weight: 0.0004147472947405961
+2025-01-19 11:24:28 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0004147472947405961
+2025-01-19 11:24:33 INFO Running runs: ['kl8n9nh8']
+2025-01-19 11:32:50 INFO Cleaning up finished run: kl8n9nh8
+2025-01-19 11:32:50 INFO Agent received command: run
+2025-01-19 11:32:50 INFO Agent starting run with config:
+	tv_weight: 0.0033638740608647657
+2025-01-19 11:32:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0033638740608647657
+2025-01-19 11:32:55 INFO Running runs: ['malx2lfu']
+2025-01-19 11:41:23 INFO Cleaning up finished run: malx2lfu
+2025-01-19 11:41:23 INFO Agent received command: run
+2025-01-19 11:41:23 INFO Agent starting run with config:
+	tv_weight: 0.009988698490585047
+2025-01-19 11:41:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009988698490585047
+2025-01-19 11:41:28 INFO Running runs: ['cidkfefc']
+2025-01-19 11:49:50 INFO Cleaning up finished run: cidkfefc
+2025-01-19 11:49:51 INFO Agent received command: run
+2025-01-19 11:49:51 INFO Agent starting run with config:
+	tv_weight: 0.008581359518367453
+2025-01-19 11:49:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008581359518367453
+2025-01-19 11:49:56 INFO Running runs: ['0n95in13']
+2025-01-19 11:58:23 INFO Cleaning up finished run: 0n95in13
+2025-01-19 11:58:23 INFO Agent received command: run
+2025-01-19 11:58:23 INFO Agent starting run with config:
+	tv_weight: 0.009297257702859772
+2025-01-19 11:58:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009297257702859772
+2025-01-19 11:58:28 INFO Running runs: ['5gmin694']
+2025-01-19 12:06:55 INFO Cleaning up finished run: 5gmin694
+2025-01-19 12:06:56 INFO Agent received command: run
+2025-01-19 12:06:56 INFO Agent starting run with config:
+	tv_weight: 0.009560289279999893
+2025-01-19 12:06:56 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009560289279999893
+2025-01-19 12:07:01 INFO Running runs: ['farilmxn']
+2025-01-19 12:15:23 INFO Cleaning up finished run: farilmxn
+2025-01-19 12:15:23 INFO Agent received command: run
+2025-01-19 12:15:23 INFO Agent starting run with config:
+	tv_weight: 0.002644539331792838
+2025-01-19 12:15:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002644539331792838
+2025-01-19 12:15:28 INFO Running runs: ['7g4i1vd5']
+2025-01-19 12:23:40 INFO Cleaning up finished run: 7g4i1vd5
+2025-01-19 12:23:41 INFO Agent received command: run
+2025-01-19 12:23:41 INFO Agent starting run with config:
+	tv_weight: 0.0007057555011684602
+2025-01-19 12:23:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0007057555011684602
+2025-01-19 12:23:46 INFO Running runs: ['geoxgu6g']
+2025-01-19 12:32:08 INFO Cleaning up finished run: geoxgu6g
+2025-01-19 12:32:08 INFO Agent received command: run
+2025-01-19 12:32:08 INFO Agent starting run with config:
+	tv_weight: 0.00693068213402288
+2025-01-19 12:32:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00693068213402288
+2025-01-19 12:32:13 INFO Running runs: ['l04tohkk']
+2025-01-19 12:40:31 INFO Cleaning up finished run: l04tohkk
+2025-01-19 12:40:31 INFO Agent received command: run
+2025-01-19 12:40:31 INFO Agent starting run with config:
+	tv_weight: 0.002351098794589586
+2025-01-19 12:40:31 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002351098794589586
+2025-01-19 12:40:36 INFO Running runs: ['476dgc4q']
+2025-01-19 12:48:58 INFO Cleaning up finished run: 476dgc4q
+2025-01-19 12:48:59 INFO Agent received command: run
+2025-01-19 12:48:59 INFO Agent starting run with config:
+	tv_weight: 0.004816915976136875
+2025-01-19 12:48:59 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004816915976136875
+2025-01-19 12:49:04 INFO Running runs: ['qhaomgxw']
+2025-01-19 12:57:26 INFO Cleaning up finished run: qhaomgxw
+2025-01-19 12:57:26 INFO Agent received command: run
+2025-01-19 12:57:26 INFO Agent starting run with config:
+	tv_weight: 0.0022775827143141493
+2025-01-19 12:57:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0022775827143141493
+2025-01-19 12:57:31 INFO Running runs: ['yd38thcl']
+2025-01-19 13:05:53 INFO Cleaning up finished run: yd38thcl
+2025-01-19 13:05:54 INFO Agent received command: run
+2025-01-19 13:05:54 INFO Agent starting run with config:
+	tv_weight: 0.004890577949529164
+2025-01-19 13:05:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004890577949529164
+2025-01-19 13:05:59 INFO Running runs: ['s47bmv09']
+2025-01-19 13:14:16 INFO Cleaning up finished run: s47bmv09
+2025-01-19 13:14:16 INFO Agent received command: run
+2025-01-19 13:14:16 INFO Agent starting run with config:
+	tv_weight: 0.006620293165235858
+2025-01-19 13:14:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006620293165235858
+2025-01-19 13:14:21 INFO Running runs: ['lfywp5me']
+2025-01-19 13:40:16 INFO Running runs: []
+2025-01-19 13:40:16 INFO Agent received command: run
+2025-01-19 13:40:16 INFO Agent starting run with config:
+	tv_train_weight: 0.004493202750786065
+	tv_weight: 0.002913399841786637
+2025-01-19 13:40:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.004493202750786065 --tv_weight=0.002913399841786637
+2025-01-19 13:40:21 INFO Running runs: ['0jo58q3a']
+2025-01-19 13:46:50 INFO Running runs: []
+2025-01-19 13:46:51 INFO Agent received command: run
+2025-01-19 13:46:51 INFO Agent starting run with config:
+	tv_train_weight: 0.007308106940522617
+	tv_weight: 0.00796095798680452
+2025-01-19 13:46:51 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007308106940522617 --tv_weight=0.00796095798680452
+2025-01-19 13:46:56 INFO Running runs: ['uutjus90']
+2025-01-19 13:56:15 INFO Cleaning up finished run: 0jo58q3a
+2025-01-19 13:56:15 INFO Agent received command: run
+2025-01-19 13:56:15 INFO Agent starting run with config:
+	tv_train_weight: 0.0057062594701321225
+	tv_weight: 0.0011489254541451343
+2025-01-19 13:56:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0057062594701321225 --tv_weight=0.0011489254541451343
+2025-01-19 13:56:18 INFO Cleaning up finished run: uutjus90
+2025-01-19 13:56:19 INFO Agent received command: run
+2025-01-19 13:56:19 INFO Agent starting run with config:
+	tv_train_weight: 0.0030027504361433157
+	tv_weight: 0.009308574728307898
+2025-01-19 13:56:19 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0030027504361433157 --tv_weight=0.009308574728307898
+2025-01-19 13:56:20 INFO Running runs: ['8j7a0ywh']
+2025-01-19 13:56:24 INFO Running runs: ['2swx77ut']
+2025-01-19 14:06:12 INFO Cleaning up finished run: 2swx77ut
+2025-01-19 14:06:12 INFO Agent received command: run
+2025-01-19 14:06:12 INFO Agent starting run with config:
+	tv_train_weight: 0.007059791672700911
+	tv_weight: 0.007123969614902863
+2025-01-19 14:06:12 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007059791672700911 --tv_weight=0.007123969614902863
+2025-01-19 14:06:17 INFO Running runs: ['jm55vf7j']
+2025-01-19 14:13:20 INFO Cleaning up finished run: 8j7a0ywh
+2025-01-19 14:13:20 INFO Agent received command: run
+2025-01-19 14:13:20 INFO Agent starting run with config:
+	tv_train_weight: 0.0006798404848028828
+	tv_weight: 0.00353566238383183
+2025-01-19 14:13:20 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0006798404848028828 --tv_weight=0.00353566238383183
+2025-01-19 14:13:25 INFO Running runs: ['c1vw02i6']
+2025-01-19 14:14:09 INFO Cleaning up finished run: jm55vf7j
+2025-01-19 14:14:10 INFO Agent received command: run
+2025-01-19 14:14:10 INFO Agent starting run with config:
+	tv_train_weight: 0.0009226550634909536
+	tv_weight: 0.008910615269109192
+2025-01-19 14:14:10 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0009226550634909536 --tv_weight=0.008910615269109192
+2025-01-19 14:14:15 INFO Running runs: ['xuqryo9o']
+2025-01-19 14:25:09 INFO Cleaning up finished run: xuqryo9o
+2025-01-19 14:25:09 INFO Agent received command: run
+2025-01-19 14:25:09 INFO Agent starting run with config:
+	tv_train_weight: 0.0039011385598145057
+	tv_weight: 0.008635752314546101
+2025-01-19 14:25:09 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0039011385598145057 --tv_weight=0.008635752314546101
+2025-01-19 14:25:14 INFO Running runs: ['be6m7gj7']
+2025-01-19 14:31:15 INFO Cleaning up finished run: c1vw02i6
+2025-01-19 14:31:15 INFO Agent received command: run
+2025-01-19 14:31:15 INFO Agent starting run with config:
+	tv_train_weight: 0.005237159880366171
+	tv_weight: 0.005041886051293647
+2025-01-19 14:31:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.005237159880366171 --tv_weight=0.005041886051293647
+2025-01-19 14:31:20 INFO Running runs: ['8bh41rga']
+2025-01-19 14:32:35 INFO Cleaning up finished run: be6m7gj7
+2025-01-19 14:32:35 INFO Agent received command: run
+2025-01-19 14:32:35 INFO Agent starting run with config:
+	tv_train_weight: 0.00745687609965821
+	tv_weight: 0.009487711515233624
+2025-01-19 14:32:35 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.00745687609965821 --tv_weight=0.009487711515233624
+2025-01-19 14:32:40 INFO Running runs: ['2yzzv5j3']
+2025-01-19 14:43:24 INFO Cleaning up finished run: 2yzzv5j3
+2025-01-19 14:43:25 INFO Agent received command: run
+2025-01-19 14:43:25 INFO Agent starting run with config:
+	tv_train_weight: 0.00766621239731503
+	tv_weight: 0.008235783954685178
+2025-01-19 14:43:25 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.00766621239731503 --tv_weight=0.008235783954685178
+2025-01-19 14:43:30 INFO Running runs: ['oe8pbvsv']
+2025-01-19 14:49:05 INFO Cleaning up finished run: 8bh41rga
+2025-01-19 14:49:06 INFO Agent received command: run
+2025-01-19 14:49:06 INFO Agent starting run with config:
+	tv_train_weight: 0.004410282371870667
+	tv_weight: 0.003505055196156587
+2025-01-19 14:49:06 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.004410282371870667 --tv_weight=0.003505055196156587
+2025-01-19 14:49:11 INFO Running runs: ['dc1cvyg6']
+2025-01-19 14:50:26 INFO Cleaning up finished run: oe8pbvsv
+2025-01-19 14:50:26 INFO Agent received command: run
+2025-01-19 14:50:26 INFO Agent starting run with config:
+	tv_train_weight: 0.008595349441954
+	tv_weight: 0.00973318576336286
+2025-01-19 14:50:26 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.008595349441954 --tv_weight=0.00973318576336286
+2025-01-19 14:50:31 INFO Running runs: ['i30fsiow']
+2025-01-19 15:01:20 INFO Cleaning up finished run: i30fsiow
+2025-01-19 15:01:20 INFO Agent received command: run
+2025-01-19 15:01:20 INFO Agent starting run with config:
+	tv_train_weight: 0.008297536073285474
+	tv_weight: 0.004859643877347306
+2025-01-19 15:01:20 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.008297536073285474 --tv_weight=0.004859643877347306
+2025-01-19 15:01:25 INFO Running runs: ['lngmyqwd']
+2025-01-19 15:06:55 INFO Cleaning up finished run: dc1cvyg6
+2025-01-19 15:06:56 INFO Agent received command: run
+2025-01-19 15:06:56 INFO Agent starting run with config:
+	tv_train_weight: 0.00154680517981721
+	tv_weight: 0.005399118386600672
+2025-01-19 15:06:56 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.00154680517981721 --tv_weight=0.005399118386600672
+2025-01-19 15:07:01 INFO Running runs: ['91sc9yw1']
+2025-01-19 15:08:16 INFO Cleaning up finished run: lngmyqwd
+2025-01-19 15:08:16 INFO Agent received command: run
+2025-01-19 15:08:16 INFO Agent starting run with config:
+	tv_train_weight: 0.0057096417685615
+	tv_weight: 0.003200363832265926
+2025-01-19 15:08:16 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0057096417685615 --tv_weight=0.003200363832265926
+2025-01-19 15:08:21 INFO Running runs: ['l7d0qu6b']
+2025-01-19 15:19:10 INFO Cleaning up finished run: l7d0qu6b
+2025-01-19 15:19:10 INFO Agent received command: run
+2025-01-19 15:19:10 INFO Agent starting run with config:
+	tv_train_weight: 0.007764968742670274
+	tv_weight: 0.009534177831128057
+2025-01-19 15:19:10 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007764968742670274 --tv_weight=0.009534177831128057
+2025-01-19 15:19:15 INFO Running runs: ['p7b8v088']
+2025-01-19 15:26:22 INFO Cleaning up finished run: 91sc9yw1
+2025-01-19 15:26:22 INFO Agent received command: run
+2025-01-19 15:26:22 INFO Agent starting run with config:
+	tv_train_weight: 0.0050029211295382235
+	tv_weight: 0.006533934108498265
+2025-01-19 15:26:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0050029211295382235 --tv_weight=0.006533934108498265
+2025-01-19 15:26:27 INFO Running runs: ['bww1pn9w']
+2025-01-19 15:27:22 INFO Cleaning up finished run: p7b8v088
+2025-01-19 15:27:23 INFO Agent received command: run
+2025-01-19 15:27:23 INFO Agent starting run with config:
+	tv_train_weight: 0.0054130724999375
+	tv_weight: 0.0011714718108649714
+2025-01-19 15:27:23 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0054130724999375 --tv_weight=0.0011714718108649714
+2025-01-19 15:27:28 INFO Running runs: ['jd08vqwx']
+2025-01-19 15:27:58 ERROR 502 response executing GraphQL.
+2025-01-19 15:27:58 ERROR 
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>502 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+
+2025-01-19 15:38:01 INFO Cleaning up finished run: jd08vqwx
+2025-01-19 15:38:02 INFO Agent received command: run
+2025-01-19 15:38:02 INFO Agent starting run with config:
+	tv_train_weight: 0.0019423074129698737
+	tv_weight: 0.003370353785966269
+2025-01-19 15:38:02 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0019423074129698737 --tv_weight=0.003370353785966269
+2025-01-19 15:38:07 INFO Running runs: ['lwa0p91f']
+2025-01-19 15:44:07 INFO Cleaning up finished run: bww1pn9w
+2025-01-19 15:44:08 INFO Agent received command: run
+2025-01-19 15:44:08 INFO Agent starting run with config:
+	tv_train_weight: 0.005397349647769233
+	tv_weight: 0.0036316196935102458
+2025-01-19 15:44:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.005397349647769233 --tv_weight=0.0036316196935102458
+2025-01-19 15:44:13 INFO Running runs: ['qj3ebvsy']
+2025-01-19 15:45:17 INFO Cleaning up finished run: lwa0p91f
+2025-01-19 15:45:18 INFO Agent received command: run
+2025-01-19 15:45:18 INFO Agent starting run with config:
+	tv_train_weight: 0.005708668711893392
+	tv_weight: 0.00935997945638868
+2025-01-19 15:45:18 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.005708668711893392 --tv_weight=0.00935997945638868
+2025-01-19 15:45:23 INFO Running runs: ['zoina2r3']
+2025-01-19 15:55:31 INFO Cleaning up finished run: zoina2r3
+2025-01-19 15:55:32 INFO Agent received command: run
+2025-01-19 15:55:32 INFO Agent starting run with config:
+	tv_train_weight: 0.0050738643905195654
+	tv_weight: 0.008664391011655904
+2025-01-19 15:55:32 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0050738643905195654 --tv_weight=0.008664391011655904
+2025-01-19 15:55:37 INFO Running runs: ['qga6a82a']
+2025-01-19 16:01:37 INFO Cleaning up finished run: qj3ebvsy
+2025-01-19 16:01:37 INFO Agent received command: run
+2025-01-19 16:01:37 INFO Agent starting run with config:
+	tv_train_weight: 0.006161167519499737
+	tv_weight: 0.00998285479888606
+2025-01-19 16:01:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.006161167519499737 --tv_weight=0.00998285479888606
+2025-01-19 16:01:42 INFO Running runs: ['rqqvy22t']
+2025-01-19 16:02:48 INFO Cleaning up finished run: qga6a82a
+2025-01-19 16:02:48 INFO Agent received command: run
+2025-01-19 16:02:48 INFO Agent starting run with config:
+	tv_train_weight: 0.0010980136798973783
+	tv_weight: 0.008321165574496584
+2025-01-19 16:02:48 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0010980136798973783 --tv_weight=0.008321165574496584
+2025-01-19 16:02:53 INFO Running runs: ['1trj2p11']
+2025-01-19 16:13:27 INFO Cleaning up finished run: 1trj2p11
+2025-01-19 16:13:27 INFO Agent received command: run
+2025-01-19 16:13:27 INFO Agent starting run with config:
+	tv_train_weight: 0.007725450334091339
+	tv_weight: 0.009623874782759076
+2025-01-19 16:13:27 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007725450334091339 --tv_weight=0.009623874782759076
+2025-01-19 16:13:32 INFO Running runs: ['333xrzu5']
+2025-01-19 16:14:42 ERROR 502 response executing GraphQL.
+2025-01-19 16:14:42 ERROR 
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>502 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+
+2025-01-19 16:19:22 INFO Cleaning up finished run: rqqvy22t
+2025-01-19 16:19:23 INFO Agent received command: run
+2025-01-19 16:19:23 INFO Agent starting run with config:
+	tv_train_weight: 0.005077910728698825
+	tv_weight: 0.00042085527982334335
+2025-01-19 16:19:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.005077910728698825 --tv_weight=0.00042085527982334335
+2025-01-19 16:19:28 INFO Running runs: ['2xe4obns']
+2025-01-19 16:20:43 INFO Cleaning up finished run: 333xrzu5
+2025-01-19 16:20:44 INFO Agent received command: run
+2025-01-19 16:20:44 INFO Agent starting run with config:
+	tv_train_weight: 0.0023066763848910523
+	tv_weight: 0.002840594794772472
+2025-01-19 16:20:44 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0023066763848910523 --tv_weight=0.002840594794772472
+2025-01-19 16:20:49 INFO Running runs: ['do3fps3v']
+2025-01-19 16:31:23 INFO Cleaning up finished run: do3fps3v
+2025-01-19 16:31:23 INFO Agent received command: run
+2025-01-19 16:31:23 INFO Agent starting run with config:
+	tv_train_weight: 0.007411682912004938
+	tv_weight: 0.009544801888419266
+2025-01-19 16:31:23 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007411682912004938 --tv_weight=0.009544801888419266
+2025-01-19 16:31:28 INFO Running runs: ['4a9jnzpa']
+2025-01-19 16:37:03 INFO Cleaning up finished run: 2xe4obns
+2025-01-19 16:37:04 INFO Agent received command: run
+2025-01-19 16:37:04 INFO Agent starting run with config:
+	tv_train_weight: 0.008216785252322917
+	tv_weight: 0.0019042065948474296
+2025-01-19 16:37:04 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.008216785252322917 --tv_weight=0.0019042065948474296
+2025-01-19 16:37:09 INFO Running runs: ['80mm36vo']
+2025-01-19 16:38:29 INFO Cleaning up finished run: 4a9jnzpa
+2025-01-19 16:38:29 INFO Agent received command: run
+2025-01-19 16:38:29 INFO Agent starting run with config:
+	tv_train_weight: 0.00388490587335788
+	tv_weight: 0.005269571475105007
+2025-01-19 16:38:29 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.00388490587335788 --tv_weight=0.005269571475105007
+2025-01-19 16:38:34 INFO Running runs: ['ws0bab2r']
+2025-01-19 16:48:58 INFO Cleaning up finished run: ws0bab2r
+2025-01-19 16:48:58 INFO Agent received command: run
+2025-01-19 16:48:58 INFO Agent starting run with config:
+	tv_train_weight: 0.003141605443299741
+	tv_weight: 0.0070992292904617435
+2025-01-19 16:48:58 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.003141605443299741 --tv_weight=0.0070992292904617435
+2025-01-19 16:49:03 INFO Running runs: ['ksbpg17f']
+2025-01-19 16:55:34 INFO Cleaning up finished run: 80mm36vo
+2025-01-19 16:55:35 INFO Agent received command: run
+2025-01-19 16:55:35 INFO Agent starting run with config:
+	tv_train_weight: 0.006094072344579602
+	tv_weight: 0.00271608564476692
+2025-01-19 16:55:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.006094072344579602 --tv_weight=0.00271608564476692
+2025-01-19 16:55:40 INFO Running runs: ['5s5b77li']
+2025-01-19 16:56:45 INFO Cleaning up finished run: ksbpg17f
+2025-01-19 16:56:45 INFO Agent received command: run
+2025-01-19 16:56:45 INFO Agent starting run with config:
+	tv_train_weight: 0.002542540510924507
+	tv_weight: 0.0061359689969248355
+2025-01-19 16:56:45 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.002542540510924507 --tv_weight=0.0061359689969248355
+2025-01-19 16:56:50 INFO Running runs: ['uqm9kosa']
+2025-01-19 17:07:24 INFO Cleaning up finished run: uqm9kosa
+2025-01-19 17:07:24 INFO Agent received command: run
+2025-01-19 17:07:24 INFO Agent starting run with config:
+	tv_train_weight: 0.008574748371400556
+	tv_weight: 0.00971104096380547
+2025-01-19 17:07:24 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.008574748371400556 --tv_weight=0.00971104096380547
+2025-01-19 17:07:29 INFO Running runs: ['4ww09072']
+2025-01-19 17:13:30 INFO Cleaning up finished run: 5s5b77li
+2025-01-19 17:13:30 INFO Agent received command: run
+2025-01-19 17:13:30 INFO Agent starting run with config:
+	tv_train_weight: 0.0005829619171827694
+	tv_weight: 0.0062267616323238
+2025-01-19 17:13:30 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0005829619171827694 --tv_weight=0.0062267616323238
+2025-01-19 17:13:35 INFO Running runs: ['t1z9rlu4']
+2025-01-19 17:14:45 INFO Cleaning up finished run: 4ww09072
+2025-01-19 17:14:46 INFO Agent received command: run
+2025-01-19 17:14:46 INFO Agent starting run with config:
+	tv_train_weight: 0.009587123153876
+	tv_weight: 0.009606813362060157
+2025-01-19 17:14:46 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.009587123153876 --tv_weight=0.009606813362060157
+2025-01-19 17:14:51 INFO Running runs: ['qoipv4xf']
+2025-01-19 17:26:21 INFO Cleaning up finished run: qoipv4xf
+2025-01-19 17:26:21 INFO Agent received command: run
+2025-01-19 17:26:21 INFO Agent starting run with config:
+	tv_train_weight: 0.004556460148810714
+	tv_weight: 0.0036744597760875655
+2025-01-19 17:26:21 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.004556460148810714 --tv_weight=0.0036744597760875655
+2025-01-19 17:26:26 INFO Running runs: ['xizzrklh']
+2025-01-19 17:33:02 INFO Cleaning up finished run: t1z9rlu4
+2025-01-19 17:33:02 INFO Agent received command: run
+2025-01-19 17:33:02 INFO Agent starting run with config:
+	tv_train_weight: 0.003803758794805976
+	tv_weight: 0.002998212964163738
+2025-01-19 17:33:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.003803758794805976 --tv_weight=0.002998212964163738
+2025-01-19 17:33:07 INFO Running runs: ['15ajeus9']
+2025-01-19 17:34:13 INFO Cleaning up finished run: xizzrklh
+2025-01-19 17:34:13 INFO Agent received command: run
+2025-01-19 17:34:13 INFO Agent starting run with config:
+	tv_train_weight: 0.005172410692760376
+	tv_weight: 0.007229192788150836
+2025-01-19 17:34:13 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.005172410692760376 --tv_weight=0.007229192788150836
+2025-01-19 17:34:18 INFO Running runs: ['f123kcbg']
+2025-01-19 17:44:37 INFO Cleaning up finished run: f123kcbg
+2025-01-19 17:44:38 INFO Agent received command: run
+2025-01-19 17:44:38 INFO Agent starting run with config:
+	tv_train_weight: 0.004304697331364658
+	tv_weight: 0.0031329268828266844
+2025-01-19 17:44:38 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.004304697331364658 --tv_weight=0.0031329268828266844
+2025-01-19 17:44:43 INFO Running runs: ['559jhg0t']
+2025-01-19 17:50:37 INFO Cleaning up finished run: 15ajeus9
+2025-01-19 17:50:37 INFO Agent received command: run
+2025-01-19 17:50:37 INFO Agent starting run with config:
+	tv_train_weight: 0.00027970666090571195
+	tv_weight: 0.004274418380564221
+2025-01-19 17:50:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.00027970666090571195 --tv_weight=0.004274418380564221
+2025-01-19 17:50:42 INFO Running runs: ['oml5oky9']
+2025-01-19 17:51:54 INFO Cleaning up finished run: 559jhg0t
+2025-01-19 17:51:54 INFO Agent received command: run
+2025-01-19 17:51:54 INFO Agent starting run with config:
+	tv_train_weight: 0.007580056214177317
+	tv_weight: 0.001895202031928145
+2025-01-19 17:51:54 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.007580056214177317 --tv_weight=0.001895202031928145
+2025-01-19 17:51:59 INFO Running runs: ['vp4cylxu']
+2025-01-19 18:02:13 INFO Cleaning up finished run: vp4cylxu
+2025-01-19 18:02:13 INFO Agent received command: run
+2025-01-19 18:02:13 INFO Agent starting run with config:
+	tv_train_weight: 0.005045204970126967
+	tv_weight: 0.0030898981019254336
+2025-01-19 18:02:13 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.005045204970126967 --tv_weight=0.0030898981019254336
+2025-01-19 18:02:18 INFO Running runs: ['h7pnz4ri']
+2025-01-19 18:08:12 INFO Cleaning up finished run: oml5oky9
+2025-01-19 18:08:13 INFO Agent received command: run
+2025-01-19 18:08:13 INFO Agent starting run with config:
+	tv_train_weight: 0.002568401288651132
+	tv_weight: 0.005451958286001027
+2025-01-19 18:08:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.002568401288651132 --tv_weight=0.005451958286001027
+2025-01-19 18:08:18 INFO Running runs: ['ds2ugh3z']
+2025-01-19 18:09:29 INFO Cleaning up finished run: h7pnz4ri
+2025-01-19 18:09:29 INFO Agent received command: run
+2025-01-19 18:09:29 INFO Agent starting run with config:
+	tv_train_weight: 0.004179095273792943
+	tv_weight: 0.0022365969084168213
+2025-01-19 18:09:29 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.004179095273792943 --tv_weight=0.0022365969084168213
+2025-01-19 18:09:34 INFO Running runs: ['wo2f0czp']
+2025-01-19 18:19:43 INFO Cleaning up finished run: wo2f0czp
+2025-01-19 18:19:43 INFO Agent received command: run
+2025-01-19 18:19:43 INFO Agent starting run with config:
+	tv_train_weight: 0.009658985981047497
+	tv_weight: 0.0035678429074866105
+2025-01-19 18:19:43 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.009658985981047497 --tv_weight=0.0035678429074866105
+2025-01-19 18:19:48 INFO Running runs: ['zlm356ne']
+2025-01-19 18:25:43 INFO Cleaning up finished run: ds2ugh3z
+2025-01-19 18:25:44 INFO Agent received command: run
+2025-01-19 18:25:44 INFO Agent starting run with config:
+	tv_train_weight: 0.007462523474364079
+	tv_weight: 0.002089555173552056
+2025-01-19 18:25:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.007462523474364079 --tv_weight=0.002089555173552056
+2025-01-19 18:25:49 INFO Running runs: ['f4o9fy73']
+2025-01-19 18:26:59 INFO Cleaning up finished run: zlm356ne
+2025-01-19 18:27:00 INFO Agent received command: run
+2025-01-19 18:27:00 INFO Agent starting run with config:
+	tv_train_weight: 0.0024663777195539703
+	tv_weight: 0.0028225704203554657
+2025-01-19 18:27:00 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0024663777195539703 --tv_weight=0.0028225704203554657
+2025-01-19 18:27:05 INFO Running runs: ['jcff9i40']
+2025-01-19 18:37:39 INFO Cleaning up finished run: jcff9i40
+2025-01-19 18:37:39 INFO Agent received command: run
+2025-01-19 18:37:39 INFO Agent starting run with config:
+	tv_train_weight: 0.0010259022706348997
+	tv_weight: 0.002676328605181031
+2025-01-19 18:37:39 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0010259022706348997 --tv_weight=0.002676328605181031
+2025-01-19 18:37:44 INFO Running runs: ['lw1va8ka']
+2025-01-19 18:43:49 INFO Cleaning up finished run: f4o9fy73
+2025-01-19 18:43:49 INFO Agent received command: run
+2025-01-19 18:43:49 INFO Agent starting run with config:
+	tv_train_weight: 0.002925709453789901
+	tv_weight: 0.0025164270453308245
+2025-01-19 18:43:49 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.002925709453789901 --tv_weight=0.0025164270453308245
+2025-01-19 18:43:54 INFO Running runs: ['prmbx94u']
+2025-01-19 18:45:06 INFO Cleaning up finished run: lw1va8ka
+2025-01-19 18:45:07 INFO Agent received command: run
+2025-01-19 18:45:07 INFO Agent starting run with config:
+	tv_train_weight: 0.0023929619620618892
+	tv_weight: 0.007220544127551864
+2025-01-19 18:45:07 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0023929619620618892 --tv_weight=0.007220544127551864
+2025-01-19 18:45:12 INFO Running runs: ['m192j73u']
+2025-01-19 18:56:06 INFO Cleaning up finished run: m192j73u
+2025-01-19 18:56:06 INFO Agent received command: run
+2025-01-19 18:56:06 INFO Agent starting run with config:
+	tv_train_weight: 0.004012478203913867
+	tv_weight: 0.003565406208462649
+2025-01-19 18:56:06 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.004012478203913867 --tv_weight=0.003565406208462649
+2025-01-19 18:56:11 INFO Running runs: ['m6jazqqg']
+2025-01-19 19:01:59 INFO Cleaning up finished run: prmbx94u
+2025-01-19 19:02:00 INFO Agent received command: run
+2025-01-19 19:02:00 INFO Agent starting run with config:
+	tv_train_weight: 0.006983067971680597
+	tv_weight: 0.005174959585619548
+2025-01-19 19:02:00 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.006983067971680597 --tv_weight=0.005174959585619548
+2025-01-19 19:02:05 INFO Running runs: ['6qg3y5h5']
+2025-01-19 19:03:22 INFO Cleaning up finished run: m6jazqqg
+2025-01-19 19:03:23 INFO Agent received command: run
+2025-01-19 19:03:23 INFO Agent starting run with config:
+	tv_train_weight: 0.0033295806850825492
+	tv_weight: 0.009816998057058582
+2025-01-19 19:03:23 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0033295806850825492 --tv_weight=0.009816998057058582
+2025-01-19 19:03:28 INFO Running runs: ['avzmc7b0']
+2025-01-19 19:14:02 INFO Cleaning up finished run: avzmc7b0
+2025-01-19 19:14:03 INFO Agent received command: run
+2025-01-19 19:14:03 INFO Agent starting run with config:
+	tv_train_weight: 0.004573008646742884
+	tv_weight: 0.006541903166020275
+2025-01-19 19:14:03 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.004573008646742884 --tv_weight=0.006541903166020275
+2025-01-19 19:14:08 INFO Running runs: ['d1s4cif1']
+2025-01-19 19:19:50 INFO Cleaning up finished run: 6qg3y5h5
+2025-01-19 19:19:50 INFO Agent received command: run
+2025-01-19 19:19:50 INFO Agent starting run with config:
+	tv_train_weight: 0.0034363354786460577
+	tv_weight: 2.2376441846045924e-05
+2025-01-19 19:19:50 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0034363354786460577 --tv_weight=2.2376441846045924e-05
+2025-01-19 19:19:55 INFO Running runs: ['wryo3cd1']
+2025-01-19 19:21:04 INFO Cleaning up finished run: d1s4cif1
+2025-01-19 19:21:04 INFO Agent received command: run
+2025-01-19 19:21:04 INFO Agent starting run with config:
+	tv_train_weight: 0.0029860638596585776
+	tv_weight: 0.003498346340919941
+2025-01-19 19:21:04 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.0029860638596585776 --tv_weight=0.003498346340919941
+2025-01-19 19:21:09 INFO Running runs: ['k4wjn6tr']
+2025-01-19 19:31:27 INFO Cleaning up finished run: k4wjn6tr
+2025-01-19 19:31:28 INFO Agent received command: run
+2025-01-19 19:31:28 INFO Agent starting run with config:
+	tv_train_weight: 0.009688845203487702
+	tv_weight: 0.006315676567723954
+2025-01-19 19:31:28 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.009688845203487702 --tv_weight=0.006315676567723954
+2025-01-19 19:31:33 INFO Running runs: ['vwl4opvq']
+2025-01-19 19:37:19 INFO Cleaning up finished run: wryo3cd1
+2025-01-19 19:37:20 INFO Agent received command: run
+2025-01-19 19:37:20 INFO Agent starting run with config:
+	tv_train_weight: 0.005215240551554285
+	tv_weight: 0.004412704633612108
+2025-01-19 19:37:20 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.005215240551554285 --tv_weight=0.004412704633612108
+2025-01-19 19:37:25 INFO Running runs: ['fl57o75t']
+2025-01-19 19:38:34 INFO Cleaning up finished run: vwl4opvq
+2025-01-19 19:38:34 INFO Agent received command: run
+2025-01-19 19:38:34 INFO Agent starting run with config:
+	tv_train_weight: 0.00605249341550276
+	tv_weight: 0.005280223861269464
+2025-01-19 19:38:34 INFO About to run command: /usr/bin/env python train_sim_v3.py --tv_train_weight=0.00605249341550276 --tv_weight=0.005280223861269464
+2025-01-19 19:38:39 INFO Running runs: ['007s2s7x']
+2025-01-19 19:49:03 INFO Cleaning up finished run: 007s2s7x
+2025-01-19 19:52:47 INFO Cleaning up finished run: fl57o75t
+2025-01-19 19:52:48 INFO Agent received command: run
+2025-01-19 19:52:48 INFO Agent starting run with config:
+	tv_train_weight: 0.0032132404847833606
+	tv_weight: 0.002785295139059497
+2025-01-19 19:52:48 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0032132404847833606 --tv_weight=0.002785295139059497
+2025-01-19 19:52:53 INFO Running runs: ['5w98x1s3']
+2025-01-19 20:05:23 INFO Cleaning up finished run: 5w98x1s3
+2025-01-19 20:05:24 INFO Agent received command: run
+2025-01-19 20:05:24 INFO Agent starting run with config:
+	tv_train_weight: 0.0018377228330578445
+	tv_weight: 0.0013733431510313755
+2025-01-19 20:05:24 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0018377228330578445 --tv_weight=0.0013733431510313755
+2025-01-19 20:05:29 INFO Running runs: ['msoih6rd']
+2025-01-19 20:18:50 INFO Cleaning up finished run: msoih6rd
+2025-01-19 20:18:51 INFO Agent received command: run
+2025-01-19 20:18:51 INFO Agent starting run with config:
+	tv_train_weight: 0.008936956792693492
+	tv_weight: 0.008125352262638252
+2025-01-19 20:18:51 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.008936956792693492 --tv_weight=0.008125352262638252
+2025-01-19 20:18:56 INFO Running runs: ['gq7f9zgr']
+2025-01-19 20:31:16 INFO Cleaning up finished run: gq7f9zgr
+2025-01-19 20:31:16 INFO Agent received command: run
+2025-01-19 20:31:16 INFO Agent starting run with config:
+	tv_train_weight: 0.007863595830372603
+	tv_weight: 0.0028174399034204436
+2025-01-19 20:31:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.007863595830372603 --tv_weight=0.0028174399034204436
+2025-01-19 20:31:21 INFO Running runs: ['2p6hm53t']
+2025-01-19 20:43:37 INFO Cleaning up finished run: 2p6hm53t
+2025-01-19 20:43:37 INFO Agent received command: run
+2025-01-19 20:43:37 INFO Agent starting run with config:
+	tv_train_weight: 0.003479655406319874
+	tv_weight: 0.001885339551220212
+2025-01-19 20:43:37 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.003479655406319874 --tv_weight=0.001885339551220212
+2025-01-19 20:43:42 INFO Running runs: ['nxkhjctd']
+2025-01-19 20:56:13 INFO Cleaning up finished run: nxkhjctd
+2025-01-19 20:56:13 INFO Agent received command: run
+2025-01-19 20:56:13 INFO Agent starting run with config:
+	tv_train_weight: 0.007440149394501827
+	tv_weight: 0.0025017151197697807
+2025-01-19 20:56:13 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.007440149394501827 --tv_weight=0.0025017151197697807
+2025-01-19 20:56:18 INFO Running runs: ['3iaxq1nt']
+2025-01-19 21:08:34 INFO Cleaning up finished run: 3iaxq1nt
+2025-01-19 21:08:34 INFO Agent received command: run
+2025-01-19 21:08:34 INFO Agent starting run with config:
+	tv_train_weight: 0.0035827642761965205
+	tv_weight: 0.0031136141022742613
+2025-01-19 21:08:34 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0035827642761965205 --tv_weight=0.0031136141022742613
+2025-01-19 21:08:39 INFO Running runs: ['mnwkwf6a']
+2025-01-19 21:21:00 INFO Cleaning up finished run: mnwkwf6a
+2025-01-19 21:21:00 INFO Agent received command: run
+2025-01-19 21:21:00 INFO Agent starting run with config:
+	tv_train_weight: 0.004144868397971363
+	tv_weight: 0.009848619918054387
+2025-01-19 21:21:00 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.004144868397971363 --tv_weight=0.009848619918054387
+2025-01-19 21:21:05 INFO Running runs: ['m85dovzu']
+2025-01-19 21:34:26 INFO Cleaning up finished run: m85dovzu
+2025-01-19 21:34:27 INFO Agent received command: run
+2025-01-19 21:34:27 INFO Agent starting run with config:
+	tv_train_weight: 0.009496797965822238
+	tv_weight: 0.004442475567030886
+2025-01-19 21:34:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.009496797965822238 --tv_weight=0.004442475567030886
+2025-01-19 21:34:32 INFO Running runs: ['e1kyg2vc']
+2025-01-19 21:46:53 INFO Cleaning up finished run: e1kyg2vc
+2025-01-19 21:46:54 INFO Agent received command: run
+2025-01-19 21:46:54 INFO Agent starting run with config:
+	tv_train_weight: 0.0006943203574576373
+	tv_weight: 0.006521491982714841
+2025-01-19 21:46:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0006943203574576373 --tv_weight=0.006521491982714841
+2025-01-19 21:46:59 INFO Running runs: ['dkt9pb4s']
+2025-01-19 21:59:14 INFO Cleaning up finished run: dkt9pb4s
+2025-01-19 21:59:15 INFO Agent received command: run
+2025-01-19 21:59:15 INFO Agent starting run with config:
+	tv_train_weight: 0.003237908794650195
+	tv_weight: 0.009612734117616505
+2025-01-19 21:59:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.003237908794650195 --tv_weight=0.009612734117616505
+2025-01-19 21:59:20 INFO Running runs: ['s78vitfz']
+2025-01-19 22:11:26 INFO Cleaning up finished run: s78vitfz
+2025-01-19 22:11:26 INFO Agent received command: run
+2025-01-19 22:11:26 INFO Agent starting run with config:
+	tv_train_weight: 0.0034039606053043237
+	tv_weight: 0.008533123687478786
+2025-01-19 22:11:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0034039606053043237 --tv_weight=0.008533123687478786
+2025-01-19 22:11:31 INFO Running runs: ['b8uf0c04']
+2025-01-19 22:23:52 INFO Cleaning up finished run: b8uf0c04
+2025-01-19 22:23:52 INFO Agent received command: run
+2025-01-19 22:23:52 INFO Agent starting run with config:
+	tv_train_weight: 0.004491659999005573
+	tv_weight: 0.0012589090075524256
+2025-01-19 22:23:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.004491659999005573 --tv_weight=0.0012589090075524256
+2025-01-19 22:23:57 INFO Running runs: ['0xihkhja']
+2025-01-19 22:36:17 INFO Cleaning up finished run: 0xihkhja
+2025-01-19 22:36:18 INFO Agent received command: run
+2025-01-19 22:36:18 INFO Agent starting run with config:
+	tv_train_weight: 0.007325214665209666
+	tv_weight: 0.006368442027067861
+2025-01-19 22:36:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.007325214665209666 --tv_weight=0.006368442027067861
+2025-01-19 22:36:23 INFO Running runs: ['xes8lcbx']
+2025-01-19 22:48:59 INFO Cleaning up finished run: xes8lcbx
+2025-01-19 22:48:59 INFO Agent received command: run
+2025-01-19 22:48:59 INFO Agent starting run with config:
+	tv_train_weight: 0.002884998672927687
+	tv_weight: 0.0028143738728166525
+2025-01-19 22:48:59 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.002884998672927687 --tv_weight=0.0028143738728166525
+2025-01-19 22:49:04 INFO Running runs: ['luvtiqnm']
+2025-01-19 23:01:16 INFO Cleaning up finished run: luvtiqnm
+2025-01-19 23:01:16 INFO Agent received command: run
+2025-01-19 23:01:16 INFO Agent starting run with config:
+	tv_train_weight: 0.006056621017654248
+	tv_weight: 0.002878399052956806
+2025-01-19 23:01:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.006056621017654248 --tv_weight=0.002878399052956806
+2025-01-19 23:01:21 INFO Running runs: ['0hri6c3j']
+2025-01-19 23:13:31 INFO Cleaning up finished run: 0hri6c3j
+2025-01-19 23:13:32 INFO Agent received command: run
+2025-01-19 23:13:32 INFO Agent starting run with config:
+	tv_train_weight: 0.003609491294909607
+	tv_weight: 0.0057715109735370215
+2025-01-19 23:13:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.003609491294909607 --tv_weight=0.0057715109735370215
+2025-01-19 23:13:37 INFO Running runs: ['gw3v23qx']
+2025-01-19 23:25:53 INFO Cleaning up finished run: gw3v23qx
+2025-01-19 23:25:53 INFO Agent received command: run
+2025-01-19 23:25:53 INFO Agent starting run with config:
+	tv_train_weight: 0.0034844801074228847
+	tv_weight: 0.009344732084619068
+2025-01-19 23:25:53 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.0034844801074228847 --tv_weight=0.009344732084619068
+2025-01-19 23:25:58 INFO Running runs: ['1cftufuc']
+2025-01-19 23:38:14 INFO Cleaning up finished run: 1cftufuc
+2025-01-19 23:38:14 INFO Agent received command: run
+2025-01-19 23:38:14 INFO Agent starting run with config:
+	tv_train_weight: 0.005750419053917794
+	tv_weight: 0.0043942729677488405
+2025-01-19 23:38:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_train_weight=0.005750419053917794 --tv_weight=0.0043942729677488405
+2025-01-19 23:38:19 INFO Running runs: ['d6oo8d4f']
+2025-01-19 23:50:45 INFO Cleaning up finished run: d6oo8d4f
+2025-02-01 14:58:53 ERROR Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 25, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3305, in upsert_sweep
+    config = self._validate_config_and_fill_distribution(config)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3189, in _validate_config_and_fill_distribution
+    parameter_name
+ValueError: Parameter tv_weight is ambiguous, please specify bounds as both floats (for a float_uniform distribution) or ints (for an int_uniform distribution).
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/cli/cli.py", line 892, in sweep
+    prior_runs=prior_runs,
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/internal.py", line 133, in upsert_sweep
+    return self.api.upsert_sweep(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 71, in wrapper
+    raise CommError(message, err).with_traceback(sys.exc_info()[2])
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/apis/normalize.py", line 25, in wrapper
+    return func(*args, **kwargs)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3305, in upsert_sweep
+    config = self._validate_config_and_fill_distribution(config)
+  File "/home/vitran/miniconda3/envs/gaussian_splatting/lib/python3.7/site-packages/wandb/sdk/internal/internal_api.py", line 3189, in _validate_config_and_fill_distribution
+    parameter_name
+wandb.errors.errors.CommError: Parameter tv_weight is ambiguous, please specify bounds as both floats (for a float_uniform distribution) or ints (for an int_uniform distribution).
+
+2025-02-01 14:59:38 INFO Running runs: []
+2025-02-01 14:59:38 INFO Agent received command: run
+2025-02-01 14:59:38 INFO Agent starting run with config:
+	tv_weight: 0.043282774277020666
+2025-02-01 14:59:38 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.043282774277020666
+2025-02-01 14:59:43 INFO Running runs: ['zgj3g9kh']
+2025-02-01 14:59:53 INFO Cleaning up finished run: zgj3g9kh
+2025-02-01 14:59:54 INFO Agent received command: run
+2025-02-01 14:59:54 INFO Agent starting run with config:
+	tv_weight: 0.09438828659615923
+2025-02-01 14:59:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.09438828659615923
+2025-02-01 14:59:59 INFO Running runs: ['8kydhg3z']
+2025-02-01 15:09:24 INFO Running runs: []
+2025-02-01 15:09:24 INFO Agent received command: run
+2025-02-01 15:09:24 INFO Agent starting run with config:
+	tv_weight: 0.0977961404423427
+2025-02-01 15:09:24 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0977961404423427
+2025-02-01 15:09:29 INFO Running runs: ['x2eaxcfx']
+2025-02-01 15:16:32 INFO Running runs: []
+2025-02-01 15:16:32 INFO Agent received command: run
+2025-02-01 15:16:32 INFO Agent starting run with config:
+	tv_weight: 0.0995449145878934
+2025-02-01 15:16:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0995449145878934
+2025-02-01 15:16:37 INFO Running runs: ['9kd5fb59']
+2025-02-01 15:30:29 INFO Cleaning up finished run: 9kd5fb59
+2025-02-01 15:30:29 INFO Agent received command: run
+2025-02-01 15:30:29 INFO Agent starting run with config:
+	tv_weight: 0.02866273409107052
+2025-02-01 15:30:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02866273409107052
+2025-02-01 15:30:34 INFO Running runs: ['so5nc48s']
+2025-02-01 15:42:34 INFO Cleaning up finished run: so5nc48s
+2025-02-01 15:42:35 INFO Agent received command: run
+2025-02-01 15:42:35 INFO Agent starting run with config:
+	tv_weight: 0.07593976564098358
+2025-02-01 15:42:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07593976564098358
+2025-02-01 15:42:40 INFO Running runs: ['ygprn6ea']
+2025-02-01 15:55:26 INFO Cleaning up finished run: ygprn6ea
+2025-02-01 15:55:26 INFO Agent received command: run
+2025-02-01 15:55:26 INFO Agent starting run with config:
+	tv_weight: 0.05952257307544639
+2025-02-01 15:55:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05952257307544639
+2025-02-01 15:55:31 INFO Running runs: ['ylo7svem']
+2025-02-01 16:08:22 INFO Cleaning up finished run: ylo7svem
+2025-02-01 16:08:23 INFO Agent received command: run
+2025-02-01 16:08:23 INFO Agent starting run with config:
+	tv_weight: 0.02856390768079723
+2025-02-01 16:08:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02856390768079723
+2025-02-01 16:08:28 INFO Running runs: ['y6eywo8p']
+2025-02-01 16:12:40 INFO Running runs: []
+2025-02-01 16:12:40 INFO Agent received command: run
+2025-02-01 16:12:40 INFO Agent starting run with config:
+	tv_weight: 0.02911546409323297
+2025-02-01 16:12:40 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02911546409323297
+2025-02-01 16:12:45 INFO Running runs: ['dhnb6349']
+2025-02-01 16:25:00 INFO Cleaning up finished run: dhnb6349
+2025-02-01 16:25:01 INFO Agent received command: run
+2025-02-01 16:25:01 INFO Agent starting run with config:
+	tv_weight: 0.07620470641450988
+2025-02-01 16:25:01 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07620470641450988
+2025-02-01 16:25:06 INFO Running runs: ['mu70re94']
+2025-02-01 16:38:02 INFO Cleaning up finished run: mu70re94
+2025-02-01 16:38:02 INFO Agent received command: run
+2025-02-01 16:38:02 INFO Agent starting run with config:
+	tv_weight: 0.04468894868326212
+2025-02-01 16:38:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04468894868326212
+2025-02-01 16:38:07 INFO Running runs: ['f1kii2ac']
+2025-02-01 16:50:17 INFO Cleaning up finished run: f1kii2ac
+2025-02-01 16:50:17 INFO Agent received command: run
+2025-02-01 16:50:17 INFO Agent starting run with config:
+	tv_weight: 0.017453528112239214
+2025-02-01 16:50:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.017453528112239214
+2025-02-01 16:50:22 INFO Running runs: ['v9eskgk4']
+2025-02-01 17:02:33 INFO Cleaning up finished run: v9eskgk4
+2025-02-01 17:02:33 INFO Agent received command: run
+2025-02-01 17:02:33 INFO Agent starting run with config:
+	tv_weight: 0.07488963665903761
+2025-02-01 17:02:33 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07488963665903761
+2025-02-01 17:02:38 INFO Running runs: ['iuxvavvy']
+2025-02-01 17:14:57 INFO Cleaning up finished run: iuxvavvy
+2025-02-01 17:14:57 INFO Agent received command: run
+2025-02-01 17:14:57 INFO Agent starting run with config:
+	tv_weight: 0.02856745870594227
+2025-02-01 17:14:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02856745870594227
+2025-02-01 17:15:02 INFO Running runs: ['14nwa2ht']
+2025-02-01 17:27:09 INFO Cleaning up finished run: 14nwa2ht
+2025-02-01 17:27:09 INFO Agent received command: run
+2025-02-01 17:27:09 INFO Agent starting run with config:
+	tv_weight: 0.05627118478783229
+2025-02-01 17:27:09 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05627118478783229
+2025-02-01 17:27:14 INFO Running runs: ['smfbcqo0']
+2025-02-01 17:39:40 INFO Cleaning up finished run: smfbcqo0
+2025-02-01 17:39:40 INFO Agent received command: run
+2025-02-01 17:39:40 INFO Agent starting run with config:
+	tv_weight: 0.056581019263984726
+2025-02-01 17:39:40 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.056581019263984726
+2025-02-01 17:39:45 INFO Running runs: ['nqpk5pca']
+2025-02-01 17:51:57 INFO Cleaning up finished run: nqpk5pca
+2025-02-01 17:51:58 INFO Agent received command: run
+2025-02-01 17:51:58 INFO Agent starting run with config:
+	tv_weight: 0.0002100209795179664
+2025-02-01 17:51:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0002100209795179664
+2025-02-01 17:52:03 INFO Running runs: ['sqwuv28r']
+2025-02-01 18:03:17 INFO Cleaning up finished run: sqwuv28r
+2025-02-01 18:03:18 INFO Agent received command: run
+2025-02-01 18:03:18 INFO Agent starting run with config:
+	tv_weight: 0.01952681051969767
+2025-02-01 18:03:18 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.01952681051969767
+2025-02-01 18:03:23 INFO Running runs: ['4lgfgp0r']
+2025-02-01 18:15:43 INFO Cleaning up finished run: 4lgfgp0r
+2025-02-01 18:15:43 INFO Agent received command: run
+2025-02-01 18:15:43 INFO Agent starting run with config:
+	tv_weight: 0.0012955224027485725
+2025-02-01 18:15:43 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0012955224027485725
+2025-02-01 18:15:49 INFO Running runs: ['is1gttxj']
+2025-02-01 18:26:43 INFO Cleaning up finished run: is1gttxj
+2025-02-01 18:26:43 INFO Agent received command: run
+2025-02-01 18:26:43 INFO Agent starting run with config:
+	tv_weight: 0.018322653498119536
+2025-02-01 18:26:43 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.018322653498119536
+2025-02-01 18:26:48 INFO Running runs: ['tbqn1047']
+2025-02-01 18:38:53 INFO Cleaning up finished run: tbqn1047
+2025-02-01 18:38:54 INFO Agent received command: run
+2025-02-01 18:38:54 INFO Agent starting run with config:
+	tv_weight: 0.010365449377628046
+2025-02-01 18:38:54 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.010365449377628046
+2025-02-01 18:38:59 INFO Running runs: ['p26bbu7q']
+2025-02-01 18:50:39 INFO Cleaning up finished run: p26bbu7q
+2025-02-01 18:50:39 INFO Agent received command: run
+2025-02-01 18:50:39 INFO Agent starting run with config:
+	tv_weight: 0.06045570864092038
+2025-02-01 18:50:39 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.06045570864092038
+2025-02-01 18:50:44 INFO Running runs: ['iqb648lw']
+2025-02-01 19:02:54 INFO Cleaning up finished run: iqb648lw
+2025-02-01 19:02:55 INFO Agent received command: run
+2025-02-01 19:02:55 INFO Agent starting run with config:
+	tv_weight: 0.0415111385098251
+2025-02-01 19:02:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0415111385098251
+2025-02-01 19:03:00 INFO Running runs: ['3rxs5j91']
+2025-02-01 19:15:15 INFO Cleaning up finished run: 3rxs5j91
+2025-02-01 19:15:15 INFO Agent received command: run
+2025-02-01 19:15:15 INFO Agent starting run with config:
+	tv_weight: 0.01409961295644332
+2025-02-01 19:15:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.01409961295644332
+2025-02-01 19:15:20 INFO Running runs: ['wlr34alo']
+2025-02-01 19:27:11 INFO Cleaning up finished run: wlr34alo
+2025-02-01 19:27:11 INFO Agent received command: run
+2025-02-01 19:27:11 INFO Agent starting run with config:
+	tv_weight: 0.082545432413066
+2025-02-01 19:27:11 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.082545432413066
+2025-02-01 19:27:16 INFO Running runs: ['qgfihs93']
+2025-02-01 19:41:03 INFO Cleaning up finished run: qgfihs93
+2025-02-01 19:41:03 INFO Agent received command: run
+2025-02-01 19:41:03 INFO Agent starting run with config:
+	tv_weight: 0.0934503133549322
+2025-02-01 19:41:03 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0934503133549322
+2025-02-01 19:41:08 INFO Running runs: ['4yxwi9yf']
+2025-02-01 19:54:40 INFO Cleaning up finished run: 4yxwi9yf
+2025-02-01 19:54:40 INFO Agent received command: run
+2025-02-01 19:54:40 INFO Agent starting run with config:
+	tv_weight: 0.08851471279356712
+2025-02-01 19:54:40 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.08851471279356712
+2025-02-01 19:54:45 INFO Running runs: ['p6050n5g']
+2025-02-01 20:08:22 INFO Cleaning up finished run: p6050n5g
+2025-02-01 20:08:22 INFO Agent received command: run
+2025-02-01 20:08:22 INFO Agent starting run with config:
+	tv_weight: 0.06857156848574363
+2025-02-01 20:08:22 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.06857156848574363
+2025-02-01 20:08:27 INFO Running runs: ['tmp85qe1']
+2025-02-01 20:20:48 INFO Cleaning up finished run: tmp85qe1
+2025-02-01 20:20:48 INFO Agent received command: run
+2025-02-01 20:20:48 INFO Agent starting run with config:
+	tv_weight: 0.0009952993126493782
+2025-02-01 20:20:48 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0009952993126493782
+2025-02-01 20:20:53 INFO Running runs: ['7haqqsmk']
+2025-02-01 20:31:48 INFO Cleaning up finished run: 7haqqsmk
+2025-02-01 20:31:48 INFO Agent received command: run
+2025-02-01 20:31:48 INFO Agent starting run with config:
+	tv_weight: 0.05175136147779818
+2025-02-01 20:31:48 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05175136147779818
+2025-02-01 20:31:53 INFO Running runs: ['ezvfpa54']
+2025-02-01 20:45:35 INFO Cleaning up finished run: ezvfpa54
+2025-02-01 20:45:35 INFO Agent received command: run
+2025-02-01 20:45:35 INFO Agent starting run with config:
+	tv_weight: 0.023756194932886367
+2025-02-01 20:45:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.023756194932886367
+2025-02-01 20:45:40 INFO Running runs: ['45ruzmv5']
+2025-02-01 20:57:55 INFO Cleaning up finished run: 45ruzmv5
+2025-02-01 20:57:56 INFO Agent received command: run
+2025-02-01 20:57:56 INFO Agent starting run with config:
+	tv_weight: 0.0020492691233118475
+2025-02-01 20:57:56 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0020492691233118475
+2025-02-01 20:58:01 INFO Running runs: ['bvibchnk']
+2025-02-01 21:08:55 INFO Cleaning up finished run: bvibchnk
+2025-02-01 21:08:56 INFO Agent received command: run
+2025-02-01 21:08:56 INFO Agent starting run with config:
+	tv_weight: 0.02837928004109457
+2025-02-01 21:08:56 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.02837928004109457
+2025-02-01 21:09:01 INFO Running runs: ['d38khj3g']
+2025-02-01 21:21:16 INFO Cleaning up finished run: d38khj3g
+2025-02-01 21:21:17 INFO Agent received command: run
+2025-02-01 21:21:17 INFO Agent starting run with config:
+	tv_weight: 0.0841264932404437
+2025-02-01 21:21:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0841264932404437
+2025-02-01 21:21:22 INFO Running runs: ['goa90yry']
+2025-02-01 21:35:09 INFO Cleaning up finished run: goa90yry
+2025-02-01 21:35:09 INFO Agent received command: run
+2025-02-01 21:35:09 INFO Agent starting run with config:
+	tv_weight: 0.018645277315403885
+2025-02-01 21:35:09 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.018645277315403885
+2025-02-01 21:35:14 INFO Running runs: ['5xb1zyew']
+2025-02-01 21:47:09 INFO Cleaning up finished run: 5xb1zyew
+2025-02-01 21:47:10 INFO Agent received command: run
+2025-02-01 21:47:10 INFO Agent starting run with config:
+	tv_weight: 0.07519048045093771
+2025-02-01 21:47:10 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07519048045093771
+2025-02-01 21:47:15 INFO Running runs: ['4s773dls']
+2025-02-01 21:59:25 INFO Cleaning up finished run: 4s773dls
+2025-02-01 21:59:25 INFO Agent received command: run
+2025-02-01 21:59:25 INFO Agent starting run with config:
+	tv_weight: 0.07644958492754053
+2025-02-01 21:59:25 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.07644958492754053
+2025-02-01 21:59:31 INFO Running runs: ['omehfr6m']
+2025-02-01 22:12:47 INFO Cleaning up finished run: omehfr6m
+2025-02-01 22:12:47 INFO Agent received command: run
+2025-02-01 22:12:47 INFO Agent starting run with config:
+	tv_weight: 0.007008518128314723
+2025-02-01 22:12:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007008518128314723
+2025-02-01 22:12:52 INFO Running runs: ['re3b2xyn']
+2025-02-01 22:23:51 INFO Cleaning up finished run: re3b2xyn
+2025-02-01 22:23:52 INFO Agent received command: run
+2025-02-01 22:23:52 INFO Agent starting run with config:
+	tv_weight: 0.05939245027110617
+2025-02-01 22:23:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05939245027110617
+2025-02-01 22:23:57 INFO Running runs: ['a6wujzs5']
+2025-02-01 22:36:17 INFO Cleaning up finished run: a6wujzs5
+2025-02-01 22:36:17 INFO Agent received command: run
+2025-02-01 22:36:17 INFO Agent starting run with config:
+	tv_weight: 0.09765941156470052
+2025-02-01 22:36:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.09765941156470052
+2025-02-01 22:36:22 INFO Running runs: ['br35c9s5']
+2025-02-01 22:50:14 INFO Cleaning up finished run: br35c9s5
+2025-02-01 22:50:15 INFO Agent received command: run
+2025-02-01 22:50:15 INFO Agent starting run with config:
+	tv_weight: 0.003005907397992791
+2025-02-01 22:50:15 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003005907397992791
+2025-02-01 22:50:20 INFO Running runs: ['ciuqpzp8']
+2025-02-01 23:01:44 INFO Cleaning up finished run: ciuqpzp8
+2025-02-01 23:01:44 INFO Agent received command: run
+2025-02-01 23:01:44 INFO Agent starting run with config:
+	tv_weight: 0.09546494712579358
+2025-02-01 23:01:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.09546494712579358
+2025-02-01 23:01:50 INFO Running runs: ['6id8i2dv']
+2025-02-01 23:15:16 INFO Cleaning up finished run: 6id8i2dv
+2025-02-01 23:15:16 INFO Agent received command: run
+2025-02-01 23:15:16 INFO Agent starting run with config:
+	tv_weight: 0.05400194245387527
+2025-02-01 23:15:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05400194245387527
+2025-02-01 23:15:21 INFO Running runs: ['rirha876']
+2025-02-01 23:27:26 INFO Cleaning up finished run: rirha876
+2025-02-01 23:27:27 INFO Agent received command: run
+2025-02-01 23:27:27 INFO Agent starting run with config:
+	tv_weight: 0.05864687370638765
+2025-02-01 23:27:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.05864687370638765
+2025-02-01 23:27:32 INFO Running runs: ['4l7u6taa']
+2025-02-01 23:40:59 INFO Cleaning up finished run: 4l7u6taa
+2025-02-01 23:40:59 INFO Agent received command: run
+2025-02-01 23:40:59 INFO Agent starting run with config:
+	tv_weight: 0.04258006388106633
+2025-02-01 23:40:59 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.04258006388106633
+2025-02-01 23:41:04 INFO Running runs: ['bjx3p72v']
+2025-02-01 23:54:46 INFO Cleaning up finished run: bjx3p72v
+2025-02-01 23:54:46 INFO Agent received command: run
+2025-02-01 23:54:46 INFO Agent starting run with config:
+	tv_weight: 0.063737050643647
+2025-02-01 23:54:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.063737050643647
+2025-02-02 00:00:23 INFO Running runs: []
+2025-02-02 00:00:23 INFO Agent received command: run
+2025-02-02 00:00:23 INFO Agent starting run with config:
+	tv_weight: 0.0008713096855645463
+2025-02-02 00:00:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0008713096855645463
+2025-02-02 00:00:28 INFO Running runs: ['gx88cyar']
+2025-02-02 00:04:52 INFO Cleaning up finished run: gx88cyar
+2025-02-02 00:04:52 INFO Agent received command: run
+2025-02-02 00:04:52 INFO Agent starting run with config:
+	tv_weight: 0.0035978623171126177
+2025-02-02 00:04:52 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0035978623171126177
+2025-02-02 00:04:57 INFO Running runs: ['gdmo0a51']
+2025-02-02 00:09:31 INFO Cleaning up finished run: gdmo0a51
+2025-02-02 00:09:32 INFO Agent received command: run
+2025-02-02 00:09:32 INFO Agent starting run with config:
+	tv_weight: 0.003009574053648413
+2025-02-02 00:09:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.003009574053648413
+2025-02-02 00:09:37 INFO Running runs: ['c6nwiav3']
+2025-02-02 00:15:56 ERROR 502 response executing GraphQL.
+2025-02-02 00:15:56 ERROR 
+<html><head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<title>502 Server Error</title>
+</head>
+<body text=#000000 bgcolor=#ffffff>
+<h1>Error: Server Error</h1>
+<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>
+<h2></h2>
+</body></html>
+
+2025-02-02 00:18:10 INFO Cleaning up finished run: c6nwiav3
+2025-02-02 00:18:10 INFO Agent received command: run
+2025-02-02 00:18:10 INFO Agent starting run with config:
+	tv_weight: 0.00933216803927922
+2025-02-02 00:18:10 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00933216803927922
+2025-02-02 00:18:15 INFO Running runs: ['rmwll1tw']
+2025-02-02 00:27:53 INFO Cleaning up finished run: rmwll1tw
+2025-02-02 00:27:53 INFO Agent received command: run
+2025-02-02 00:27:53 INFO Agent starting run with config:
+	tv_weight: 0.007195422034777403
+2025-02-02 00:27:53 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007195422034777403
+2025-02-02 00:27:58 INFO Running runs: ['792dw5do']
+2025-02-02 00:43:32 INFO Cleaning up finished run: 792dw5do
+2025-02-02 00:43:32 INFO Agent received command: run
+2025-02-02 00:43:32 INFO Agent starting run with config:
+	tv_weight: 0.009161937052909706
+2025-02-02 00:43:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009161937052909706
+2025-02-02 00:43:37 INFO Running runs: ['6el6d2wj']
+2025-02-02 00:53:23 INFO Cleaning up finished run: 6el6d2wj
+2025-02-02 00:53:23 INFO Agent received command: run
+2025-02-02 00:53:23 INFO Agent starting run with config:
+	tv_weight: 0.002000109514596493
+2025-02-02 00:53:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002000109514596493
+2025-02-02 00:53:28 INFO Running runs: ['2nj6pcdq']
+2025-02-02 01:03:32 INFO Cleaning up finished run: 2nj6pcdq
+2025-02-02 01:03:32 INFO Agent received command: run
+2025-02-02 01:03:32 INFO Agent starting run with config:
+	tv_weight: 0.006750494051683001
+2025-02-02 01:03:32 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006750494051683001
+2025-02-02 01:03:37 INFO Running runs: ['gmouge9p']
+2025-02-02 01:21:47 INFO Cleaning up finished run: gmouge9p
+2025-02-02 01:21:47 INFO Agent received command: run
+2025-02-02 01:21:47 INFO Agent starting run with config:
+	tv_weight: 0.0011802475407058225
+2025-02-02 01:21:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0011802475407058225
+2025-02-02 01:21:52 INFO Running runs: ['7b0z0j66']
+2025-02-02 01:32:26 INFO Cleaning up finished run: 7b0z0j66
+2025-02-02 01:32:26 INFO Agent received command: run
+2025-02-02 01:32:26 INFO Agent starting run with config:
+	tv_weight: 0.00491148223509184
+2025-02-02 01:32:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00491148223509184
+2025-02-02 01:32:31 INFO Running runs: ['ex0d6mdp']
+2025-02-02 01:42:09 INFO Cleaning up finished run: ex0d6mdp
+2025-02-02 01:42:10 INFO Agent received command: run
+2025-02-02 01:42:10 INFO Agent starting run with config:
+	tv_weight: 0.0019802961710204737
+2025-02-02 01:42:10 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0019802961710204737
+2025-02-02 01:42:15 INFO Running runs: ['dxhgnwtc']
+2025-02-02 01:50:57 INFO Cleaning up finished run: dxhgnwtc
+2025-02-02 01:50:57 INFO Agent received command: run
+2025-02-02 01:50:57 INFO Agent starting run with config:
+	tv_weight: 0.004748626676194071
+2025-02-02 01:50:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004748626676194071
+2025-02-02 01:51:02 INFO Running runs: ['wyr63h4t']
+2025-02-02 02:08:02 INFO Cleaning up finished run: wyr63h4t
+2025-02-02 02:08:02 INFO Agent received command: run
+2025-02-02 02:08:02 INFO Agent starting run with config:
+	tv_weight: 0.0028840976631175986
+2025-02-02 02:08:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0028840976631175986
+2025-02-02 02:08:07 INFO Running runs: ['atg5y1o4']
+2025-02-02 02:18:46 INFO Cleaning up finished run: atg5y1o4
+2025-02-02 02:18:46 INFO Agent received command: run
+2025-02-02 02:18:46 INFO Agent starting run with config:
+	tv_weight: 0.0008081789340977974
+2025-02-02 02:18:46 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0008081789340977974
+2025-02-02 02:18:51 INFO Running runs: ['e843n1gh']
+2025-02-02 02:28:35 INFO Cleaning up finished run: e843n1gh
+2025-02-02 02:28:35 INFO Agent received command: run
+2025-02-02 02:28:35 INFO Agent starting run with config:
+	tv_weight: 0.0042252296454382225
+2025-02-02 02:28:35 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0042252296454382225
+2025-02-02 02:28:40 INFO Running runs: ['pelqmqa8']
+2025-02-02 02:38:13 INFO Cleaning up finished run: pelqmqa8
+2025-02-02 02:38:14 INFO Agent received command: run
+2025-02-02 02:38:14 INFO Agent starting run with config:
+	tv_weight: 0.0098251625740305
+2025-02-02 02:38:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0098251625740305
+2025-02-02 02:38:19 INFO Running runs: ['619ybx07']
+2025-02-02 02:55:23 INFO Cleaning up finished run: 619ybx07
+2025-02-02 02:55:23 INFO Agent received command: run
+2025-02-02 02:55:23 INFO Agent starting run with config:
+	tv_weight: 0.006515891015749249
+2025-02-02 02:55:23 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006515891015749249
+2025-02-02 02:55:28 INFO Running runs: ['gq9k8vrt']
+2025-02-02 03:06:02 INFO Cleaning up finished run: gq9k8vrt
+2025-02-02 03:06:02 INFO Agent received command: run
+2025-02-02 03:06:02 INFO Agent starting run with config:
+	tv_weight: 0.0048437099817858235
+2025-02-02 03:06:02 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0048437099817858235
+2025-02-02 03:06:07 INFO Running runs: ['riywg898']
+2025-02-02 03:16:41 INFO Cleaning up finished run: riywg898
+2025-02-02 03:16:41 INFO Agent received command: run
+2025-02-02 03:16:41 INFO Agent starting run with config:
+	tv_weight: 0.00015971075910084176
+2025-02-02 03:16:41 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00015971075910084176
+2025-02-02 03:16:46 INFO Running runs: ['cugidvaw']
+2025-02-02 03:27:15 INFO Cleaning up finished run: cugidvaw
+2025-02-02 03:27:16 INFO Agent received command: run
+2025-02-02 03:27:16 INFO Agent starting run with config:
+	tv_weight: 0.005666271049123599
+2025-02-02 03:27:16 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005666271049123599
+2025-02-02 03:27:21 INFO Running runs: ['dxlxuvne']
+2025-02-02 03:43:54 INFO Cleaning up finished run: dxlxuvne
+2025-02-02 03:43:55 INFO Agent received command: run
+2025-02-02 03:43:55 INFO Agent starting run with config:
+	tv_weight: 0.001182682400639985
+2025-02-02 03:43:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001182682400639985
+2025-02-02 03:44:00 INFO Running runs: ['o6r6cq2w']
+2025-02-02 03:54:44 INFO Cleaning up finished run: o6r6cq2w
+2025-02-02 03:54:44 INFO Agent received command: run
+2025-02-02 03:54:44 INFO Agent starting run with config:
+	tv_weight: 0.004069092004321817
+2025-02-02 03:54:44 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004069092004321817
+2025-02-02 03:54:49 INFO Running runs: ['0c0bv4hn']
+2025-02-02 04:05:38 INFO Cleaning up finished run: 0c0bv4hn
+2025-02-02 04:05:38 INFO Agent received command: run
+2025-02-02 04:05:38 INFO Agent starting run with config:
+	tv_weight: 0.004433943943806527
+2025-02-02 04:05:38 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004433943943806527
+2025-02-02 04:05:43 INFO Running runs: ['u91g60fx']
+2025-02-02 04:16:12 INFO Cleaning up finished run: u91g60fx
+2025-02-02 04:16:12 INFO Agent received command: run
+2025-02-02 04:16:12 INFO Agent starting run with config:
+	tv_weight: 0.004383636907655334
+2025-02-02 04:16:12 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004383636907655334
+2025-02-02 04:16:17 INFO Running runs: ['4mhzj02r']
+2025-02-02 04:32:47 INFO Cleaning up finished run: 4mhzj02r
+2025-02-02 04:32:47 INFO Agent received command: run
+2025-02-02 04:32:47 INFO Agent starting run with config:
+	tv_weight: 0.008167313884768901
+2025-02-02 04:32:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.008167313884768901
+2025-02-02 04:32:52 INFO Running runs: ['o1wvxa4n']
+2025-02-02 04:43:57 INFO Cleaning up finished run: o1wvxa4n
+2025-02-02 04:43:57 INFO Agent received command: run
+2025-02-02 04:43:57 INFO Agent starting run with config:
+	tv_weight: 0.001024141733570505
+2025-02-02 04:43:57 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.001024141733570505
+2025-02-02 04:44:02 INFO Running runs: ['5hgcnuf3']
+2025-02-02 04:55:26 INFO Cleaning up finished run: 5hgcnuf3
+2025-02-02 04:55:27 INFO Agent received command: run
+2025-02-02 04:55:27 INFO Agent starting run with config:
+	tv_weight: 9.287359222620473e-05
+2025-02-02 04:55:27 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=9.287359222620473e-05
+2025-02-02 04:55:32 INFO Running runs: ['uovkjckm']
+2025-02-02 05:07:42 INFO Cleaning up finished run: uovkjckm
+2025-02-02 05:07:42 INFO Agent received command: run
+2025-02-02 05:07:42 INFO Agent starting run with config:
+	tv_weight: 0.009193741907306869
+2025-02-02 05:07:42 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009193741907306869
+2025-02-02 05:07:47 INFO Running runs: ['eit4ix9m']
+2025-02-02 05:22:44 INFO Cleaning up finished run: eit4ix9m
+2025-02-02 05:22:45 INFO Agent received command: run
+2025-02-02 05:22:45 INFO Agent starting run with config:
+	tv_weight: 0.004833717313827874
+2025-02-02 05:22:45 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004833717313827874
+2025-02-02 05:22:50 INFO Running runs: ['ut55eseh']
+2025-02-02 05:33:23 INFO Cleaning up finished run: ut55eseh
+2025-02-02 05:33:24 INFO Agent received command: run
+2025-02-02 05:33:24 INFO Agent starting run with config:
+	tv_weight: 0.007577538020607731
+2025-02-02 05:33:24 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007577538020607731
+2025-02-02 05:33:29 INFO Running runs: ['ckcg40g9']
+2025-02-02 05:43:58 INFO Cleaning up finished run: ckcg40g9
+2025-02-02 05:43:58 INFO Agent received command: run
+2025-02-02 05:43:58 INFO Agent starting run with config:
+	tv_weight: 0.00320763335140854
+2025-02-02 05:43:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00320763335140854
+2025-02-02 05:44:03 INFO Running runs: ['fabc8wup']
+2025-02-02 06:02:49 INFO Cleaning up finished run: fabc8wup
+2025-02-02 06:02:49 INFO Agent received command: run
+2025-02-02 06:02:49 INFO Agent starting run with config:
+	tv_weight: 0.00041698468522361143
+2025-02-02 06:02:49 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00041698468522361143
+2025-02-02 06:02:54 INFO Running runs: ['32rihklp']
+2025-02-02 06:14:13 INFO Cleaning up finished run: 32rihklp
+2025-02-02 06:14:14 INFO Agent received command: run
+2025-02-02 06:14:14 INFO Agent starting run with config:
+	tv_weight: 0.0064412491441012566
+2025-02-02 06:14:14 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0064412491441012566
+2025-02-02 06:14:19 INFO Running runs: ['b4lu82iw']
+2025-02-02 06:24:07 INFO Cleaning up finished run: b4lu82iw
+2025-02-02 06:24:08 INFO Agent received command: run
+2025-02-02 06:24:08 INFO Agent starting run with config:
+	tv_weight: 0.00551108800311472
+2025-02-02 06:24:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.00551108800311472
+2025-02-02 06:24:13 INFO Running runs: ['6hn6jo55']
+2025-02-02 06:34:06 INFO Cleaning up finished run: 6hn6jo55
+2025-02-02 06:34:06 INFO Agent received command: run
+2025-02-02 06:34:06 INFO Agent starting run with config:
+	tv_weight: 0.006241407759956775
+2025-02-02 06:34:06 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006241407759956775
+2025-02-02 06:34:11 INFO Running runs: ['o8wt5lrc']
+2025-02-02 06:51:46 INFO Cleaning up finished run: o8wt5lrc
+2025-02-02 06:51:47 INFO Agent received command: run
+2025-02-02 06:51:47 INFO Agent starting run with config:
+	tv_weight: 0.006279591316353094
+2025-02-02 06:51:47 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.006279591316353094
+2025-02-02 06:51:52 INFO Running runs: ['uos3rif9']
+2025-02-02 07:02:41 INFO Cleaning up finished run: uos3rif9
+2025-02-02 07:02:42 INFO Agent received command: run
+2025-02-02 07:02:42 INFO Agent starting run with config:
+	tv_weight: 0.007419245872460639
+2025-02-02 07:02:42 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007419245872460639
+2025-02-02 07:02:47 INFO Running runs: ['5zah2wdy']
+2025-02-02 07:13:05 INFO Cleaning up finished run: 5zah2wdy
+2025-02-02 07:13:05 INFO Agent received command: run
+2025-02-02 07:13:05 INFO Agent starting run with config:
+	tv_weight: 0.002392976852605221
+2025-02-02 07:13:05 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002392976852605221
+2025-02-02 07:13:11 INFO Running runs: ['eiorzujf']
+2025-02-02 07:25:26 INFO Cleaning up finished run: eiorzujf
+2025-02-02 07:25:26 INFO Agent received command: run
+2025-02-02 07:25:26 INFO Agent starting run with config:
+	tv_weight: 0.0022330824525561587
+2025-02-02 07:25:26 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0022330824525561587
+2025-02-02 07:25:31 INFO Running runs: ['e31l9feo']
+2025-02-02 07:40:29 INFO Cleaning up finished run: e31l9feo
+2025-02-02 07:40:29 INFO Agent received command: run
+2025-02-02 07:40:29 INFO Agent starting run with config:
+	tv_weight: 0.0006475612506693451
+2025-02-02 07:40:29 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0006475612506693451
+2025-02-02 07:40:34 INFO Running runs: ['col9ycgm']
+2025-02-02 07:50:53 INFO Cleaning up finished run: col9ycgm
+2025-02-02 07:50:53 INFO Agent received command: run
+2025-02-02 07:50:53 INFO Agent starting run with config:
+	tv_weight: 0.009878271326925123
+2025-02-02 07:50:53 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.009878271326925123
+2025-02-02 07:50:58 INFO Running runs: ['e4qvudsc']
+2025-02-02 08:02:55 INFO Cleaning up finished run: e4qvudsc
+2025-02-02 08:02:55 INFO Agent received command: run
+2025-02-02 08:02:55 INFO Agent starting run with config:
+	tv_weight: 0.005042568912606236
+2025-02-02 08:02:55 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.005042568912606236
+2025-02-02 08:03:00 INFO Running runs: ['7cyhpcne']
+2025-02-02 08:22:07 INFO Cleaning up finished run: 7cyhpcne
+2025-02-02 08:22:08 INFO Agent received command: run
+2025-02-02 08:22:08 INFO Agent starting run with config:
+	tv_weight: 0.004369577790757951
+2025-02-02 08:22:08 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.004369577790757951
+2025-02-02 08:22:13 INFO Running runs: ['ijcgyj72']
+2025-02-02 08:33:16 INFO Cleaning up finished run: ijcgyj72
+2025-02-02 08:33:17 INFO Agent received command: run
+2025-02-02 08:33:17 INFO Agent starting run with config:
+	tv_weight: 0.007861728198538318
+2025-02-02 08:33:17 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.007861728198538318
+2025-02-02 08:33:22 INFO Running runs: ['e38cxhhq']
+2025-02-02 08:43:57 INFO Cleaning up finished run: e38cxhhq
+2025-02-02 08:43:58 INFO Agent received command: run
+2025-02-02 08:43:58 INFO Agent starting run with config:
+	tv_weight: 0.002451349912749836
+2025-02-02 08:43:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.002451349912749836
+2025-02-02 08:44:03 INFO Running runs: ['qc3aznj1']
+2025-02-02 08:53:31 INFO Cleaning up finished run: qc3aznj1
+2025-02-02 08:53:31 INFO Agent received command: run
+2025-02-02 08:53:31 INFO Agent starting run with config:
+	tv_weight: 0.0010091051152666597
+2025-02-02 08:53:31 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.0010091051152666597
+2025-02-02 08:53:36 INFO Running runs: ['v2bfflj8']
+2025-02-02 09:14:58 INFO Cleaning up finished run: v2bfflj8
+2025-02-02 09:14:58 INFO Agent received command: run
+2025-02-02 09:14:58 INFO Agent starting run with config:
+	tv_weight: 0.000994481413133964
+2025-02-02 09:14:58 INFO About to run command: /usr/bin/env python train_sim.py --tv_weight=0.000994481413133964
+2025-02-02 09:15:03 INFO Running runs: ['rjs0n5n5']

@@ -1,0 +1,359 @@
+Output folder: ./output/lego_v4_800_train_tv_0.00500_tv_0.00653
+Found transforms_train.json file, assuming Blender data set!
+Reading Training Transforms
+get adj from path /home/vitran/plenoxels/blender_data/lego_gen12
+adjacent views [179, 180, 178, 181, 177, 182]
+len train 16
+Reading Test Transforms
+get adj from path /home/vitran/plenoxels/blender_data/lego_gen12
+adjacent views [179, 180, 178, 181, 177, 182]
+len test 6
+full len test 194
+Generating random point cloud (100000)...
+make sphere
+Loading Training Cameras
+Loading Test Cameras
+Loading Full Test Cameras
+Number of points at initialisation :  100000
+tv weight  0.006533934108498265
+MAX VALUE 1.9566749930381775
+Training progress:   0%|                                                                   | 0/3011 [00:00<?, ?it/s]
+
+Training progress:   0%|▏                                         | 10/3011 [00:08<44:54,  1.11it/s, Loss=0.3453551]
+[ITER 10] Evaluating test: L1 0.15051729728778201 PSNR 12.166551113128662
+[ITER 10] Evaluating non adj test: L1 0.16964744991555655 PSNR 11.39528096090887
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  10%|████                                     | 300/3011 [02:51<19:57,  2.26it/s, Loss=0.0497952]
+[ITER 300] Evaluating test: L1 0.03456410703559716 PSNR 21.59712759653727
+[ITER 300] Evaluating non adj test: L1 0.08104189325930532 PSNR 15.737412659163327
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  17%|██████▊                                  | 500/3011 [04:21<14:12,  2.95it/s, Loss=0.0311643]
+[ITER 500] Evaluating test: L1 0.03060769631216923 PSNR 22.340084075927734
+[ITER 500] Evaluating non adj test: L1 0.08069578844324216 PSNR 16.1661062388076
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  33%|█████████████▎                          | 1000/3011 [06:36<08:00,  4.18it/s, Loss=0.0153697]
+[ITER 1000] Evaluating test: L1 0.025569019839167595 PSNR 23.7992312113444
+[ITER 1000] Evaluating non adj test: L1 0.07637910661047574 PSNR 16.86280966788223
+[ITER 1000] Evaluating train: L1 0.022034568362869322 PSNR 24.603606462478638
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  50%|███████████████████▉                    | 1500/3011 [08:43<05:46,  4.37it/s, Loss=0.0107378]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  66%|██████████████████████████▍             | 1990/3011 [10:28<03:03,  5.58it/s, Loss=0.0090879]
+[ITER 1999] Evaluating test: L1 0.023773304807643093 PSNR 24.168726285298664
+[ITER 1999] Evaluating non adj test: L1 0.0741106884208383 PSNR 17.203638106277307
+
+Training progress:  66%|██████████████████████████▌             | 2000/3011 [10:39<07:37,  2.21it/s, Loss=0.0090550]
+[ITER 2000] Evaluating test: L1 0.023774600587785244 PSNR 24.16746648152669
+[ITER 2000] Evaluating non adj test: L1 0.07411290073440861 PSNR 17.20340427418345
+[ITER 2000] Evaluating train: L1 0.020826767780818045 PSNR 24.83811044692993
+[ITER 2000] Saving Gaussians
+[ITER 2000] Saving Checkpoint
+[ITER 2001] Evaluating test: L1 0.023836982746918995 PSNR 24.12966759999593
+[ITER 2001] Evaluating non adj test: L1 0.07418529030665294 PSNR 17.192680167168685
+
+Training progress:  67%|██████████████████████████▋             | 2010/3011 [11:01<16:18,  1.02it/s, Loss=0.0091718]
+[ITER 2010] Evaluating test: L1 0.023759268534680206 PSNR 24.165307998657227
+[ITER 2010] Evaluating non adj test: L1 0.07423180216904153 PSNR 17.19986453007177
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress: 100%|███████████████████████████████████████▊| 3000/3011 [15:59<00:02,  4.22it/s, Loss=0.0071618]
+[ITER 3000] Evaluating test: L1 0.023313539723555245 PSNR 24.2407964070638
+[ITER 3000] Evaluating non adj test: L1 0.0732726780793716 PSNR 17.41303024586943
+[ITER 3000] Evaluating train: L1 0.020528371329419315 PSNR 24.893769025802612
+
+
+Training progress: 100%|███████████████████████████████████████▉| 3010/3011 [16:18<00:00,  3.08it/s, Loss=0.0071790]
+Training complete.
