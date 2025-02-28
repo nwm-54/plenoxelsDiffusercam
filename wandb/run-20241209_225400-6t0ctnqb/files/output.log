@@ -1,0 +1,10 @@
+
+Output folder: ./output/6e659b59-d
+Traceback (most recent call last):
+  File "train_sim.py", line 457, in <module>
+    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+  File "train_sim.py", line 143, in training
+    scene = Scene(dataset, gaussians)
+  File "/home/vitran/gs7/scene/__init__.py", line 51, in __init__
+    assert False, "Could not recognize scene type!"
+AssertionError: Could not recognize scene type!

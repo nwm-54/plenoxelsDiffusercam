@@ -1,0 +1,122 @@
+{
+    "os": "Linux-5.4.0-204-generic-x86_64-with-debian-bullseye-sid",
+    "python": "3.7.13",
+    "heartbeatAt": "2025-01-08T06:43:55.396584",
+    "startedAt": "2025-01-08T06:43:55.079884",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--tv_weight=0"
+    ],
+    "state": "running",
+    "program": "train_sim.py",
+    "codePathLocal": "train_sim.py",
+    "codePath": "gs7/train_sim.py",
+    "git": {
+        "remote": null,
+        "commit": null
+    },
+    "email": "trannguyenthanhvi98@gmail.com",
+    "root": "/home/vitran",
+    "host": "waller-fuoco",
+    "username": "vitran",
+    "executable": "/home/vitran/miniconda3/envs/gaussian_splatting/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 1767.2206666666668,
+        "min": 1200.0,
+        "max": 4000.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1199.318,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 2929.022,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 2136.273,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1379.145,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1199.555,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1342.637,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1199.32,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 2786.392,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 2162.925,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1410.625,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1441.14,
+            "min": 1200.0,
+            "max": 4000.0
+        },
+        {
+            "current": 1453.404,
+            "min": 1200.0,
+            "max": 4000.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 915.3223114013672,
+            "used": 546.1876487731934
+        }
+    },
+    "gpu": "NVIDIA RTX A6000",
+    "gpu_count": 4,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA RTX A6000",
+            "memory_total": 51527024640
+        },
+        {
+            "name": "NVIDIA TITAN Xp",
+            "memory_total": 12884901888
+        },
+        {
+            "name": "NVIDIA TITAN Xp",
+            "memory_total": 12884901888
+        },
+        {
+            "name": "NVIDIA GeForce RTX 3090",
+            "memory_total": 25769803776
+        }
+    ],
+    "memory": {
+        "total": 62.7130126953125
+    }
+}

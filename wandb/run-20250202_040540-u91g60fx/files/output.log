@@ -1,0 +1,225 @@
+Output folder: ./output/chair_v4_400_train_tv_0.00000_tv_0.00443
+Found transforms_train.json file, assuming Blender data set!
+Reading Training Transforms
+adjacent views [130, 131, 129, 132, 128, 133]
+len train 16
+Reading Test Transforms
+adjacent views [130, 131, 129, 132, 128, 133]
+len test 6
+full len test 194
+Generating random point cloud (100000)...
+make sphere
+Loading Training Cameras
+Loading Test Cameras
+Loading Full Test Cameras
+Number of points at initialisation :  100000
+tv weight  0.004433943943806527
+MAX VALUE 1.3695616722106934
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  17%|██████▍                                | 500/3011 [01:49<08:32,  4.90it/s, Loss=0.0089006]
+[ITER 500] Evaluating test: L1 0.022366662820180256 PSNR 23.257433891296387
+[ITER 500] Evaluating non adj test: L1 0.06971654436099775 PSNR 16.51963123832781
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  33%|████████████▌                         | 1000/3011 [02:31<02:38, 12.66it/s, Loss=0.0049645]
+[ITER 1000] Evaluating test: L1 0.022734947502613068 PSNR 23.008428255716957
+[ITER 1000] Evaluating non adj test: L1 0.074831714949657 PSNR 16.185036457690995
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  66%|█████████████████████████▏            | 2000/3011 [04:16<08:26,  2.00it/s, Loss=0.0029747]
+[ITER 2000] Evaluating test: L1 0.02334794091681639 PSNR 22.737083117167153
+[ITER 2000] Evaluating non adj test: L1 0.08090330585453313 PSNR 15.688301730401736
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress: 100%|█████████████████████████████████████▊| 3000/3011 [09:32<00:02,  3.94it/s, Loss=0.0021881]
+[ITER 3000] Evaluating test: L1 0.023687328522404034 PSNR 22.609500567118324
+[ITER 3000] Evaluating non adj test: L1 0.08427154269914344 PSNR 15.473984678995977
+
+Training progress: 100%|█████████████████████████████████████▉| 3010/3011 [09:46<00:00,  5.14it/s, Loss=0.0022495]
+Training complete.

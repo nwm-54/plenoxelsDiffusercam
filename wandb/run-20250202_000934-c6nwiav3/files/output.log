@@ -1,0 +1,190 @@
+Output folder: ./output/chair_v4_400_train_tv_0.00000_tv_0.00301
+Found transforms_train.json file, assuming Blender data set!
+Reading Training Transforms
+adjacent views [130, 131, 129, 132, 128, 133]
+len train 16
+Reading Test Transforms
+adjacent views [130, 131, 129, 132, 128, 133]
+len test 6
+full len test 194
+Generating random point cloud (100000)...
+make sphere
+Loading Training Cameras
+Loading Test Cameras
+Loading Full Test Cameras
+Number of points at initialisation :  100000
+tv weight  0.003009574053648413
+Training progress:   0%|                                              | 0/3011 [00:00<?, ?it/s]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  17%|███▎                | 500/3011 [01:03<04:54,  8.53it/s, Loss=0.0089255]
+[ITER 500] Evaluating test: L1 0.02249172640343507 PSNR 23.232940355936684
+[ITER 500] Evaluating non adj test: L1 0.07013114671386086 PSNR 16.490859862455387
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  33%|██████▎            | 1000/3011 [01:45<02:07, 15.74it/s, Loss=0.0049417]
+[ITER 1000] Evaluating test: L1 0.022747168938318886 PSNR 22.981687545776367
+[ITER 1000] Evaluating non adj test: L1 0.07376508849682574 PSNR 16.18297768130745
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  66%|████████████▌      | 1990/3011 [04:49<01:10, 14.57it/s, Loss=0.0029079]
+
+Training progress:  66%|████████████▌      | 2000/3011 [04:50<01:12, 13.92it/s, Loss=0.0028986]
+[ITER 2000] Evaluating non adj test: L1 0.07903762572665804 PSNR 15.8071263745888
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Training progress:  99%|██████████████████▊| 2990/3011 [07:50<00:01, 13.53it/s, Loss=0.0021826]
+
+Training progress: 100%|██████████████████▉| 3000/3011 [07:50<00:00, 14.36it/s, Loss=0.0021776]
+[ITER 3000] Evaluating non adj test: L1 0.08236613655558873 PSNR 15.633846577909804
+[ITER 3000] Evaluating train: L1 0.019248379219789058 PSNR 23.987523078918457
+
+Training progress: 100%|██████████████████▉| 3010/3011 [07:55<00:00,  6.33it/s, Loss=0.0022676]

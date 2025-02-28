@@ -1,0 +1,184 @@
+2025-01-07 23:56:53,879 INFO    StreamThr :47504 [internal.py:wandb_internal():86] W&B internal server running at pid: 47504, started at: 2025-01-07 23:56:53.878378
+2025-01-07 23:56:53,880 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status
+2025-01-07 23:56:53,888 INFO    WriterThread:47504 [datastore.py:open_for_write():87] open: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/run-705hdm5o.wandb
+2025-01-07 23:56:53,889 DEBUG   SenderThread:47504 [sender.py:send():388] send: header
+2025-01-07 23:56:53,889 DEBUG   SenderThread:47504 [sender.py:send():388] send: run
+2025-01-07 23:56:54,066 INFO    SenderThread:47504 [dir_watcher.py:__init__():211] watching files in: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files
+2025-01-07 23:56:54,066 INFO    SenderThread:47504 [sender.py:_start_run_threads():1158] run started: 705hdm5o with start time 1736323013.877605
+2025-01-07 23:56:54,078 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: run_start
+2025-01-07 23:56:54,109 DEBUG   HandlerThread:47504 [system_info.py:__init__():26] System info init
+2025-01-07 23:56:54,109 DEBUG   HandlerThread:47504 [system_info.py:__init__():41] System info init done
+2025-01-07 23:56:54,109 INFO    HandlerThread:47504 [system_monitor.py:start():194] Starting system monitor
+2025-01-07 23:56:54,109 INFO    SystemMonitor:47504 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2025-01-07 23:56:54,110 INFO    HandlerThread:47504 [system_monitor.py:probe():214] Collecting system info
+2025-01-07 23:56:54,110 INFO    SystemMonitor:47504 [interfaces.py:start():188] Started cpu monitoring
+2025-01-07 23:56:54,111 INFO    SystemMonitor:47504 [interfaces.py:start():188] Started disk monitoring
+2025-01-07 23:56:54,112 INFO    SystemMonitor:47504 [interfaces.py:start():188] Started gpu monitoring
+2025-01-07 23:56:54,112 INFO    SystemMonitor:47504 [interfaces.py:start():188] Started memory monitoring
+2025-01-07 23:56:54,113 INFO    SystemMonitor:47504 [interfaces.py:start():188] Started network monitoring
+2025-01-07 23:56:54,137 DEBUG   HandlerThread:47504 [system_info.py:probe():152] Probing system
+2025-01-07 23:56:54,144 DEBUG   HandlerThread:47504 [system_info.py:_probe_git():137] Probing git
+2025-01-07 23:56:54,153 DEBUG   HandlerThread:47504 [system_info.py:_probe_git():145] Probing git done
+2025-01-07 23:56:54,153 DEBUG   HandlerThread:47504 [system_info.py:probe():200] Probing system done
+2025-01-07 23:56:54,153 DEBUG   HandlerThread:47504 [system_monitor.py:probe():223] {'os': 'Linux-5.4.0-204-generic-x86_64-with-debian-bullseye-sid', 'python': '3.7.13', 'heartbeatAt': '2025-01-08T07:56:54.138008', 'startedAt': '2025-01-08T07:56:53.837937', 'docker': None, 'cuda': None, 'args': ('--tv_weight=0.002',), 'state': 'running', 'program': 'train_sim.py', 'codePathLocal': 'train_sim.py', 'codePath': 'gs7/train_sim.py', 'git': {'remote': None, 'commit': None}, 'email': 'trannguyenthanhvi98@gmail.com', 'root': '/home/vitran', 'host': 'waller-fuoco', 'username': 'vitran', 'executable': '/home/vitran/miniconda3/envs/gaussian_splatting/bin/python', 'cpu_count': 6, 'cpu_count_logical': 12, 'cpu_freq': {'current': 2704.7015, 'min': 1200.0, 'max': 4000.0}, 'cpu_freq_per_core': [{'current': 2245.921, 'min': 1200.0, 'max': 4000.0}, {'current': 2113.86, 'min': 1200.0, 'max': 4000.0}, {'current': 3997.731, 'min': 1200.0, 'max': 4000.0}, {'current': 2523.368, 'min': 1200.0, 'max': 4000.0}, {'current': 2465.543, 'min': 1200.0, 'max': 4000.0}, {'current': 2208.02, 'min': 1200.0, 'max': 4000.0}, {'current': 2402.112, 'min': 1200.0, 'max': 4000.0}, {'current': 2624.461, 'min': 1200.0, 'max': 4000.0}, {'current': 3997.735, 'min': 1200.0, 'max': 4000.0}, {'current': 2755.613, 'min': 1200.0, 'max': 4000.0}, {'current': 2530.684, 'min': 1200.0, 'max': 4000.0}, {'current': 2591.37, 'min': 1200.0, 'max': 4000.0}], 'disk': {'/': {'total': 915.3223114013672, 'used': 546.2005424499512}}, 'gpu': 'NVIDIA RTX A6000', 'gpu_count': 4, 'gpu_devices': [{'name': 'NVIDIA RTX A6000', 'memory_total': 51527024640}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.7130126953125}}
+2025-01-07 23:56:54,153 INFO    HandlerThread:47504 [system_monitor.py:probe():224] Finished collecting system info
+2025-01-07 23:56:54,153 INFO    HandlerThread:47504 [system_monitor.py:probe():227] Publishing system info
+2025-01-07 23:56:54,153 DEBUG   HandlerThread:47504 [system_info.py:_save_conda():210] Saving list of conda packages installed into the current environment
+2025-01-07 23:56:55,070 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/conda-environment.yaml
+2025-01-07 23:56:56,068 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/conda-environment.yaml
+2025-01-07 23:56:56,175 DEBUG   HandlerThread:47504 [system_info.py:_save_conda():224] Saving conda packages done
+2025-01-07 23:56:56,176 INFO    HandlerThread:47504 [system_monitor.py:probe():229] Finished publishing system info
+2025-01-07 23:56:56,186 DEBUG   SenderThread:47504 [sender.py:send():388] send: files
+2025-01-07 23:56:56,186 INFO    SenderThread:47504 [sender.py:_save_file():1421] saving file wandb-metadata.json with policy now
+2025-01-07 23:56:56,322 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: python_packages
+2025-01-07 23:56:56,323 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: python_packages
+2025-01-07 23:56:56,324 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:56:56,324 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:56:56,327 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:56:56,484 DEBUG   SenderThread:47504 [sender.py:send():388] send: telemetry
+2025-01-07 23:56:56,552 INFO    wandb-upload_0:47504 [upload_job.py:push():130] Uploaded file /tmp/tmp8qf01t17wandb/89smerfd-wandb-metadata.json
+2025-01-07 23:56:57,068 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/requirements.txt
+2025-01-07 23:56:57,069 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:56:57,069 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/wandb-metadata.json
+2025-01-07 23:56:59,069 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:56:59,272 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:04,325 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:06,324 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:09,073 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:57:10,196 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:11,074 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:57:11,410 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:57:11,411 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:57:13,075 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:57:15,583 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:16,515 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:21,331 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:26,329 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:57:26,329 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:57:26,371 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:26,444 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:27,081 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/config.yaml
+2025-01-07 23:57:32,332 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:36,331 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:37,332 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:41,329 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:57:41,330 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:57:42,416 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:46,344 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:48,347 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:53,462 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:57:54,113 DEBUG   SystemMonitor:47504 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2025-01-07 23:57:54,116 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-07 23:57:56,336 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:57:56,336 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:57:56,349 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:57:59,457 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:05,094 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:58:05,390 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:06,095 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:58:06,336 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:11,334 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:58:11,334 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:58:11,500 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:16,336 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:17,357 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:22,357 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:24,118 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-07 23:58:26,338 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:58:26,338 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:58:26,379 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:27,450 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:32,546 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:34,105 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:58:34,610 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-07 23:58:34,613 DEBUG   SenderThread:47504 [sender.py:send():388] send: history
+2025-01-07 23:58:34,614 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: summary_record
+2025-01-07 23:58:34,614 INFO    SenderThread:47504 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-07 23:58:35,106 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/wandb-summary.json
+2025-01-07 23:58:36,337 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:37,106 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:58:38,405 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:41,108 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:58:41,337 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:58:41,338 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:58:43,453 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:46,338 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:49,370 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:54,120 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-07 23:58:55,121 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:58:56,342 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:58:56,342 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:58:56,343 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:59:00,478 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:06,345 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:59:06,437 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:11,342 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:59:11,343 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:59:11,511 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:14,121 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:59:16,345 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:59:17,442 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:22,442 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:24,122 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-07 23:59:26,342 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:59:26,343 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:59:26,383 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:59:28,442 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:33,442 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:36,348 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:59:38,442 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:41,344 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:59:41,344 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:59:42,131 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-07 23:59:43,474 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:46,355 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-07 23:59:49,452 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:54,123 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-07 23:59:55,124 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-07 23:59:56,344 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-07 23:59:56,345 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-07 23:59:56,387 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:00,513 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:04,140 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:06,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:06,452 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:11,344 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-08 00:00:11,345 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-08 00:00:12,452 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:16,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:17,596 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:18,145 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:23,453 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:24,125 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-08 00:00:26,344 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-08 00:00:26,345 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-08 00:00:26,355 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:28,150 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:28,476 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:34,052 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:34,152 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:36,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:39,454 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:41,347 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-08 00:00:41,347 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-08 00:00:42,155 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:44,481 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:46,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:00:48,158 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:49,540 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:54,127 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-08 00:00:54,161 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:00:55,128 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:00:56,347 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-08 00:00:56,348 DEBUG   SenderThread:47504 [sender.py:send_request():415] send_request: stop_status
+2025-01-08 00:00:56,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:01:00,132 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:01:00,163 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:01:05,170 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: status_report
+2025-01-08 00:01:06,166 INFO    Thread-12 :47504 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250107_235653-705hdm5o/files/output.log
+2025-01-08 00:01:06,356 DEBUG   HandlerThread:47504 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-08 00:01:08,233 INFO    memory    :47504 [interfaces.py:monitor():138] Process proc.memory.rssMB has exited.
+2025-01-08 00:01:08,233 DEBUG   SystemMonitor:47504 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2025-01-08 00:01:08,233 DEBUG   SystemMonitor:47504 [system_monitor.py:_start():183] Publishing last batch of metrics
+2025-01-08 00:01:08,237 DEBUG   SenderThread:47504 [sender.py:send():388] send: stats
+2025-01-08 00:01:09,132 INFO    MainThread:47504 [internal.py:handle_exit():73] Internal process exited

@@ -1,0 +1,37 @@
+_wandb:
+    value:
+        cli_version: 0.18.7
+        m: []
+        python_version: 3.7.13
+        t:
+            "1":
+                - 1
+                - 55
+            "2":
+                - 1
+                - 55
+            "3":
+                - 16
+                - 23
+                - 55
+            "4": 3.7.13
+            "5": 0.18.7
+            "8":
+                - 5
+            "12": 0.18.7
+            "13": linux-x86_64
+method:
+    value: bayes
+metric:
+    value:
+        goal: maximize
+        name: val_acc
+name:
+    value: sweep
+parameters:
+    value:
+        tv_weight:
+            max: 0.002
+            min: 0
+program:
+    value: train_sim.py

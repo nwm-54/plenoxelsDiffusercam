@@ -1,0 +1,21 @@
+Output folder: ./output/chair_800_tv_0.00713
+Found transforms_train.json file, assuming Blender data set!
+Reading Training Transforms
+get adj from path /home/vitran/plenoxels/blender_data/chair
+adjacent views [59, 11, 98, 28, 95, 93]
+len train 16
+Reading Test Transforms
+get adj from path /home/vitran/plenoxels/blender_data/chair
+adjacent views [59, 11, 98, 28, 95, 93]
+Traceback (most recent call last):
+  File "train_sim.py", line 474, in <module>
+    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.resolution, args.dls)
+  File "train_sim.py", line 143, in training
+    scene = Scene(dataset, gaussians)
+  File "/home/vitran/gs7/scene/__init__.py", line 49, in __init__
+    scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval)
+  File "/home/vitran/gs7/scene/dataset_readers.py", line 382, in readNerfSyntheticInfo
+    test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
+  File "/home/vitran/gs7/scene/dataset_readers.py", line 325, in readCamerasFromTransforms
+    with open(os.path.join(path, transformsfile)) as json_file:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/vitran/plenoxels/blender_data/chair/transforms_test_black.json'

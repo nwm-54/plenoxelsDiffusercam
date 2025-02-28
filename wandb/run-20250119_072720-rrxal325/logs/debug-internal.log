@@ -1,0 +1,673 @@
+2025-01-19 07:27:20,281 INFO    StreamThr :796371 [internal.py:wandb_internal():86] W&B internal server running at pid: 796371, started at: 2025-01-19 07:27:20.280789
+2025-01-19 07:27:20,285 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status
+2025-01-19 07:27:20,290 INFO    WriterThread:796371 [datastore.py:open_for_write():87] open: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/run-rrxal325.wandb
+2025-01-19 07:27:20,290 DEBUG   SenderThread:796371 [sender.py:send():388] send: header
+2025-01-19 07:27:20,291 DEBUG   SenderThread:796371 [sender.py:send():388] send: run
+2025-01-19 07:27:20,490 INFO    SenderThread:796371 [dir_watcher.py:__init__():211] watching files in: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files
+2025-01-19 07:27:20,490 INFO    SenderThread:796371 [sender.py:_start_run_threads():1158] run started: rrxal325 with start time 1737300440.278687
+2025-01-19 07:27:20,508 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: run_start
+2025-01-19 07:27:20,546 DEBUG   HandlerThread:796371 [system_info.py:__init__():26] System info init
+2025-01-19 07:27:20,546 DEBUG   HandlerThread:796371 [system_info.py:__init__():41] System info init done
+2025-01-19 07:27:20,546 INFO    HandlerThread:796371 [system_monitor.py:start():194] Starting system monitor
+2025-01-19 07:27:20,546 INFO    SystemMonitor:796371 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2025-01-19 07:27:20,547 INFO    HandlerThread:796371 [system_monitor.py:probe():214] Collecting system info
+2025-01-19 07:27:20,548 INFO    SystemMonitor:796371 [interfaces.py:start():188] Started cpu monitoring
+2025-01-19 07:27:20,548 INFO    SystemMonitor:796371 [interfaces.py:start():188] Started disk monitoring
+2025-01-19 07:27:20,550 INFO    SystemMonitor:796371 [interfaces.py:start():188] Started gpu monitoring
+2025-01-19 07:27:20,551 INFO    SystemMonitor:796371 [interfaces.py:start():188] Started memory monitoring
+2025-01-19 07:27:20,552 INFO    SystemMonitor:796371 [interfaces.py:start():188] Started network monitoring
+2025-01-19 07:27:20,580 DEBUG   HandlerThread:796371 [system_info.py:probe():152] Probing system
+2025-01-19 07:27:20,586 DEBUG   HandlerThread:796371 [system_info.py:_probe_git():137] Probing git
+2025-01-19 07:27:20,596 DEBUG   HandlerThread:796371 [system_info.py:_probe_git():145] Probing git done
+2025-01-19 07:27:20,596 DEBUG   HandlerThread:796371 [system_info.py:probe():200] Probing system done
+2025-01-19 07:27:20,596 DEBUG   HandlerThread:796371 [system_monitor.py:probe():223] {'os': 'Linux-5.4.0-204-generic-x86_64-with-debian-bullseye-sid', 'python': '3.7.13', 'heartbeatAt': '2025-01-19T15:27:20.580474', 'startedAt': '2025-01-19T15:27:20.265617', 'docker': None, 'cuda': None, 'args': ('--tv_weight=0.006841649815507428',), 'state': 'running', 'program': 'train_sim.py', 'codePathLocal': 'train_sim.py', 'codePath': 'gs7/train_sim.py', 'git': {'remote': None, 'commit': None}, 'email': 'trannguyenthanhvi98@gmail.com', 'root': '/home/vitran', 'host': 'waller-fuoco', 'username': 'vitran', 'executable': '/home/vitran/miniconda3/envs/gaussian_splatting/bin/python', 'cpu_count': 6, 'cpu_count_logical': 12, 'cpu_freq': {'current': 1400.1555833333332, 'min': 1200.0, 'max': 4000.0}, 'cpu_freq_per_core': [{'current': 1199.882, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.361, 'min': 1200.0, 'max': 4000.0}, {'current': 1598.24, 'min': 1200.0, 'max': 4000.0}, {'current': 1200.546, 'min': 1200.0, 'max': 4000.0}, {'current': 1279.643, 'min': 1200.0, 'max': 4000.0}, {'current': 1993.529, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.37, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.519, 'min': 1200.0, 'max': 4000.0}, {'current': 1770.399, 'min': 1200.0, 'max': 4000.0}, {'current': 1199.319, 'min': 1200.0, 'max': 4000.0}, {'current': 1326.949, 'min': 1200.0, 'max': 4000.0}, {'current': 1635.11, 'min': 1200.0, 'max': 4000.0}], 'disk': {'/': {'total': 915.3223114013672, 'used': 545.3913536071777}}, 'gpu': 'NVIDIA RTX A6000', 'gpu_count': 4, 'gpu_devices': [{'name': 'NVIDIA RTX A6000', 'memory_total': 51527024640}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA TITAN Xp', 'memory_total': 12884901888}, {'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.7130126953125}}
+2025-01-19 07:27:20,596 INFO    HandlerThread:796371 [system_monitor.py:probe():224] Finished collecting system info
+2025-01-19 07:27:20,597 INFO    HandlerThread:796371 [system_monitor.py:probe():227] Publishing system info
+2025-01-19 07:27:20,597 DEBUG   HandlerThread:796371 [system_info.py:_save_conda():210] Saving list of conda packages installed into the current environment
+2025-01-19 07:27:21,494 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/conda-environment.yaml
+2025-01-19 07:27:22,621 DEBUG   HandlerThread:796371 [system_info.py:_save_conda():224] Saving conda packages done
+2025-01-19 07:27:22,622 INFO    HandlerThread:796371 [system_monitor.py:probe():229] Finished publishing system info
+2025-01-19 07:27:22,634 DEBUG   SenderThread:796371 [sender.py:send():388] send: files
+2025-01-19 07:27:22,634 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-metadata.json with policy now
+2025-01-19 07:27:22,749 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: python_packages
+2025-01-19 07:27:22,750 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: python_packages
+2025-01-19 07:27:22,750 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:27:22,750 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:27:22,752 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:27:22,860 DEBUG   SenderThread:796371 [sender.py:send():388] send: telemetry
+2025-01-19 07:27:23,037 INFO    wandb-upload_0:796371 [upload_job.py:push():130] Uploaded file /tmp/tmpsev4g_vfwandb/4dlnklcf-wandb-metadata.json
+2025-01-19 07:27:23,492 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/conda-environment.yaml
+2025-01-19 07:27:23,492 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-metadata.json
+2025-01-19 07:27:23,492 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:27:23,492 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/requirements.txt
+2025-01-19 07:27:25,493 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:27:25,679 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:30,751 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:32,751 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:27:35,497 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:27:36,405 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:37,498 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:27:37,759 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:27:37,760 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:27:39,499 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:27:41,886 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:42,807 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:27:46,954 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:52,751 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:27:52,751 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:27:52,791 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:27:52,910 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:27:53,504 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/config.yaml
+2025-01-19 07:27:58,758 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:02,762 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:03,758 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:07,751 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:28:07,751 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:28:08,880 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:12,766 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:14,766 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:19,860 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:20,552 DEBUG   SystemMonitor:796371 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2025-01-19 07:28:20,555 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:28:22,758 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:28:22,759 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:28:22,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:24,881 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:29,912 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:31,519 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:32,519 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:32,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:33,520 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:35,773 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:37,750 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:28:37,751 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:28:40,097 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:28:40,100 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:28:40,100 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:28:40,100 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:28:40,523 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:40,523 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_created():271] file/dir created: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:28:41,101 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:41,523 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:42,424 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:28:42,426 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:28:42,427 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:28:42,427 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:28:42,523 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:28:42,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:43,524 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:45,524 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:46,962 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:50,557 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:28:52,079 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:28:52,750 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:28:52,751 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:28:52,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:28:54,529 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:28:57,774 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:00,531 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:02,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:03,774 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:06,534 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:07,752 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:29:07,753 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:29:08,535 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:08,908 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:12,536 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:12,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:14,537 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:14,593 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:18,539 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:19,948 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:20,540 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:20,559 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:29:22,541 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:22,752 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:29:22,753 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:29:22,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:24,542 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:25,835 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:26,542 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:30,544 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:30,927 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:32,545 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:32,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:34,546 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:36,547 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:36,629 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:37,753 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:29:37,754 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:29:38,548 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:40,550 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:42,207 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:42,770 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:44,550 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:46,551 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:47,777 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:48,552 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:50,553 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:50,560 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:29:52,554 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:52,753 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:29:52,754 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:29:52,770 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:29:52,919 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:29:54,555 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:56,556 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:29:58,413 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:00,557 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:02,558 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:02,773 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:04,028 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:04,559 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:06,560 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:07,758 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:30:07,758 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:30:08,561 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:09,854 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:10,112 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:30:10,113 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:30:10,114 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:30:10,114 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:30:10,562 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:30:11,562 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:12,775 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:13,080 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:30:13,082 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:30:13,082 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:30:13,083 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:30:13,563 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:30:15,084 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:15,564 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:17,565 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:18,565 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:20,197 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:20,562 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:30:20,566 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:22,759 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:30:22,759 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:30:22,775 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:24,568 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:25,581 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:26,569 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:28,570 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:30,571 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:31,039 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:32,572 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:32,777 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:34,573 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:36,574 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:36,631 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:37,761 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:30:37,762 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:30:38,575 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:40,575 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:42,145 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:42,775 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:44,577 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:46,578 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:47,785 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:48,579 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:50,580 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:50,630 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:30:52,581 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:52,762 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:30:52,763 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:30:52,775 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:30:52,935 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:30:54,581 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:56,582 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:30:58,626 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:00,584 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:02,585 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:02,775 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:03,588 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:31:03,589 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:31:03,589 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:31:03,590 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:31:03,632 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:04,586 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:31:05,586 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:06,673 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:31:06,674 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:31:06,675 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:31:06,675 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:31:07,587 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:31:07,587 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:07,762 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:31:07,763 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:31:08,864 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:09,588 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:12,589 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:12,777 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:14,000 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:14,590 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:16,591 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:19,492 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:20,566 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:31:20,593 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:22,594 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:22,764 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:31:22,764 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:31:22,778 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:24,595 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:24,988 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:26,596 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:28,597 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:30,597 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:30,721 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:32,598 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:32,779 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:34,599 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:36,073 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:36,600 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:37,764 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:31:37,765 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:31:38,601 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:40,602 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:41,202 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:42,603 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:42,779 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:44,604 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:46,604 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:46,640 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:48,605 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:50,567 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:31:50,606 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:52,028 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:52,607 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:52,764 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:31:52,765 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:31:52,779 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:31:54,608 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:56,609 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:31:57,413 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:31:58,609 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:00,610 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:02,611 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:02,757 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:02,779 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:04,612 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:06,613 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:07,764 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:32:07,765 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:32:07,877 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:08,614 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:10,615 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:12,616 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:12,784 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:13,797 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:14,617 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:16,617 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:18,618 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:19,120 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:20,569 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:32:20,619 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:22,620 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:22,765 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:32:22,766 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:32:22,784 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:24,565 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:24,621 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:26,622 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:28,914 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:32:28,915 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:32:28,916 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:32:28,916 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:32:29,623 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:32:29,624 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:29,917 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:31,626 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:32:31,628 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:32:31,628 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:32:31,629 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:32:32,624 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:32:32,784 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:33,625 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:35,467 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:35,626 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:36,626 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:37,765 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:32:37,766 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:32:38,627 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:40,628 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:40,959 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:42,629 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:42,791 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:44,630 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:46,312 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:46,630 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:48,631 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:50,571 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:32:50,632 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:51,720 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:52,635 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:52,765 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:32:52,766 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:32:52,785 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:32:55,636 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:57,315 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:32:57,637 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:32:59,638 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:01,639 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:02,786 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:02,809 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:03,640 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:05,641 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:07,642 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:07,765 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:33:07,766 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:33:07,927 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:09,643 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:11,644 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:12,786 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:13,602 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:13,644 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:15,645 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:17,646 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:19,060 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:19,647 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:20,573 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:33:21,648 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:22,765 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:33:22,766 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:33:22,786 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:23,649 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:24,983 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:25,650 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:27,651 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:29,652 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:30,912 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:31,653 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:32,787 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:33,654 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:35,655 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:36,889 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:37,656 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:37,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:33:37,768 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:33:39,657 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:41,657 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:42,787 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:42,810 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:43,658 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:45,659 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:47,660 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:47,811 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:49,661 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:50,575 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:33:51,662 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:52,767 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:33:52,768 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:33:52,787 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:33:52,886 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:53,663 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:55,664 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:57,665 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:33:58,493 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:33:59,666 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:01,667 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:02,788 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:03,668 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:03,944 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:05,669 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:07,670 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:07,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:34:07,768 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:34:09,000 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:09,671 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:11,672 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:12,788 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:13,672 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:14,619 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:15,673 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:17,674 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:19,676 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:19,812 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:20,577 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:34:21,677 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:22,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:34:22,768 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:34:22,788 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:23,677 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:25,426 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:25,678 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:27,679 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:29,680 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:30,568 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:31,681 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:32,788 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:33,682 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:35,683 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:36,211 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:37,684 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:37,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:34:37,768 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:34:39,685 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:41,256 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:41,686 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:42,789 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:43,687 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:45,687 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:46,969 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:47,688 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:49,689 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:50,579 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:34:51,690 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:52,236 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:52,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:34:52,769 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:34:52,789 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:34:53,691 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:55,692 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:57,693 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:34:57,813 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:34:59,694 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:01,694 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:02,790 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:35:03,695 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:03,813 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:05,418 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:05,419 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:05,419 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:05,420 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:05,696 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:07,697 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:07,768 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:35:07,769 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:35:08,218 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:08,220 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:08,220 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:08,221 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:08,698 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:09,222 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:09,698 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:11,699 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:12,790 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:35:13,700 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:13,857 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:13,859 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:13,859 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:13,860 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:14,700 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:14,861 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:15,701 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:16,566 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:16,567 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:16,567 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:16,568 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:16,701 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:17,701 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:19,702 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:20,581 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:35:20,582 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:21,703 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:22,330 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:22,332 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:22,332 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:22,332 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:22,704 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:22,781 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:35:22,781 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:35:22,790 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:35:23,704 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:25,063 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:25,065 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:25,065 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:25,066 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:25,705 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:26,067 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:27,706 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:29,707 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:31,355 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:31,708 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:31,958 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:31,960 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:31,960 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:31,961 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:32,709 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:32,790 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:35:33,709 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:34,688 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: partial_history
+2025-01-19 07:35:34,690 DEBUG   SenderThread:796371 [sender.py:send():388] send: history
+2025-01-19 07:35:34,690 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: summary_record
+2025-01-19 07:35:34,690 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:34,710 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:35,710 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:36,732 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:37,711 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:37,769 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: stop_status
+2025-01-19 07:35:37,770 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: stop_status
+2025-01-19 07:35:37,931 DEBUG   SenderThread:796371 [sender.py:send():388] send: exit
+2025-01-19 07:35:37,931 INFO    SenderThread:796371 [sender.py:send_exit():575] handling exit code: 0
+2025-01-19 07:35:37,932 INFO    SenderThread:796371 [sender.py:send_exit():577] handling runtime: 497
+2025-01-19 07:35:37,932 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:37,933 INFO    SenderThread:796371 [sender.py:send_exit():583] send defer
+2025-01-19 07:35:37,933 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:37,933 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 0
+2025-01-19 07:35:37,933 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:37,933 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 0
+2025-01-19 07:35:37,933 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 1
+2025-01-19 07:35:37,934 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:37,934 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 1
+2025-01-19 07:35:37,934 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:37,934 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 1
+2025-01-19 07:35:37,934 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 2
+2025-01-19 07:35:37,935 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:37,935 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 2
+2025-01-19 07:35:37,935 INFO    HandlerThread:796371 [system_monitor.py:finish():203] Stopping system monitor
+2025-01-19 07:35:37,935 DEBUG   SystemMonitor:796371 [system_monitor.py:_start():179] Finished system metrics aggregation loop
+2025-01-19 07:35:37,935 DEBUG   SystemMonitor:796371 [system_monitor.py:_start():183] Publishing last batch of metrics
+2025-01-19 07:35:37,938 INFO    HandlerThread:796371 [interfaces.py:finish():200] Joined cpu monitor
+2025-01-19 07:35:37,938 INFO    HandlerThread:796371 [interfaces.py:finish():200] Joined disk monitor
+2025-01-19 07:35:38,122 INFO    HandlerThread:796371 [interfaces.py:finish():200] Joined gpu monitor
+2025-01-19 07:35:38,122 INFO    HandlerThread:796371 [interfaces.py:finish():200] Joined memory monitor
+2025-01-19 07:35:38,122 INFO    HandlerThread:796371 [interfaces.py:finish():200] Joined network monitor
+2025-01-19 07:35:38,123 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,123 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 2
+2025-01-19 07:35:38,123 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 3
+2025-01-19 07:35:38,124 DEBUG   SenderThread:796371 [sender.py:send():388] send: stats
+2025-01-19 07:35:38,124 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:38,125 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 3
+2025-01-19 07:35:38,125 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,125 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 3
+2025-01-19 07:35:38,125 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 4
+2025-01-19 07:35:38,126 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:38,126 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 4
+2025-01-19 07:35:38,126 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,126 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 4
+2025-01-19 07:35:38,126 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 5
+2025-01-19 07:35:38,127 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:38,127 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 5
+2025-01-19 07:35:38,127 DEBUG   SenderThread:796371 [sender.py:send():388] send: summary
+2025-01-19 07:35:38,128 INFO    SenderThread:796371 [sender.py:_save_file():1421] saving file wandb-summary.json with policy end
+2025-01-19 07:35:38,128 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,129 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 5
+2025-01-19 07:35:38,129 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 6
+2025-01-19 07:35:38,129 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:38,129 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 6
+2025-01-19 07:35:38,129 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,129 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 6
+2025-01-19 07:35:38,130 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 7
+2025-01-19 07:35:38,130 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: status_report
+2025-01-19 07:35:38,130 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:38,130 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 7
+2025-01-19 07:35:38,131 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:38,131 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 7
+2025-01-19 07:35:38,712 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:38,812 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: poll_exit
+2025-01-19 07:35:39,712 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:40,923 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 8
+2025-01-19 07:35:40,924 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: poll_exit
+2025-01-19 07:35:40,924 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:40,924 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 8
+2025-01-19 07:35:40,925 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:40,925 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 8
+2025-01-19 07:35:40,925 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 9
+2025-01-19 07:35:40,926 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:40,926 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 9
+2025-01-19 07:35:40,926 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:40,926 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 9
+2025-01-19 07:35:40,926 INFO    SenderThread:796371 [dir_watcher.py:finish():358] shutting down directory watcher
+2025-01-19 07:35:41,713 INFO    Thread-12 :796371 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:41,714 INFO    SenderThread:796371 [dir_watcher.py:finish():388] scan: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files
+2025-01-19 07:35:41,714 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/config.yaml config.yaml
+2025-01-19 07:35:41,715 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log output.log
+2025-01-19 07:35:41,715 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/requirements.txt requirements.txt
+2025-01-19 07:35:41,716 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-metadata.json wandb-metadata.json
+2025-01-19 07:35:41,716 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json wandb-summary.json
+2025-01-19 07:35:41,722 INFO    SenderThread:796371 [dir_watcher.py:finish():402] scan save: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/conda-environment.yaml conda-environment.yaml
+2025-01-19 07:35:41,728 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 10
+2025-01-19 07:35:41,734 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:41,735 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 10
+2025-01-19 07:35:41,741 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:41,741 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 10
+2025-01-19 07:35:41,741 INFO    SenderThread:796371 [file_pusher.py:finish():169] shutting down file pusher
+2025-01-19 07:35:41,814 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: poll_exit
+2025-01-19 07:35:41,815 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: poll_exit
+2025-01-19 07:35:42,055 INFO    wandb-upload_0:796371 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/config.yaml
+2025-01-19 07:35:42,073 INFO    wandb-upload_1:796371 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/requirements.txt
+2025-01-19 07:35:42,091 INFO    wandb-upload_3:796371 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/wandb-summary.json
+2025-01-19 07:35:42,094 INFO    wandb-upload_2:796371 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/output.log
+2025-01-19 07:35:42,096 INFO    wandb-upload_5:796371 [upload_job.py:push():130] Uploaded file /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/files/conda-environment.yaml
+2025-01-19 07:35:42,296 INFO    Thread-11 :796371 [sender.py:transition_state():603] send defer: 11
+2025-01-19 07:35:42,297 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:42,297 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 11
+2025-01-19 07:35:42,298 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:42,298 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 11
+2025-01-19 07:35:42,298 INFO    SenderThread:796371 [file_pusher.py:join():175] waiting for file pusher
+2025-01-19 07:35:42,299 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 12
+2025-01-19 07:35:42,299 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:42,299 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 12
+2025-01-19 07:35:42,300 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:42,300 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 12
+2025-01-19 07:35:42,300 INFO    SenderThread:796371 [file_stream.py:finish():601] file stream finish called
+2025-01-19 07:35:42,638 INFO    SenderThread:796371 [file_stream.py:finish():605] file stream finish is done
+2025-01-19 07:35:42,638 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 13
+2025-01-19 07:35:42,639 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:42,639 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 13
+2025-01-19 07:35:42,639 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:42,640 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 13
+2025-01-19 07:35:42,640 INFO    SenderThread:796371 [sender.py:transition_state():603] send defer: 14
+2025-01-19 07:35:42,641 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: defer
+2025-01-19 07:35:42,641 INFO    HandlerThread:796371 [handler.py:handle_request_defer():183] handle defer: 14
+2025-01-19 07:35:42,641 DEBUG   SenderThread:796371 [sender.py:send():388] send: final
+2025-01-19 07:35:42,642 DEBUG   SenderThread:796371 [sender.py:send():388] send: footer
+2025-01-19 07:35:42,642 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: defer
+2025-01-19 07:35:42,642 INFO    SenderThread:796371 [sender.py:send_request_defer():599] handle sender defer: 14
+2025-01-19 07:35:42,643 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: poll_exit
+2025-01-19 07:35:42,643 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: poll_exit
+2025-01-19 07:35:42,645 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: poll_exit
+2025-01-19 07:35:42,645 DEBUG   SenderThread:796371 [sender.py:send_request():415] send_request: poll_exit
+2025-01-19 07:35:42,646 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: get_summary
+2025-01-19 07:35:42,647 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: sampled_history
+2025-01-19 07:35:42,648 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: internal_messages
+2025-01-19 07:35:42,649 INFO    MainThread:796371 [wandb_run.py:_footer_history_summary_info():3960] rendering history
+2025-01-19 07:35:42,650 INFO    MainThread:796371 [wandb_run.py:_footer_history_summary_info():3992] rendering summary
+2025-01-19 07:35:42,650 INFO    MainThread:796371 [wandb_run.py:_footer_sync_info():3921] logging synced files
+2025-01-19 07:35:42,651 DEBUG   HandlerThread:796371 [handler.py:handle_request():159] handle_request: shutdown
+2025-01-19 07:35:42,651 INFO    HandlerThread:796371 [handler.py:finish():873] shutting down handler
+2025-01-19 07:35:43,645 INFO    WriterThread:796371 [datastore.py:close():296] close: /home/vitran/gs7/wandb/run-20250119_072720-rrxal325/run-rrxal325.wandb
+2025-01-19 07:35:43,646 INFO    SenderThread:796371 [sender.py:finish():1600] shutting down sender
+2025-01-19 07:35:43,646 INFO    SenderThread:796371 [file_pusher.py:finish():169] shutting down file pusher
+2025-01-19 07:35:43,646 INFO    SenderThread:796371 [file_pusher.py:join():175] waiting for file pusher
