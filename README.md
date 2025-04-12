@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 3D Gaussian Splatting for Real-Time Radiance Field Rendering
 Bernhard Kerbl*, Georgios Kopanas*, Thomas Leimkühler, George Drettakis (* indicates equal contribution)<br>
 | [Webpage](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) | [Full Paper](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/3d_gaussian_splatting_high.pdf) | [Video](https://youtu.be/T_kXY43VZnk) | [Other GRAPHDECO Publications](http://www-sop.inria.fr/reves/publis/gdindex.php) | [FUNGRAPH project page](https://fungraph.inria.fr) |<br>
@@ -521,11 +520,3 @@ pip install submodules\simple-knn
 - *Wait, but ```<insert feature>``` isn't optimized and could be much better?* There are several parts we didn't even have time to think about improving (yet). The performance you get with this prototype is probably a rather slow baseline for what is physically possible.
 
 - *Something is broken, how did this happen?* We tried hard to provide a solid and comprehensible basis to make use of the paper's method. We have refactored the code quite a bit, but we have limited capacity to test all possible usage scenarios. Thus, if part of the website, the code or the performance is lacking, please create an issue. If we find the time, we will do our best to address it.
-=======
-# plenoxelsDiffusercam
-
-** Update May 2, 2022
-- Trained model of lego dataset: [link](https://drive.google.com/file/d/1etHXhr4jnqLLc2Vwl1FdKLHYoiJ2upd0/view?usp=sharing)
-- Jupyter notebook to generate fake training data from test data on trained model above: [link](https://drive.google.com/file/d/1SVyiWOXMXduPAnvM6b50FeZU0YrIIAUE/view?usp=sharing)
-- Fake training lego dataset generated from the notebook above: [link](https://drive.google.com/file/d/1PJ4VFN_1_h7b3fRKqhn3tdUlniSORfmT/view?usp=sharing)
->>>>>>> 60ec2cfe4fca965ad6f03d63bed204182c772379
