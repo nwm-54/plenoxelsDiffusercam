@@ -50,8 +50,10 @@ class ModelParams(ParamGroup):
         self._source_path = ""
         self._model_path = ""
         self._images = "images"
+        self._depths = ""
         self._resolution = -1
         self._white_background = False
+        self.train_test_exp = False
         self.data_device = "cuda"
         self.eval = False
         super().__init__(parser, "Loading Parameters", sentinel)
@@ -66,6 +68,7 @@ class PipelineParams(ParamGroup):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
+        self.antialiasing = False
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):
@@ -79,6 +82,10 @@ class OptimizationParams(ParamGroup):
         self.opacity_lr = 0.05
         self.scaling_lr = 0.005
         self.rotation_lr = 0.001
+        self.exposure_lr_init = 0.01
+        self.exposure_lr_final = 0.001
+        self.exposure_lr_delay_steps = 0
+        self.exposure_lr_delay_mult = 0.0
         self.percent_dense = 0.01
         self.lambda_dssim = 0.2
         self.densification_interval = 100
@@ -86,9 +93,13 @@ class OptimizationParams(ParamGroup):
         self.densify_from_iter = 500
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
+        self.depth_l1_weight_init = 1.0
+        self.depth_l1_weight_final = 0.01
         self.random_background = False
         self.tv_weight = 0.9
         self.tv_train_weight = 0.1
+        self.tv_unseen_weight = 0.05
+        self.optimizer_type = "default"
         super().__init__(parser, "Optimization Parameters")
 
 def get_combined_args(parser : ArgumentParser):
