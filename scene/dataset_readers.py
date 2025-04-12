@@ -135,6 +135,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     # 9 views:45,43,41,31,29,27,16,14,12
     # random.sample(range(0,42,1), k=35)
     selected_img_name = [f"IMG_00{i}.JPG" for i in [45,43,41,31,29,27,16,14,12]] 
+    # selected_img_name = [f"IMG_00{i}.JPG" for i in range(11,53)] 
     # must_have_test = "IMG_0029.JPG"
     print("print selected ", selected_img_name)
     for idx, key in enumerate(cam_extrinsics):
@@ -166,24 +167,67 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
         image = Image.open(image_path)
-        
-        image_mask_combo = {"IMG_0012.JPG":"IMG_0097.JPG", 
+        image_mask_combo = {"IMG_0011.JPG":"IMG_0098.JPG", 
+                            "IMG_0012.JPG":"IMG_0097.JPG", 
+                            "IMG_0013.JPG":"IMG_0096.JPG", 
                             "IMG_0014.JPG":"IMG_0095.JPG", 
+                            "IMG_0015.JPG":"IMG_0094.JPG", 
                             "IMG_0016.JPG":"IMG_0093.JPG", 
+                            "IMG_0017.JPG":"IMG_0092.JPG", 
+                            # "IMG_0018.JPG":"IMG_0091.JPG", 
+                            "IMG_0019.JPG":"IMG_0091.JPG", 
                             "IMG_0020.JPG":"IMG_0090.JPG", 
+                            "IMG_0021.JPG":"IMG_0089.JPG", 
                             "IMG_0022.JPG":"IMG_0088.JPG", 
+                            "IMG_0023.JPG":"IMG_0086.JPG", 
+                            "IMG_0024.JPG":"IMG_0085.JPG", 
+                            "IMG_0025.JPG":"IMG_0084.JPG", 
+                            "IMG_0026.JPG":"IMG_0083.JPG", 
                             "IMG_0027.JPG":"IMG_0082.JPG", 
+                            "IMG_0028.JPG":"IMG_0081.JPG", 
                             "IMG_0029.JPG":"IMG_0080.JPG", 
                             "IMG_0030.JPG":"IMG_0079.JPG", 
                             "IMG_0031.JPG":"IMG_0078.JPG", 
+                            "IMG_0032.JPG":"IMG_0077.JPG", 
                             "IMG_0033.JPG":"IMG_0076.JPG", 
+                            "IMG_0034.JPG":"IMG_0075.JPG", 
+                            "IMG_0035.JPG":"IMG_0074.JPG", 
+                            "IMG_0036.JPG":"IMG_0073.JPG", 
                             "IMG_0037.JPG":"IMG_0072.JPG", 
+                            "IMG_0038.JPG":"IMG_0071.JPG", 
+                            "IMG_0039.JPG":"IMG_0070.JPG", 
+                            "IMG_0040.JPG":"IMG_0055.JPG", 
                             "IMG_0041.JPG":"IMG_0056.JPG", 
+                            "IMG_0042.JPG":"IMG_0057.JPG", 
                             "IMG_0043.JPG":"IMG_0058.JPG", 
                             "IMG_0044.JPG":"IMG_0059.JPG",
                             "IMG_0045.JPG":"IMG_0060.JPG",
                             "IMG_0046.JPG":"IMG_0061.JPG",
-                            "IMG_0047.JPG":"IMG_0062.JPG",} 
+                            "IMG_0047.JPG":"IMG_0062.JPG",
+                            "IMG_0048.JPG":"IMG_0063.JPG", 
+                            "IMG_0049.JPG":"IMG_0064.JPG", 
+                            "IMG_0050.JPG":"IMG_0065.JPG", 
+                            "IMG_0051.JPG":"IMG_0066.JPG", 
+                            "IMG_0052.JPG":"IMG_0067.JPG", 
+                            "IMG_0053.JPG":"IMG_0069.JPG",} 
+
+        # image_mask_combo = {"IMG_0012.JPG":"IMG_0097.JPG", 
+        #                     "IMG_0014.JPG":"IMG_0095.JPG", 
+        #                     "IMG_0016.JPG":"IMG_0093.JPG", 
+        #                     "IMG_0020.JPG":"IMG_0090.JPG", 
+        #                     "IMG_0022.JPG":"IMG_0088.JPG", 
+        #                     "IMG_0027.JPG":"IMG_0082.JPG", 
+        #                     "IMG_0029.JPG":"IMG_0080.JPG", 
+        #                     "IMG_0030.JPG":"IMG_0079.JPG", 
+        #                     "IMG_0031.JPG":"IMG_0078.JPG", 
+        #                     "IMG_0033.JPG":"IMG_0076.JPG", 
+        #                     "IMG_0037.JPG":"IMG_0072.JPG", 
+        #                     "IMG_0041.JPG":"IMG_0056.JPG", 
+        #                     "IMG_0043.JPG":"IMG_0058.JPG", 
+        #                     "IMG_0044.JPG":"IMG_0059.JPG",
+        #                     "IMG_0045.JPG":"IMG_0060.JPG",
+        #                     "IMG_0046.JPG":"IMG_0061.JPG",
+        #                     "IMG_0047.JPG":"IMG_0062.JPG",} 
         mask_name = ""
         if image_mask_combo.get(extr.name, None):
             # mask_path = f"/home/vitran/gs6/2024_04_06/masks/{image_mask_combo[extr.name]}"
@@ -367,7 +411,7 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             if ("test" not in transformsfile and idx in multiplexing.SUBIMAGES) or ("test" in transformsfile and idx in adjacent_views):
                 cam_infos.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-            elif "test" in transformsfile: #non adjacent view
+            if "test" in transformsfile: #all test view
                 cam_infos_test.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
             
@@ -377,11 +421,12 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     print("Reading Training Transforms")
     # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
     #lego - chair -others
-    train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting.json", white_background, extension)
     #hotdog
-    # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_r0.json", white_background, extension)
-    # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
-
+    if 'hotdog' in path:
+        # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_r0.json", white_background, extension)
+        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
+    else : #if 'lego' in path:
+        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting.json", white_background, extension)
     print('len train', len(train_cam_infos))
         
     print("Reading Test Transforms")
@@ -409,7 +454,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         
         # Spherical
         # Generate random radii, uniformly distributed within [0, 1)
-        r = np.random.random(num_pts) ** (1/3)  # Adjust distribution to account for volume
+        r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
         # Generate spherical coordinates
         theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
         phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]

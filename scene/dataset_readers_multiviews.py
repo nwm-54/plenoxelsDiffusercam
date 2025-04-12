@@ -323,9 +323,11 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
     cam_infos_test = []
     # adjacent_views = multiplexing.get_adjacent_views([59], path) #59 for lego, 2 for others
     adjacent_views = []
+    # print('line 326 ', views)
     for view in views:
         adj= multiplexing.get_adjacent_views(views, path) #59 for lego, 2 for others
         adjacent_views.extend(adj)
+    adjacent_views = list(set(adjacent_views))
     print("adjacent views", adjacent_views)
 
     with open(os.path.join(path, transformsfile)) as json_file:
@@ -377,27 +379,31 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             elif "test" in transformsfile: #non adjacent view
                 cam_infos_test.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-            
     return cam_infos, cam_infos_test
 
 def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=[]):
     print("Reading Training Transforms")
     # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
-    #lego - chair -others
     #lego
-    # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_5views.json", white_background, extension, views=views)
     # drums
-    train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_multiviews.json", white_background, extension, views=views)
+    if "drums" in path:
+        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_multiviews.json", white_background, extension, views=views)
     #hotdog
-    # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
-
-    print('len train', train_cam_infos.keys(), len(train_cam_infos[2]))
+    elif "hotdog" in path:
+        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
+    #lego - chair -others
+    else: #if 'lego' in path:
+        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_5views.json", white_background, extension, views=views)
+        train_cam_infos.pop(2, None)
+        print('line 400 len train', train_cam_infos.keys(), len(train_cam_infos[2]))
         
     print("Reading Test Transforms")
     #lego
-    # test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
+    if "lego" in path:
+        test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
+    else:
     #hotdog - chair -others
-    test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
+        test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
     print('len test', len(test_cam_infos))
     print('full len test', len(full_test_cam_infos))
     # if not eval:
@@ -405,7 +411,12 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=
     #     test_cam_infos = []
 
     all_cams = []
-    for _, cam in train_cam_infos.items():
+    if 2 in train_cam_infos.keys(): 
+        print("delete keys 2")
+        del train_cam_infos[2]
+
+    for k, cam in train_cam_infos.items():
+        print('line 417 ', k, type(k))
         all_cams.extend(cam)
     nerf_normalization = getNerfppNorm(all_cams)
 
@@ -421,7 +432,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=
         
         # Spherical
         # Generate random radii, uniformly distributed within [0, 1)
-        r = np.random.random(num_pts) ** (1/3)  # Adjust distribution to account for volume
+        r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume + magic number 1.3
         # Generate spherical coordinates
         theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
         phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]

@@ -17,14 +17,14 @@ s_values=("lego_gen12")
 
 # Iterate over all combinations of parameters
 for s in "${s_values[@]}"; do
-  log_file="/home/wl757/multiplexed-pixels/gs7/logs2/nerf_${s}_execution_log2.txt"
+  log_file="/home/wl757/multiplexed-pixels/gs7/logs2/nerf_${s}_execution_log2_multiviews.txt"
   touch "$log_file"
   echo "created ${log_file}" 
 
   for d in "${d_values[@]}"; do
     for r in "${r_values[@]}"; do
-      m_value="${s}_$((800/r))_dls${d}_tv"
-      cmd="python3 train_sim_plain.py -s /home/wl757/multiplexed-pixels/plenoxels/blender_data/${s} -m ./output5/${m_value} --iterations 3001 -r ${r} --dls ${d} --tv_weight 1 --tv_unseen_weight 0.05"
+      m_value="${s}_$((800/r))_dls${d}_multiviews"
+      cmd="python3 train_sim_multiviews.py -s /home/wl757/multiplexed-pixels/plenoxels/blender_data/${s} -m ./output5/${m_value} --iterations 3001 -r ${r} --dls ${d} --tv_weight 1 --tv_unseen_weight 0.05  --views_index 50 59 60 70 90 "
 
       # Log the command being executed
       echo "Executing: $cmd" | tee -a "$log_file"

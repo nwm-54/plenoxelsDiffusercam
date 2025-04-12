@@ -11,14 +11,9 @@
 
 import os
 import random
-import numpy as np
-import scipy
-import scipy.ndimage
 import torch
 from random import randint
-import wandb
-import yaml
-from utils.loss_utils import l1_loss, ssim, l2_loss
+from utils.loss_utils import l1_loss, ssim
 from gaussian_renderer import render, network_gui
 import sys
 from scene import Scene, GaussianModel
@@ -31,7 +26,6 @@ import torch.nn.functional as F
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
-import json
 import collections
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -42,7 +36,7 @@ except ImportError:
 import torch
 import torch.nn.functional as F
 
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 
@@ -152,10 +146,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         
     print("tv weight ", opt.tv_weight)
     ##SIMILATED data
-    H = W = 800//resolution
+    H = W = 800 // resolution
     num_lens = 16
     d_lens_sensor = dls
-    MAX_PER_PIXEL =  5 if dls<=16 else 10
+    MAX_PER_PIXEL = 5 if dls <= 16 else 10
     comap_yx, _ = scn.multiplexing.get_comap(num_lens, d_lens_sensor, H, W)
     maps_pixel_to_rays, real_ray_mask, _ = scn.multiplexing.get_rays_per_pixel(H,W, comap_yx,MAX_PER_PIXEL, num_lens)
     multiplexed_mask, pad_mapping, border_minmax = scn.multiplexing.model_output_mask(comap_yx, num_lens, maps_pixel_to_rays, real_ray_mask, H,W, MAX_PER_PIXEL)
@@ -166,9 +160,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     # two values, with the first one being assigned to `rgb_gt`.
     #lego
     if 'lego' in source_path:
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "59", "/home/vitran/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
+        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "59", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
     elif 'hotdog' in source_path:
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "0", "/home/vitran/plenoxels/blender_data/hotdog/render_5_views", num_lens, H, W)
+        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "0", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", num_lens, H, W)
     else:
         rgb_gt, _ = scn.multiplexing.generate(comap_yx, "2", f"{source_path}/render_5_views", num_lens, H, W)
     # rgb_gt /= 4.
@@ -223,26 +217,28 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         gt_list = []
         negative_images = []
         scene_train_cameras = scene.getTrainCameras()
-       
+        tv_train_loss = 0.
         tv_loss = 0.
         for j,single_viewpoint in enumerate(scene_train_cameras):
             render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
             image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
             # print(image_raw.size())
-            # tv_loss += tv_2d(image_raw)
+            tv_train_loss += tv_2d(image_raw)
             image_raw = scn.multiplexing.generate_single_training(j, border_minmax, comap_yx, image_raw, multiplexed_mask, pad_mapping, maps_pixel_to_rays, H, W  )
             # image_raw = scn.multiplexing.generate_single_training_pinhole_with_mask(image_raw, single_viewpoint)
             # print(j, single_viewpoint.image_name)
             image_list.append(image_raw)  #or image for multiplexing          
             gt_image = scene.getTrainCameras()[j].original_image.cuda()
             gt_list.append(gt_image)
-           
+        
             # flip_mask = 1- single_viewpoint.mask #torch.where(single_viewpoint.mask != 0, 0, 1)
             # negative_image = image * flip_mask
             # negative_images.append(negative_image)
             
         #TV viewpoint
-        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=10) #scene.getFullTestCameras() #
+        # print("TV unseen views len ", len(scene.getFullTestCameras()))
+        # tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
+        tv_viewpoints = random.choices(scene.getTestCameras(), k=1) #scene.getFullTestCameras() #
         # tv_loss = 0.
         tv_image = None
         for tv_viewpoint in tv_viewpoints:
@@ -254,14 +250,17 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         gt_tensor = torch.stack(gt_list, dim=0)
       
         _output_image = torch.sum(image_tensor, 0) #/MAX_PIXEL
+        # print(_output_image.min(), _output_image.max())
         _gt_image = torch.sum(gt_tensor, 0) #/MAX_PIXEL
        
-        output_image = _output_image #/torch.max(_output_image)
-        gt_image = rgb_gt #/torch.max(_gt_image) FOR real data # rgb_gt #for simulation only #_gt_image #/torch.max(_gt_image) 
+        output_image = torch.clamp(_output_image, 0, 1) #/torch.max(_output_image)
+        gt_image = torch.clamp(rgb_gt, 0, 1) #/torch.max(_gt_image) FOR real data # rgb_gt #for simulation only #_gt_image #/torch.max(_gt_image) 
        
         # Loss
         Ll1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + tv_loss/len(tv_viewpoints)*opt.tv_weight#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
+        # Ltv = tv_loss/len(tv_viewpoints)*0.075 + tv_train_loss/len(scene_train_cameras)*opt.tv_weight
+        Ltv = tv_loss/len(tv_viewpoints)*opt.tv_unseen_weight + tv_train_loss/len(scene_train_cameras)*opt.tv_weight
+        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + Ltv#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
         # Ll1 = l1_loss(image_tensor, gt_tensor) 
         # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image_tensor, gt_tensor)) + tv_loss#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
         
@@ -279,7 +278,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 progress_bar.close()
 
             # Log and save
-            training_report(tb_writer, iteration, Ll1, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), pair, tv_image, tv_loss, model_path, gt_image) #gt_image for multiplexing #random.choice(gt_list) for non-multiplexing
+            training_report(tb_writer, iteration, Ll1,Ltv, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), pair, tv_image, tv_loss, model_path, gt_image) #gt_image for multiplexing #random.choice(gt_list) for non-multiplexing
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
@@ -332,10 +331,10 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
-def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, pair, tv_image, tv_loss, model_path, true_gt_image=None):
+def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, pair, tv_image, tv_loss, model_path, true_gt_image=None):
     if tb_writer:
         tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
-        # tb_writer.add_scalar('train_loss_patches/tv_loss', (tv_loss*1e-2).item(), iteration)
+        tb_writer.add_scalar('train_loss_patches/tv_loss', Ltv.item(), iteration)
         tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
         tb_writer.add_scalar('iter_time', elapsed, iteration)
     f = open(f"{model_path}/output.txt", "a")
@@ -396,7 +395,8 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                     if config["name"]=="train" and len(multiplex_image_list) > 0:
                         multiplex_image = torch.stack(multiplex_image_list, 0)
                         multiplex_image = torch.sum(multiplex_image, 0).unsqueeze(0)
-                        multiplex_image /= torch.max(multiplex_image)
+                        # multiplex_image /= torch.max(multiplex_image)
+                        multiplex_image = torch.clamp(multiplex_image, 0, 1)
                         
                         tb_writer.add_images("trained_multiplex", multiplex_image, global_step=iteration)
 
@@ -433,21 +433,19 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=3000)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     # parser.add_argument("--test_iterations", nargs="+", type=int, default=[10,300,500,1_000,1_999, 2_000, 2_001,2_010, 3_000,4_000,7000, 7001,7050,8000,10_000, 12_000, 14_000, 18_000,20_000, 27_000, 29_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10,1_000, 2_000,2500, 3_000, 4_000,7000, 7001,7050,8000,10_000, 12_000, 14_000, 18_000,20_000, 27_000, 29_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10,1_000,2000,2500,3000, 4_000,5000,7000,10_000, 14_000, 18_000,20_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
     # parser.add_argument("--save_iterations", nargs="+", type=int, default=[1,10,7_000, 30_000, 1_000,2_000,3_000,4_000,7000, 7001,7050,8000,10_000, 12_000, 14_000, 18_000,20_000, 27_000, 29_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[2_000,2_500,3_000,4_000,7000,10_000])
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1500,2000, 4000, 6000, 8000,10000, 20000,30000])
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500,2_000,2_500, 3000,4000, 6000, 8000,10000, 20000,30000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--device", type=int, default = 0)
-    # parser.add_argument("--tv_weight", type=float, default = 1)
+    # parser.add_argument("--tv_unseen_weight", type=float, default = 0.05)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
-    args.iterations = 2501
     
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-    print("Using GPU:", torch.cuda.get_device_name(1))  
     print("Optimizing " + args.model_path)
 
     # Initialize system state (RNG)
@@ -463,7 +461,7 @@ if __name__ == "__main__":
     # run = wandb.init(config=config)
     # tv_weight = wandb.config.tv_weight
     # tv_weight = 0.0
-    args.tv_weight = 0.001 #tv_weight
+    # args.tv_weight = 0.001 #tv_weight
     # args.source_path = "/home/vitran/plenoxels/blender_data/lego_gen12"
     # args.source_path = "/home/vitran/plenoxels/blender_data/chair"
     # args.iterations = 2011

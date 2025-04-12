@@ -69,8 +69,10 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     #lego
     rgb_gts = {}
     for view in views_index:
-        # rgb_gt, _ = scn.multiplexing.generate(comap_yx, str(view), "/home/vitran/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, str(view), f"{source_path}/render_5_views", num_lens, H, W)
+        if "lego" in source_path:
+            rgb_gt, _ = scn.multiplexing.generate(comap_yx, str(view), "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
+        else:
+            rgb_gt, _ = scn.multiplexing.generate(comap_yx, str(view), f"{source_path}/render_5_views", num_lens, H, W)
         rgb_gt = torch.from_numpy(rgb_gt)[:,:,:3].permute(2,0,1).float().cuda()
         rgb_gts[view] = rgb_gt
     # rgb_gt, _ = scn.multiplexing.generate(comap_yx, "2", "/home/vitran/plenoxels/blender_data/chair/render_5_views", num_lens, H, W)
@@ -127,19 +129,21 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         negative_images = []
         scene_train_cameras = scene.getTrainCameras() # dict [59] to cameras
        
-        tv_loss = 0.
+        tv_train_loss = 0.
         total_l1 = 0.
         for scene_index,train_cameras in scene_train_cameras.items():
             image_list = []
             for j,single_viewpoint in enumerate(train_cameras):
+                # print('line 137', j)
                 render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
                 image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-                # tv_loss += tv_2d(image_raw)
+                tv_train_loss += tv_2d(image_raw)
                 image_raw = scn.multiplexing.generate_single_training(j, border_minmax, comap_yx, image_raw, multiplexed_mask, pad_mapping, maps_pixel_to_rays, H, W  )
                 # image_raw = scn.multiplexing.generate_single_training_pinhole_with_mask(image_raw, single_viewpoint)
-                # print(j, single_viewpoint.image_name)
-                image_list.append(image_raw)  #or image for multiplexing          
-        
+                # print(j, single_viewpoint.image_name, image_raw.size())
+                image_list.append(image_raw)  #or image for multiplexing   
+                # tv_train_loss += tv_2d(image_raw)
+            # print(len(image_list))
             image_tensor = torch.stack(image_list, dim=0) #for sim
             _output_image = torch.sum(image_tensor, 0) #/MAX_PIXEL
             output_image = _output_image #/torch.max(_output_image)
@@ -149,17 +153,18 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             
         #TV viewpoint
         tv_viewpoints = random.choices(scene.getFullTestCameras(), k=10) #scene.getFullTestCameras() #
-        # tv_loss = 0.
+        tv_loss = 0.
         tv_image = None
-        # for tv_viewpoint in tv_viewpoints:
-        #     render_pkg = render(tv_viewpoint, gaussians, pipe, bg)
-        #     tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-        #     tv_loss += tv_2d(tv_image)
+        for tv_viewpoint in tv_viewpoints:
+            render_pkg = render(tv_viewpoint, gaussians, pipe, bg)
+            tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+            tv_loss += tv_2d(tv_image)
 
 
         # Loss
         Ll1 = total_l1 / len(scene_train_cameras.keys())
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + tv_loss/len(tv_viewpoints)*opt.tv_weight#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
+        Ltv = tv_loss/len(tv_viewpoints)*opt.tv_unseen_weight + tv_train_loss/(len(scene_train_cameras)*16)*opt.tv_weight
+        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + tv_loss/len(tv_viewpoints)*opt.tv_weight + Ltv#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
         # Ll1 = l1_loss(image_tensor, gt_tensor) 
         # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image_tensor, gt_tensor)) + tv_loss#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
         
