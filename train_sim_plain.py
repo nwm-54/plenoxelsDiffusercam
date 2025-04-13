@@ -11,34 +11,36 @@
 
 import os
 import random
-import torch
-from utils.loss_utils import l1_loss, ssim
-from gaussian_renderer import render, network_gui
 import sys
-from scene import Scene, GaussianModel
-from utils.general_utils import safe_state
 import uuid
-from tqdm import tqdm
-import scene as scn
-import torch.nn.functional as F
-
-from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
-from arguments import ModelParams, PipelineParams, OptimizationParams
+
+import torch
+import torch.nn.functional as F
+from arguments import ModelParams, OptimizationParams, PipelineParams
+from gaussian_renderer import network_gui, render
+from scene import GaussianModel, Scene, multiplexing
+from tqdm import tqdm
+from utils.general_utils import safe_state
+from utils.image_utils import psnr
+from utils.loss_utils import l1_loss, ssim
+
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
     
+import numpy as np
 import torch
-import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.set_default_device(device)
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 
 import wandb
+
 wandb.login()
 
 def training(dataset: ModelParams, 
@@ -65,26 +67,15 @@ def training(dataset: ModelParams,
     ##SIMILATED data
     H = W = 800 // resolution
     num_lens = 16
-    d_lens_sensor = dls
-    MAX_PER_PIXEL = 5 if dls <= 16 else 10
-    comap_yx, _ = scn.multiplexing.get_comap(num_lens, d_lens_sensor, H, W)
-    maps_pixel_to_rays, real_ray_mask, _ = scn.multiplexing.get_rays_per_pixel(H,W, comap_yx,MAX_PER_PIXEL, num_lens)
-    multiplexed_mask, pad_mapping, border_minmax = scn.multiplexing.model_output_mask(comap_yx, num_lens, maps_pixel_to_rays, real_ray_mask, H,W, MAX_PER_PIXEL)
-    # The code snippet is using the `multiplexing.generate` function from the `scn` module to generate
-    # a multiplexed image. It takes the `comap_yx` input, the string "59", a file path
-    # "/home/vitran/plenoxels/blender_data/lego_gen12/train_multilens_16_black", the number of lenses
-    # `num_lens`, and the height `H` and width `W` of the image as parameters. The function returns
-    # two values, with the first one being assigned to `rgb_gt`.
-    
+    comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
     if 'lego' in source_path:
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "59", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
+        input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", "59")
     elif 'hotdog' in source_path:
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "0", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", num_lens, H, W)
+        input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", "0")
     else:
-        rgb_gt, _ = scn.multiplexing.generate(comap_yx, "2", f"{source_path}/render_5_views", num_lens, H, W)
-    rgb_gt = torch.from_numpy(rgb_gt)[:,:,:3].permute(2,0,1).float().cuda()
-    ##### SIMULATION ######
-    
+        input_images = multiplexing.read_images(num_lens, f"{source_path}/render_5_views", "2")
+    gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H)
+
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
@@ -126,19 +117,11 @@ def training(dataset: ModelParams,
         scene_train_cameras = scene.getTrainCameras()
         tv_train_loss = 0.
         tv_loss = 0.
-        for j,single_viewpoint in enumerate(scene_train_cameras):
+        for j, single_viewpoint in enumerate(scene_train_cameras):
             render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
             image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-            # print(image_raw.size())
             tv_train_loss += tv_2d(image_raw)
-            image_raw = scn.multiplexing.generate_single_training(index=j,
-                                                                  border_minmax=border_minmax, 
-                                                                  comap_yx=comap_yx, 
-                                                                  model_output_single=image_raw, 
-                                                                  pad_mapping=pad_mapping,
-                                                                  H=H,
-                                                                  W=W)
-            image_list.append(image_raw)  #or image for multiplexing          
+            image_list.append(image_raw)        
             
         #TV viewpoint
         tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
@@ -148,13 +131,8 @@ def training(dataset: ModelParams,
             render_pkg = render(tv_viewpoint, gaussians, pipe, bg)
             # tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
             tv_loss += tv_2d(render_pkg["render"])
-
-        image_tensor = torch.stack(image_list, dim=0) #for sim
-        _output_image = torch.sum(image_tensor, 0)
-        # print(_output_image.min(), _output_image.max())
-       
-        output_image = torch.clamp(_output_image, 0, 1) #/torch.max(_output_image)
-        gt_image = torch.clamp(rgb_gt, 0, 1) #/torch.max(_gt_image) FOR real data # rgb_gt #for simulation only #_gt_image #/torch.max(_gt_image) 
+        
+        output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H)
        
         # Loss
         Ll1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
@@ -190,6 +168,7 @@ def training(dataset: ModelParams,
                             (pipe, background), 
                             tv_image, 
                             model_path, 
+                            output_image,
                             gt_image)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -254,6 +233,7 @@ def training_report(tb_writer,
                     renderArgs, 
                     tv_image, 
                     model_path, 
+                    multiplexed_image,
                     true_gt_image=None):
     if tb_writer:
         tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
@@ -272,7 +252,6 @@ def training_report(tb_writer,
             tb_writer.add_images("tv_image", tv_image[None], global_step=iteration)
         rendered_trained_images = []
         rendered_gt_images = []
-        multiplex_image_list = []
         for config in validation_configs:
             if config['cameras'] and len(config['cameras']) > 0:
                 l1_test = 0.0
@@ -295,9 +274,7 @@ def training_report(tb_writer,
                     if config["name"]=="train":
                         rendered_trained_images.append(image[None])
                         rendered_gt_images.append(gt_image[None])
-                        
-                        multiplex_image_list.append(image)
-                        
+                                                
                 psnr_test /= len(config['cameras'])
                 l1_test /= len(config['cameras'])   
 
@@ -325,27 +302,11 @@ def training_report(tb_writer,
                     tb_writer.add_scalar(config['name'] + '/loss_viewpoint - l1_loss', l1_test, iteration)
                     tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
 
-                    if config["name"]=="train" and len(multiplex_image_list) > 0:
-                        multiplex_image = torch.stack(multiplex_image_list, 0)
-                        multiplex_image = torch.sum(multiplex_image, 0).unsqueeze(0)
-                        # multiplex_image /= torch.max(multiplex_image)
-                        multiplex_image = torch.clamp(multiplex_image, 0, 1)
-                        
-                        tb_writer.add_images("trained_multiplex", multiplex_image, global_step=iteration)
+                    if config["name"]=="train" and len(rendered_trained_images) > 0:
+                        # multiplexed_image = multiplexing.generate(rendered_trained_images, comap_yx, dim_lens_lf_yx, num_lens, H)                        
+                        tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
 
-        if len(rendered_trained_images)>0:
-            rendered_trained_image = torch.stack(rendered_trained_images, 0).squeeze(0)
-            rendered_trained_image = torch.sum(rendered_trained_image, 0)
-            rendered_trained_image /= torch.max(rendered_trained_image)
-            rendered_gt_image = torch.stack(rendered_gt_images, 0).squeeze(0)
-            rendered_gt_image = torch.sum(rendered_gt_image, 0)
-            rendered_gt_image /= torch.max(rendered_gt_image)
-            
-            if true_gt_image is not None:
-                tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
-            else:
-                tb_writer.add_images("gt_multiplex", rendered_gt_image, global_step=iteration)
-                tb_writer.add_images("trained_multiplex", rendered_trained_image, global_step=iteration)
+        tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
             
         if tb_writer:
             tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
