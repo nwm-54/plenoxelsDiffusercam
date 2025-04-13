@@ -12,7 +12,6 @@
 import os
 import random
 import torch
-from random import randint
 from utils.loss_utils import l1_loss, ssim
 from gaussian_renderer import render, network_gui
 import sys
@@ -26,7 +25,6 @@ import torch.nn.functional as F
 from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
-import collections
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
@@ -40,111 +38,30 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 
-def shift_image_pytorch(image, shift):
-    """
-    Shifts an image tensor using grid_sample.
+import wandb
+wandb.login()
 
-    Args:
-        image: Tensor of shape (C, H, W), where C is the number of channels,
-               H is height, and W is width.
-        shift: A tuple (shift_x, shift_y) indicating the shift in x and y axes.
-
-    Returns:
-        Shifted image tensor of shape (C, H, W).
-    """
-    # Get image height and width
-    _, H, W = image.shape
-
-    # Create mesh grid
-    grid_y, grid_x = torch.meshgrid(torch.arange(H), torch.arange(W))
-
-    # Normalize grid to be in [-1, 1] (required by grid_sample)
-    grid_x = 2.0 * grid_x.float() / (W - 1) - 1
-    grid_y = 2.0 * grid_y.float() / (H - 1) - 1
-
-    # Create flow field by adding the shift
-    shift_x = 2.0 * shift[1] / (W - 1)
-    shift_y = 2.0 * shift[0] / (H - 1)
-
-    grid_x = grid_x + shift_x
-    grid_y = grid_y + shift_y
-
-    # Stack and transpose to get grid in the format expected by grid_sample
-    grid = torch.stack((grid_x, grid_y), dim=-1).unsqueeze(0).cuda()
-
-    # Apply grid_sample to shift the image
-    shifted_image = F.grid_sample(image.unsqueeze(0), grid, mode='bilinear', padding_mode='zeros', align_corners=True)
-
-    return shifted_image.squeeze(0)
-def crop_non_zero(tensor):
-    # Get the size of the tensor
-    d1, d2, d3 = tensor.size()
-    
-    # Create a boolean mask for non-zero values
-    mask = tensor != 0
-    
-    mask = mask.float()
-    
-    # Determine non-zero mask for the second and third dimensions
-    non_zero_rows = torch.any(mask, dim=2)  # Shape: [d1, d2]
-    non_zero_cols = torch.any(mask, dim=1)  # Shape: [d1, d3]
-    
-    non_zero_rows = non_zero_rows.float()
-    non_zero_cols = non_zero_cols.float()
-    
-    # Find the first and last non-zero indices in the second dimension
-    row_start = torch.argmax(non_zero_rows, dim=1)
-    row_end = d2 - torch.argmax(non_zero_rows.flip(1), dim=1) - 1
-    
-    # Find the first and last non-zero indices in the third dimension
-    col_start = torch.argmax(non_zero_cols, dim=1)
-    col_end = d3 - torch.argmax(non_zero_cols.flip(1), dim=1) - 1
-    
-    # Prepare the cropped tensor
-    cropped_shape = (d1, (row_end - row_start + 1).max().item(), (col_end - col_start + 1).max().item())
-    cropped_tensor = torch.zeros(cropped_shape, dtype=tensor.dtype)
-    # cropped_tensor = torch.zeros((d1, row_end - row_start + 1, col_end - col_start + 1), dtype=tensor.dtype)
-    
-    for i in range(d1):
-        r_start = row_start[i].item()
-        r_end = row_end[i].item() + 1
-        c_start = col_start[i].item()
-        c_end = col_end[i].item() + 1
-        cropped_tensor[i, :r_end - r_start, :c_end - c_start] = tensor[i, r_start:r_end, c_start:c_end]
-    
-    
-    return cropped_tensor
-
-def pad_tensor_even(tensor, target_size):
-    # Compute the padding needed for each dimension
-    pad_height = target_size[1] - tensor.size(1)
-    pad_width = target_size[2] - tensor.size(2)
-
-    # Calculate padding for each side
-    pad_top = pad_height // 2
-    pad_bottom = pad_height - pad_top
-    pad_left = pad_width // 2
-    pad_right = pad_width - pad_left
-
-    # Apply padding: (left, right, top, bottom)
-    padding = (pad_left, pad_right, pad_top, pad_bottom)
-
-    # Pad the tensor
-    padded_tensor = F.pad(tensor, padding, mode='constant', value=0)
-    
-    return padded_tensor
-
-def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from, source_path, resolution, dls):
-    first_iter = 0
+def training(dataset: ModelParams, 
+             opt: OptimizationParams, 
+             pipe: PipelineParams, 
+             testing_iterations, 
+             saving_iterations, 
+             checkpoint_iterations, 
+             debug_from, 
+             source_path: str, 
+             resolution: int, 
+             dls: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
-    if checkpoint:
-        (model_params, first_iter) = torch.load(checkpoint)
-        gaussians.restore(model_params, opt)
         
-    print("tv weight ", opt.tv_weight)
+    print("TV weight ", opt.tv_weight)
+    print("TV unseen weight ", opt.tv_unseen_weight)
+    print("Train Cameras: ", len(scene.getTrainCameras()))
+    print("Test Cameras: ", len(scene.getTestCameras()))
+    print("Full Test Cameras: ", len(scene.getFullTestCameras()))
+
     ##SIMILATED data
     H = W = 800 // resolution
     num_lens = 16
@@ -158,18 +75,15 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     # "/home/vitran/plenoxels/blender_data/lego_gen12/train_multilens_16_black", the number of lenses
     # `num_lens`, and the height `H` and width `W` of the image as parameters. The function returns
     # two values, with the first one being assigned to `rgb_gt`.
-    #lego
+    
     if 'lego' in source_path:
         rgb_gt, _ = scn.multiplexing.generate(comap_yx, "59", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
     elif 'hotdog' in source_path:
         rgb_gt, _ = scn.multiplexing.generate(comap_yx, "0", "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", num_lens, H, W)
     else:
         rgb_gt, _ = scn.multiplexing.generate(comap_yx, "2", f"{source_path}/render_5_views", num_lens, H, W)
-    # rgb_gt /= 4.
-    # rgb_gt, _ = scn.multiplexing.generate(comap_yx, "0", "/home/vitran/plenoxels/blender_data/hotdog/render_5_views", num_lens, H, W)
     rgb_gt = torch.from_numpy(rgb_gt)[:,:,:3].permute(2,0,1).float().cuda()
-    ##### SIMULATION
-    ##
+    ##### SIMULATION ######
     
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -177,11 +91,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     iter_start = torch.cuda.Event(enable_timing = True)
     iter_end = torch.cuda.Event(enable_timing = True)
 
-    viewpoint_stack = None
     ema_loss_for_log = 0.0
-    progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
-    first_iter += 1
-    for iteration in range(first_iter, opt.iterations + 1):        
+    progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
+    for iteration in range(1, opt.iterations + 1):        
         if network_gui.conn == None:
             network_gui.try_connect()
         while network_gui.conn != None:
@@ -209,13 +121,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
-        pair = collections.defaultdict(dict)
         bg = torch.rand((3), device="cuda") if opt.random_background else background
-        render_pkg = []
-        model_output = []
         image_list = []
-        gt_list = []
-        negative_images = []
         scene_train_cameras = scene.getTrainCameras()
         tv_train_loss = 0.
         tv_loss = 0.
@@ -224,34 +131,27 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
             # print(image_raw.size())
             tv_train_loss += tv_2d(image_raw)
-            image_raw = scn.multiplexing.generate_single_training(j, border_minmax, comap_yx, image_raw, multiplexed_mask, pad_mapping, maps_pixel_to_rays, H, W  )
-            # image_raw = scn.multiplexing.generate_single_training_pinhole_with_mask(image_raw, single_viewpoint)
-            # print(j, single_viewpoint.image_name)
+            image_raw = scn.multiplexing.generate_single_training(index=j,
+                                                                  border_minmax=border_minmax, 
+                                                                  comap_yx=comap_yx, 
+                                                                  model_output_single=image_raw, 
+                                                                  pad_mapping=pad_mapping,
+                                                                  H=H,
+                                                                  W=W)
             image_list.append(image_raw)  #or image for multiplexing          
-            gt_image = scene.getTrainCameras()[j].original_image.cuda()
-            gt_list.append(gt_image)
-        
-            # flip_mask = 1- single_viewpoint.mask #torch.where(single_viewpoint.mask != 0, 0, 1)
-            # negative_image = image * flip_mask
-            # negative_images.append(negative_image)
             
         #TV viewpoint
-        # print("TV unseen views len ", len(scene.getFullTestCameras()))
-        # tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
-        tv_viewpoints = random.choices(scene.getTestCameras(), k=1) #scene.getFullTestCameras() #
-        # tv_loss = 0.
+        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
+        # tv_viewpoints = random.choices(scene.getTestCameras(), k=1) #scene.getFullTestCameras() #
         tv_image = None
         for tv_viewpoint in tv_viewpoints:
             render_pkg = render(tv_viewpoint, gaussians, pipe, bg)
-            tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-            tv_loss += tv_2d(tv_image)
+            # tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+            tv_loss += tv_2d(render_pkg["render"])
 
         image_tensor = torch.stack(image_list, dim=0) #for sim
-        gt_tensor = torch.stack(gt_list, dim=0)
-      
-        _output_image = torch.sum(image_tensor, 0) #/MAX_PIXEL
+        _output_image = torch.sum(image_tensor, 0)
         # print(_output_image.min(), _output_image.max())
-        _gt_image = torch.sum(gt_tensor, 0) #/MAX_PIXEL
        
         output_image = torch.clamp(_output_image, 0, 1) #/torch.max(_output_image)
         gt_image = torch.clamp(rgb_gt, 0, 1) #/torch.max(_gt_image) FOR real data # rgb_gt #for simulation only #_gt_image #/torch.max(_gt_image) 
@@ -278,7 +178,19 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 progress_bar.close()
 
             # Log and save
-            training_report(tb_writer, iteration, Ll1,Ltv, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), pair, tv_image, tv_loss, model_path, gt_image) #gt_image for multiplexing #random.choice(gt_list) for non-multiplexing
+            training_report(tb_writer, 
+                            iteration, 
+                            Ll1,
+                            Ltv, 
+                            loss, 
+                            iter_start.elapsed_time(iter_end), 
+                            testing_iterations, 
+                            scene, 
+                            render, 
+                            (pipe, background), 
+                            tv_image, 
+                            model_path, 
+                            gt_image)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
@@ -306,9 +218,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
 def tv_2d(image):
-    # print((torch.pow(image[:,1:,:] - image[:,:-1,:], 2).mean()))
-    # print((torch.square(image[:,1:,:] - image[:,:-1,:]).mean() + torch.square(image[:,:,1:] - image[:,:,:-1]).mean()).values)
     return torch.square(image[:,1:,:] - image[:,:-1,:]).mean() + torch.square(image[:,:,1:] - image[:,:,:-1]).mean()
+
 def prepare_output_and_logger(args):    
     if not args.model_path:
         if os.getenv('OAR_JOB_ID'):
@@ -331,7 +242,19 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
-def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, pair, tv_image, tv_loss, model_path, true_gt_image=None):
+def training_report(tb_writer, 
+                    iteration, 
+                    Ll1, 
+                    Ltv, 
+                    loss, 
+                    elapsed, 
+                    testing_iterations, 
+                    scene : Scene, 
+                    renderFunc, 
+                    renderArgs, 
+                    tv_image, 
+                    model_path, 
+                    true_gt_image=None):
     if tb_writer:
         tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
         tb_writer.add_scalar('train_loss_patches/tv_loss', Ltv.item(), iteration)
@@ -345,7 +268,6 @@ def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, test
         validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()}, 
                               {'name': 'non adj test', 'cameras' : scene.getFullTestCameras()}, 
                               {'name': 'train', 'cameras' : [scene.getTrainCameras()[idx] for idx in range(0,len(scene.getTrainCameras()))]})
-                            #   {'name': 'train', 'cameras' : [scene.getTrainCameras()[idx % len(scene.getTrainCameras())] for idx in range(5, 30, 5)]})
         if tv_image is not None:
             tb_writer.add_images("tv_image", tv_image[None], global_step=iteration)
         rendered_trained_images = []
@@ -360,15 +282,9 @@ def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, test
                     # if config['name']=="test" :
                     #     print(viewpoint.image_name)
                     image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
-                    image_small = image #None
-                    # if config['name']=="train":
-                    #     image_small = scn.multiplexing.generate_single_training_pinhole_with_mask(image[None].squeeze(0), viewpoint)
+
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
                     if tb_writer and (idx < 5):
-                        #real time only
-                        
-                        # if image_small is not None:
-                        #     tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image_small.unsqueeze(0), global_step=iteration)
                         # simulation or non multiplex only
                         tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
                         # if iteration == testing_iterations[0]:
@@ -380,12 +296,29 @@ def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, test
                         rendered_trained_images.append(image[None])
                         rendered_gt_images.append(gt_image[None])
                         
-                        multiplex_image_list.append(image_small)
+                        multiplex_image_list.append(image)
                         
                 psnr_test /= len(config['cameras'])
                 l1_test /= len(config['cameras'])   
+
+                if config['name'] == 'test':
+                    wandb.log(
+                    {
+                        "epoch": iteration,
+                        "psnr_test": psnr_test,
+                        "l1_test": l1_test,
+                    }
+                )
+                    
+                if config['name'] == 'non adj test':
+                    wandb.log(
+                    {
+                        "epoch": iteration,
+                        "psnr_test_full": psnr_test,
+                        "l1_test_full": l1_test,
+                    }
+                )
                 
-       
                 print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
                 f.write("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
                 if tb_writer:
@@ -409,15 +342,12 @@ def training_report(tb_writer, iteration, Ll1, Ltv, loss, l1_loss, elapsed, test
             rendered_gt_image /= torch.max(rendered_gt_image)
             
             if true_gt_image is not None:
-                # true_gt_image_np = np.transpose(true_gt_image.cpu().numpy(), (1,2,0))
-                # print(true_gt_image.unsqueeze(0).shape)
                 tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
             else:
                 tb_writer.add_images("gt_multiplex", rendered_gt_image, global_step=iteration)
                 tb_writer.add_images("trained_multiplex", rendered_trained_image, global_step=iteration)
             
         if tb_writer:
-            # tb_writer.add_histogram("scene/opacity_histogram", scene.gaussians.get_opacity, iteration)
             tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
         torch.cuda.empty_cache()
     f.close()
@@ -432,43 +362,34 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=6001)
     parser.add_argument('--debug_from', type=int, default=3000)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    # parser.add_argument("--test_iterations", nargs="+", type=int, default=[10,300,500,1_000,1_999, 2_000, 2_001,2_010, 3_000,4_000,7000, 7001,7050,8000,10_000, 12_000, 14_000, 18_000,20_000, 27_000, 29_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10,1_000,2000,2500,3000, 4_000,5000,7000,10_000, 14_000, 18_000,20_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    # parser.add_argument("--save_iterations", nargs="+", type=int, default=[1,10,7_000, 30_000, 1_000,2_000,3_000,4_000,7000, 7001,7050,8000,10_000, 12_000, 14_000, 18_000,20_000, 27_000, 29_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[2_000,2_500,3_000,4_000,7000,10_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10, 1_000, 2000, 2500, 3000, 4_000,5000,7000,10_000, 14_000, 18_000,20_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[2_000, 2_500, 3_000, 4_000, 7000,10_000])
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500,2_000,2_500, 3000,4000, 6000, 8000,10000, 20000,30000])
-    parser.add_argument("--start_checkpoint", type=str, default = None)
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500, 2_000, 2_500, 3000, 4000, 6000, 8000,10000, 20000,30000])
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--device", type=int, default = 0)
-    # parser.add_argument("--tv_unseen_weight", type=float, default = 0.05)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-    print("Optimizing " + args.model_path)
-
     # Initialize system state (RNG)
     safe_state(args.quiet)
+
+    wandb.init()
 
     # Start GUI server, configure and run training
     network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    
-    # with open("./config.yaml") as file:
-    #     config = yaml.load(file, Loader=yaml.FullLoader)
 
-    # run = wandb.init(config=config)
-    # tv_weight = wandb.config.tv_weight
-    # tv_weight = 0.0
-    # args.tv_weight = 0.001 #tv_weight
-    # args.source_path = "/home/vitran/plenoxels/blender_data/lego_gen12"
-    # args.source_path = "/home/vitran/plenoxels/blender_data/chair"
-    # args.iterations = 2011
-    # args.model_path = f'./output/lego_v4_800_tv_{tv_weight:.5f}'
-    # args.model_path = f'./output/chair_800_tv_{tv_weight:.5f}'
-
-    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.source_path, args.resolution, args.dls)
+    training(dataset=lp.extract(args), 
+             opt=op.extract(args), 
+             pipe=pp.extract(args), 
+             testing_iterations=args.test_iterations, 
+             saving_iterations=args.save_iterations, 
+             checkpoint_iterations=args.checkpoint_iterations, 
+             debug_from=args.debug_from, 
+             source_path=args.source_path, 
+             resolution=args.resolution, 
+             dls=args.dls)
 
     # All done
     print("\nTraining complete.")

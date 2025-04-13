@@ -3,18 +3,10 @@ import numpy as np
 import torch
 import imageio as imageio
 import math
-np.random.seed(0)
 from skimage.transform import resize
 import torch.nn.functional as F
 
-SUBIMAGES = [x for x in range(16)] #[1,2,5,6,9,10, 13,14]
-
-# import torchvision.transforms as T
-
-# import jax
-# import jax.numpy as jnp
-# import plenoxel
-# from jax.lib import xla_bridge
+SUBIMAGES = list(range(16))
 
 # from multiplexing_updated.py
 def get_comap(num_lens, d_lens_sensor, H, W):
@@ -65,6 +57,123 @@ def get_comap(num_lens, d_lens_sensor, H, W):
     # Return the original dimension as second return value
     dim_lens_lf_yx = [microlens_height, microlens_width]
     return comap_yx, dim_lens_lf_yx
+
+def read_images(num_lens, model_path, base):
+    """
+    Reads input images for each microlens from the specified path.
+    
+    Parameters:
+    -----------
+    num_lens : int
+        Number of microlens images to read.
+    model_path : str
+        Directory path containing the images.
+    base : str
+        Base name used in the image filename pattern.
+        
+    Returns:
+    --------
+    images : list
+        List of numpy arrays containing the loaded images as float arrays (range 0-1).
+    """
+    images = []
+    for j in range(num_lens):
+        sub_lens_path = f"r_{base}_{j}.png"
+        im_gt = imageio.imread(f'{model_path}/{sub_lens_path}').astype(np.float32) / 255.0
+        images.append(im_gt[:, :, :3])  # Keep only RGB channels
+    return images
+
+def generate_alpha_map(comap_yx, num_lens, H, W):
+    """
+    Creates an alpha map where each pixel's value is 1 divided by the number of 
+    sublenses that overlap at that pixel.
+    
+    Parameters:
+    -----------
+    comap_yx : numpy.ndarray
+        4D array from get_comap function containing coordinate mapping.
+    num_lens : int
+        Number of microlenses.
+    H : int
+        Height of the sensor in pixels.
+    W : int
+        Width of the sensor in pixels.
+        
+    Returns:
+    --------
+    alpha_map : numpy.ndarray
+        2D array of shape (H, W) containing the alpha values for each pixel.
+        A value of 0 indicates no sublens coverage.
+    """
+    overlap_count = np.zeros((H, W), dtype=np.int32)
+    
+    for i in range(num_lens):
+        valid_mask = (comap_yx[i, :, :, 0] != -1)
+        overlap_count += valid_mask
+    
+    alpha_map = np.zeros((H, W))
+    non_zero_mask = (overlap_count > 0)
+    alpha_map[non_zero_mask] = 1.0 / overlap_count[non_zero_mask]
+    return alpha_map
+
+def generate_sub_images(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size):
+    """
+    Maps input images to their corresponding locations within each microlens to create
+    sub-images of the light field using efficient NumPy operations.
+    
+    Parameters:
+    -----------
+    images : list
+        List of input images to map, one per microlens.
+    comap_yx : numpy.ndarray
+        4D array containing coordinate mapping from get_comap function.
+    dim_lens_lf_yx : list
+        Dimensions [height, width] of each microlens.
+    num_lens : int
+        Number of microlenses.
+    SENSOR_SIZE : int
+        Size of the output sub-images (both width and height).
+        
+    Returns:
+    --------
+    sub_images : list
+        List of numpy arrays containing the generated sub-images.
+    """
+    sub_images = []
+    alpha_map = generate_alpha_map(comap_yx, num_lens, sensor_size, sensor_size)
+    
+    # Create a mapping from comap_yx index to images index
+    grid_size = int(np.sqrt(num_lens))
+    mapping = np.zeros(num_lens, dtype=int)
+    for i in range(grid_size):
+        for j in range(grid_size):
+            comap_idx = i * grid_size + j
+            images_idx = (grid_size - 1 - i) + (grid_size - 1 - j) * grid_size
+            mapping[comap_idx] = images_idx
+    
+    resized_images = [resize(images[mapping[i]], (dim_lens_lf_yx[0], dim_lens_lf_yx[1]), 
+                             anti_aliasing=True) for i in range(num_lens)]
+    
+    for i in range(num_lens):
+        sub_image = np.zeros((sensor_size, sensor_size, 4))
+        y_coords = comap_yx[i, :, :, 0]
+        x_coords = comap_yx[i, :, :, 1]
+        
+        valid_mask = (y_coords != -1) & (x_coords != -1)
+        
+        y_in_bounds = (y_coords >= 0) & (y_coords < dim_lens_lf_yx[0])
+        x_in_bounds = (x_coords >= 0) & (x_coords < dim_lens_lf_yx[1])
+        valid_mask = valid_mask & y_in_bounds & x_in_bounds
+        
+        y_indices, x_indices = np.where(valid_mask)
+        y_src = y_coords[valid_mask].astype(int)
+        x_src = x_coords[valid_mask].astype(int)
+        sub_image[y_indices, x_indices, :3] = resized_images[i][y_src, x_src]
+        sub_image[:, :, 3] = alpha_map
+
+        sub_images.append(sub_image)
+    
+    return sub_images
 
 def get_rays_per_pixel(H, W, comap_yx, max_per_pixel, num_lens):    
     per_pixel = np.zeros((W, H, max_per_pixel, 3)).astype(int)
@@ -172,7 +281,7 @@ def model_output_mask(comap, num_lens, maps_pixel_to_rays, real_ray_mask, H,W,MA
     return mask,pad_mapping, border_minmax
 
 
-def generate_single_training(index, border_minmax, comap_yx, model_output_single, multiplexed_mask, pad_mapping, maps_pixel_to_rays, H, W):
+def generate_single_training(index, border_minmax, comap_yx, model_output_single, pad_mapping, H, W):
     #model_output: list of 16 model output
     # H = 800  # im_gt.shape[0]
     # W = 800 # im_gt.shape[1]
@@ -195,7 +304,7 @@ def generate_single_training(index, border_minmax, comap_yx, model_output_single
 
     p2d =  (top_left[1], W-bottom_right[1]-1, top_left[0], H-bottom_right[0]-1) # pad last dim by (1, 1) and 2nd to last by (2, 2)
 
-    if j not in SUBIMAGES:
+    if j not in list(range(16)):
         m = torch.zeros(im_gt.size(), device='cuda')
         im_gt = m*im_gt
     model_output_single = F.pad(im_gt, p2d, "constant", 0)

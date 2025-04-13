@@ -370,7 +370,7 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
         adjacent_views = multiplexing.get_adjacent_views([0], path) #59 for lego, 2 for others
     else:
         adjacent_views = multiplexing.get_adjacent_views([2], path) #59 for lego, 2 for others
-    print("adjacent views", adjacent_views)
+    # print("adjacent views", adjacent_views)
 
     with open(os.path.join(path, transformsfile)) as json_file:
         contents = json.load(json_file)
@@ -418,7 +418,6 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
     return cam_infos, cam_infos_test
 
 def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
-    print("Reading Training Transforms")
     # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
     #lego - chair -others
     #hotdog
@@ -427,15 +426,11 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
     else : #if 'lego' in path:
         train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting.json", white_background, extension)
-    print('len train', len(train_cam_infos))
         
-    print("Reading Test Transforms")
     #lego
     # test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
     #hotdog - chair -others
     test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
-    print('len test', len(test_cam_infos))
-    print('full len test', len(full_test_cam_infos))
     # if not eval:
     #     train_cam_infos.extend(test_cam_infos)
     #     test_cam_infos = []
@@ -446,7 +441,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     if True: #not os.path.exists(ply_path):
         # Since this data set has no colmap data, we start with random points
         num_pts = 100_000
-        print(f"Generating random point cloud ({num_pts})...")
+        print(f"Generating random point cloud with {num_pts} points")
         
         # Cuboid
         # We create random points inside the bounds of the synthetic Blender scenes
@@ -463,7 +458,6 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         y = r * np.sin(phi) * np.sin(theta)
         z = r * np.cos(phi)
         xyz = np.stack((x, y, z), axis=-1)
-        print('make sphere')
 
         shs = np.random.random((num_pts, 3)) / 255.0
         pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))

@@ -1,0 +1,27 @@
+# config.yaml
+program: train_sim_plain.py
+method: grid
+name: tv_and_tv_unseen_sweep
+metric:
+  goal: maximize
+  name: psnr_test
+parameters:
+  tv_weight: 
+    values: [0.01, 0.1, 1, 10, 50, 100, 500, 1000]
+  tv_unseen_weight:
+    values: [0.01, 0.1, 1, 10, 50, 100, 500, 1000]
+command:
+  - ${interpreter}
+  - ${program}
+  - -s 
+  - /home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12
+  - -m 
+  - ./output5/lego_gen12_800_dls20_tv_sweep
+  - -r 
+  - 1
+  - --iterations
+  - 3000
+  - --dls
+  - 20
+  - ${args}
+  
