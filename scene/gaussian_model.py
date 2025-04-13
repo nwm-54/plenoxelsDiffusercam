@@ -257,9 +257,12 @@ class GaussianModel:
 
     def replace_tensor_to_optimizer(self, tensor, name):
         optimizable_tensors = {}
+        print(self.optimizer.param_groups)
         for group in self.optimizer.param_groups:
             if group["name"] == name:
+                print(self.optimizer.state)
                 stored_state = self.optimizer.state.get(group['params'][0], None)
+                print(stored_state)
                 stored_state["exp_avg"] = torch.zeros_like(tensor)
                 stored_state["exp_avg_sq"] = torch.zeros_like(tensor)
 
