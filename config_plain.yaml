@@ -7,9 +7,9 @@ metric:
   name: psnr_test
 parameters:
   tv_weight: 
-    values: [0.01, 0.1, 1, 10, 50, 100, 500, 1000]
+    values: [0.01, 0.1, 1, 10, 50, 100, 200, 500, 1000]
   tv_unseen_weight:
-    values: [0.01, 0.1, 1, 10, 50, 100, 500, 1000]
+    values: [0.01, 0.1, 1, 10, 50, 100, 200, 500, 1000]
 command:
   - ${interpreter}
   - ${program}
@@ -20,7 +20,7 @@ command:
   - -r 
   - 1
   - --iterations
-  - 3000
+  - 7000
   - --dls
   - 20
   - ${args}
