@@ -18,7 +18,7 @@ from argparse import ArgumentParser, Namespace
 import torch
 import torch.nn.functional as F
 from arguments import ModelParams, OptimizationParams, PipelineParams
-from gaussian_renderer import network_gui, render
+from gaussian_renderer import render
 from scene import GaussianModel, Scene, multiplexing
 from tqdm import tqdm
 from utils.general_utils import safe_state
@@ -68,15 +68,17 @@ def training(dataset: ModelParams,
     H = W = 800 // resolution
     num_lens = 16
     comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
-    alpha_map = torch.from_numpy(multiplexing.generate_alpha_map(comap_yx, num_lens, H, W)).float().to(device)
+    # alpha_map = torch.from_numpy(multiplexing.generate_alpha_map(comap_yx, num_lens, H, W)).float().to(device)
     comap_yx = torch.from_numpy(comap_yx).to(device)
+    max_overlap = multiplexing.get_max_overlap(comap_yx, num_lens, H, W)
     if 'lego' in source_path:
         input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", "59")
     elif 'hotdog' in source_path:
         input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", "0")
     else:
         input_images = multiplexing.read_images(num_lens, f"{source_path}/render_5_views", "2")
-    gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H, alpha_map)
+    # gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H, alpha_map)
+    gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -87,20 +89,6 @@ def training(dataset: ModelParams,
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     for iteration in range(1, opt.iterations + 1):        
-        # if network_gui.conn == None:
-        #     network_gui.try_connect()
-        # while network_gui.conn != None:
-        #     try:
-        #         net_image_bytes = None
-        #         custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
-        #         if custom_cam != None:
-        #             net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
-        #             net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-        #         network_gui.send(net_image_bytes, dataset.source_path)
-        #         if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
-        #             break
-        #     except Exception as e:
-        #         network_gui.conn = None
 
         iter_start.record()
         gaussians.update_learning_rate(iteration)
@@ -132,12 +120,12 @@ def training(dataset: ModelParams,
             tv_image = render(tv_viewpoint, gaussians, pipe, bg)["render"]
             tv_loss += tv_2d(tv_image)
         
-        output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H, alpha_map)
+        output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
        
         # Loss
-        Ll1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
-        Ltv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight + tv_train_loss / len(scene_train_cameras) * opt.tv_weight
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + Ltv
+        L_l1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
+        L_tv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight + tv_train_loss / len(scene_train_cameras) * opt.tv_weight
+        loss = (1.0 - opt.lambda_dssim) * L_l1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + L_tv
         
         loss.backward()
         iter_end.record()
@@ -154,8 +142,8 @@ def training(dataset: ModelParams,
             # Log and save
             training_report(tb_writer, 
                             iteration, 
-                            Ll1,
-                            Ltv, 
+                            L_l1,
+                            L_tv, 
                             loss, 
                             iter_start.elapsed_time(iter_end), 
                             testing_iterations, 
@@ -254,15 +242,12 @@ def training_report(tb_writer,
                 psnr_test = 0.0
                 # print(config['name'], len(config['cameras']))
                 for idx, viewpoint in enumerate(config['cameras']):
-                    # if config['name']=="test" :
-                    #     print(viewpoint.image_name)
                     image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
 
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
                     if tb_writer and (idx < 5):
                         # simulation or non multiplex only
                         tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-                        # if iteration == testing_iterations[0]:
                         tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
                     l1_test += l1_loss(image, gt_image).mean().double()
                     psnr_test += psnr(image, gt_image).mean().double()
@@ -299,7 +284,6 @@ def training_report(tb_writer,
                     tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
 
                     if config["name"]=="train" and len(rendered_trained_images) > 0:
-                        # multiplexed_image = multiplexing.generate(rendered_trained_images, comap_yx, dim_lens_lf_yx, num_lens, H)                        
                         tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
 
         tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
@@ -334,7 +318,6 @@ if __name__ == "__main__":
     wandb.init()
 
     # Start GUI server, configure and run training
-    # network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
     training(dataset=lp.extract(args), 
