@@ -5,6 +5,7 @@ import imageio as imageio
 import math
 from skimage.transform import resize
 import torch.nn.functional as F
+from kornia.enhance import equalize_clahe
 
 SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -69,6 +70,13 @@ def read_images(num_lens, model_path, base):
 
     return images
 
+def get_max_overlap(comap_yx, num_lens, H, W):
+    overlap_count = torch.zeros(H, W, dtype=torch.int32, device=device)
+    for i in range(num_lens):
+        valid_mask = (comap_yx[i][:,:,1] != -1)
+        overlap_count += valid_mask
+    return overlap_count.max()
+
 def generate_alpha_map(comap_yx, num_lens, H, W):
     overlap_count = np.zeros((H, W), dtype=np.int32)
     
@@ -81,7 +89,7 @@ def generate_alpha_map(comap_yx, num_lens, H, W):
     alpha_map[non_zero_mask] = 1.0 / overlap_count[non_zero_mask]
     return alpha_map
 
-def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map):
+def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
     grid_size = int(math.sqrt(num_lens))
     idx = torch.arange(grid_size, device=device)
     grid_i, grid_j = torch.meshgrid(idx, idx, indexing='ij')
@@ -95,9 +103,8 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map)
         mode='bilinear', 
         align_corners=False
     )
-    
-    output_image = torch.zeros(3, sensor_size, sensor_size, device=device, dtype=torch.float32)
-    
+
+    output_image = torch.zeros(3, H, W, device=device, dtype=torch.float32)
     for i in range(num_lens):
         y_coords = comap_yx[i, :, :, 0]
         x_coords = comap_yx[i, :, :, 1]
@@ -112,12 +119,49 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map)
             y_indices, x_indices = torch.where(valid_mask)
             y_src = y_coords[valid_mask].long()
             x_src = x_coords[valid_mask].long()
-            output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src] * alpha_map[y_indices, x_indices].unsqueeze(0)
-    
-    # Clamp the final output to ensure pixel values are in the valid range [0, 1].
-    output_image = torch.clamp(output_image, 0, 1)
-    
+            output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src]
+    output_image = torch.div(output_image, max_overlap)
+    output_image = equalize_clahe(output_image, clip_limit=4.0, slow_and_differentiable=True)
+    output_image = torch.div(output_image, output_image.max())
     return output_image
+
+# def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map):
+#     grid_size = int(math.sqrt(num_lens))
+#     idx = torch.arange(grid_size, device=device)
+#     grid_i, grid_j = torch.meshgrid(idx, idx, indexing='ij')
+#     mapping = ((grid_size - 1 - grid_i) + (grid_size - 1 - grid_j) * grid_size).reshape(-1)
+    
+#     images_tensor = torch.stack(images, dim=0).to(device)
+#     selected_images = images_tensor[mapping]
+#     resized_images = F.interpolate(
+#         selected_images, 
+#         size=(dim_lens_lf_yx[0], dim_lens_lf_yx[1]), 
+#         mode='bilinear', 
+#         align_corners=False
+#     )
+    
+#     output_image = torch.zeros(3, sensor_size, sensor_size, device=device, dtype=torch.float32)
+    
+#     for i in range(num_lens):
+#         y_coords = comap_yx[i, :, :, 0]
+#         x_coords = comap_yx[i, :, :, 1]
+        
+#         valid_mask = (y_coords != -1) & (x_coords != -1) & \
+#                      (y_coords >= 0) & (y_coords < dim_lens_lf_yx[0]) & \
+#                      (x_coords >= 0) & (x_coords < dim_lens_lf_yx[1])
+        
+#         # Only process this microlens if there are any valid mapping positions.
+#         if valid_mask.any():
+#             # Get 2D indices within the sub-image where valid_mask is True.
+#             y_indices, x_indices = torch.where(valid_mask)
+#             y_src = y_coords[valid_mask].long()
+#             x_src = x_coords[valid_mask].long()
+#             output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src] * alpha_map[y_indices, x_indices].unsqueeze(0)
+    
+#     # Clamp the final output to ensure pixel values are in the valid range [0, 1].
+#     output_image = torch.clamp(output_image, 0, 1)
+    
+#     return output_image
 
 def get_rays_per_pixel(H, W, comap_yx, max_per_pixel, num_lens):    
     per_pixel = np.zeros((W, H, max_per_pixel, 3)).astype(int)
