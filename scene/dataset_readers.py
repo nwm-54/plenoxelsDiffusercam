@@ -440,7 +440,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     ply_path = os.path.join(path, "points3d.ply")
     if True: #not os.path.exists(ply_path):
         # Since this data set has no colmap data, we start with random points
-        num_pts = 100_000
+        num_pts = 10_000
         print(f"Generating random point cloud with {num_pts} points")
         
         # Cuboid
@@ -450,6 +450,8 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         # Spherical
         # Generate random radii, uniformly distributed within [0, 1)
         r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
+        r = np.random.random(num_pts) ** (1/3)
+
         # Generate spherical coordinates
         theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
         phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]

@@ -68,13 +68,15 @@ def training(dataset: ModelParams,
     H = W = 800 // resolution
     num_lens = 16
     comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
+    alpha_map = torch.from_numpy(multiplexing.generate_alpha_map(comap_yx, num_lens, H, W)).float().to(device)
+    comap_yx = torch.from_numpy(comap_yx).to(device)
     if 'lego' in source_path:
         input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", "59")
     elif 'hotdog' in source_path:
         input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", "0")
     else:
         input_images = multiplexing.read_images(num_lens, f"{source_path}/render_5_views", "2")
-    gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H)
+    gt_image = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H, alpha_map)
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -85,23 +87,22 @@ def training(dataset: ModelParams,
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     for iteration in range(1, opt.iterations + 1):        
-        if network_gui.conn == None:
-            network_gui.try_connect()
-        while network_gui.conn != None:
-            try:
-                net_image_bytes = None
-                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
-                if custom_cam != None:
-                    net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
-                    net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-                network_gui.send(net_image_bytes, dataset.source_path)
-                if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
-                    break
-            except Exception as e:
-                network_gui.conn = None
+        # if network_gui.conn == None:
+        #     network_gui.try_connect()
+        # while network_gui.conn != None:
+        #     try:
+        #         net_image_bytes = None
+        #         custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
+        #         if custom_cam != None:
+        #             net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
+        #             net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
+        #         network_gui.send(net_image_bytes, dataset.source_path)
+        #         if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
+        #             break
+        #     except Exception as e:
+        #         network_gui.conn = None
 
         iter_start.record()
-
         gaussians.update_learning_rate(iteration)
 
         # Every 1000 its we increase the levels of SH up to a maximum degree
@@ -128,22 +129,17 @@ def training(dataset: ModelParams,
         # tv_viewpoints = random.choices(scene.getTestCameras(), k=1) #scene.getFullTestCameras() #
         tv_image = None
         for tv_viewpoint in tv_viewpoints:
-            render_pkg = render(tv_viewpoint, gaussians, pipe, bg)
-            # tv_image, tv_viewspace_point_tensor, tv_visibility_filter, tv_radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-            tv_loss += tv_2d(render_pkg["render"])
+            tv_image = render(tv_viewpoint, gaussians, pipe, bg)["render"]
+            tv_loss += tv_2d(tv_image)
         
-        output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H)
+        output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H, alpha_map)
        
         # Loss
         Ll1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
-        # Ltv = tv_loss/len(tv_viewpoints)*0.075 + tv_train_loss/len(scene_train_cameras)*opt.tv_weight
-        Ltv = tv_loss/len(tv_viewpoints)*opt.tv_unseen_weight + tv_train_loss/len(scene_train_cameras)*opt.tv_weight
-        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + Ltv#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
-        # Ll1 = l1_loss(image_tensor, gt_tensor) 
-        # loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(image_tensor, gt_tensor)) + tv_loss#+ negative_image*1e-4  + l2_loss(img1, img2)*(10*6)
+        Ltv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight + tv_train_loss / len(scene_train_cameras) * opt.tv_weight
+        loss = (1.0 - opt.lambda_dssim) * Ll1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + Ltv
         
         loss.backward()
-
         iter_end.record()
 
         with torch.no_grad():
@@ -323,10 +319,10 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=6001)
     parser.add_argument('--debug_from', type=int, default=3000)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10, 1_000, 2000, 2500, 3000, 4_000,5000,7000,10_000, 14_000, 18_000,20_000,30_001,30_010,30_200,30_400,30_600,31_000,32_000,33_000,34_000,35_000,36_000,40_000, 50_000])
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[2_000, 2_500, 3_000, 4_000, 7000,10_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=list(range(10, 30_000 + 1, 500)))
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=list(range(2000, 30_000 + 1, 1000)))
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500, 2_000, 2_500, 3000, 4000, 6000, 8000,10000, 20000,30000])
+    parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500, 2_000, 2_500, 3000, 4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--device", type=int, default = 0)
     args = parser.parse_args(sys.argv[1:])
@@ -338,7 +334,7 @@ if __name__ == "__main__":
     wandb.init()
 
     # Start GUI server, configure and run training
-    network_gui.init(args.ip, args.port)
+    # network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
     training(dataset=lp.extract(args), 
