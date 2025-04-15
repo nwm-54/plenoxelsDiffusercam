@@ -60,23 +60,6 @@ def get_comap(num_lens, d_lens_sensor, H, W):
     return comap_yx, dim_lens_lf_yx
 
 def read_images(num_lens, model_path, base):
-    """
-    Reads input images for each microlens from the specified path.
-    
-    Parameters:
-    -----------
-    num_lens : int
-        Number of microlens images to read.
-    model_path : str
-        Directory path containing the images.
-    base : str
-        Base name used in the image filename pattern.
-        
-    Returns:
-    --------
-    images : list
-        List of numpy arrays containing the loaded images as float arrays (range 0-1).
-    """
     images = []
     for j in range(num_lens):
         sub_lens_path = f"r_{base}_{j}.png"
@@ -87,27 +70,6 @@ def read_images(num_lens, model_path, base):
     return images
 
 def generate_alpha_map(comap_yx, num_lens, H, W):
-    """
-    Creates an alpha map where each pixel's value is 1 divided by the number of 
-    sublenses that overlap at that pixel.
-    
-    Parameters:
-    -----------
-    comap_yx : numpy.ndarray
-        4D array from get_comap function containing coordinate mapping.
-    num_lens : int
-        Number of microlenses.
-    H : int
-        Height of the sensor in pixels.
-    W : int
-        Width of the sensor in pixels.
-        
-    Returns:
-    --------
-    alpha_map : numpy.ndarray
-        2D array of shape (H, W) containing the alpha values for each pixel.
-        A value of 0 indicates no sublens coverage.
-    """
     overlap_count = np.zeros((H, W), dtype=np.int32)
     
     for i in range(num_lens):
@@ -119,30 +81,14 @@ def generate_alpha_map(comap_yx, num_lens, H, W):
     alpha_map[non_zero_mask] = 1.0 / overlap_count[non_zero_mask]
     return alpha_map
 
-def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size):
-    comap_yx_torch = torch.from_numpy(comap_yx).to(device)
-    
-    # Generate the alpha map (one alpha map is used for all sub-images)
-    alpha_map = generate_alpha_map(comap_yx, num_lens, sensor_size, sensor_size)
-    alpha_map_torch = torch.from_numpy(alpha_map).float().to(device)
-    
-    # Compute the grid size (assumes num_lens is a perfect square)
+def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map):
     grid_size = int(math.sqrt(num_lens))
-    
-    # Vectorize the mapping from comap_yx index to images index.
-    # For each grid coordinate (i, j) in order, the mapping is computed as:
-    #   mapping[i * grid_size + j] = (grid_size - 1 - i) + (grid_size - 1 - j) * grid_size
     idx = torch.arange(grid_size, device=device)
     grid_i, grid_j = torch.meshgrid(idx, idx, indexing='ij')
     mapping = ((grid_size - 1 - grid_i) + (grid_size - 1 - grid_j) * grid_size).reshape(-1)
     
-    # Stack images into one tensor and select the images as ordered by the mapping.
-    # images_tensor shape: (N, 3, H, W) --> selected_images shape: (num_lens, 3, H, W)
     images_tensor = torch.stack(images, dim=0).to(device)
     selected_images = images_tensor[mapping]
-    
-    # Resize all selected images at once using vectorized interpolation.
-    # The output shape will be (num_lens, 3, lens_H, lens_W)
     resized_images = F.interpolate(
         selected_images, 
         size=(dim_lens_lf_yx[0], dim_lens_lf_yx[1]), 
@@ -150,20 +96,12 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size):
         align_corners=False
     )
     
-    # Initialize the output image (will hold the blended result).
-    # We assume the final output has shape (3, sensor_size, sensor_size)
     output_image = torch.zeros(3, sensor_size, sensor_size, device=device, dtype=torch.float32)
     
-    # Loop over each microlens and accumulate its contribution.
     for i in range(num_lens):
-        # Extract the coordinate maps for this microlens (each of shape (sensor_size, sensor_size)).
-        # The last dimension in comap_yx_torch holds [y, x] coordinates.
-        y_coords = comap_yx_torch[i, :, :, 0]
-        x_coords = comap_yx_torch[i, :, :, 1]
+        y_coords = comap_yx[i, :, :, 0]
+        x_coords = comap_yx[i, :, :, 1]
         
-        # Build a mask that marks valid pixel positions:
-        # - Coordinates must not equal -1
-        # - Must be within the bounds of the resized image dimensions.
         valid_mask = (y_coords != -1) & (x_coords != -1) & \
                      (y_coords >= 0) & (y_coords < dim_lens_lf_yx[0]) & \
                      (x_coords >= 0) & (x_coords < dim_lens_lf_yx[1])
@@ -172,15 +110,9 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size):
         if valid_mask.any():
             # Get 2D indices within the sub-image where valid_mask is True.
             y_indices, x_indices = torch.where(valid_mask)
-            
-            # For these positions, obtain the corresponding source coordinates from the resized image.
             y_src = y_coords[valid_mask].long()
             x_src = x_coords[valid_mask].long()
-            
-            # Use advanced indexing to extract the RGB values from the resized image for all channels at once.
-            # resized_images[i] has shape (3, lens_H, lens_W) and we multiply each by the alpha value at that pixel.
-            # The unsqueeze(0) adds a channel dimension so that the multiplication broadcasts over the 3 channels.
-            output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src] * alpha_map_torch[y_indices, x_indices].unsqueeze(0)
+            output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src] * alpha_map[y_indices, x_indices].unsqueeze(0)
     
     # Clamp the final output to ensure pixel values are in the valid range [0, 1].
     output_image = torch.clamp(output_image, 0, 1)
