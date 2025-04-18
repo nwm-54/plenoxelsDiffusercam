@@ -3,9 +3,7 @@ import numpy as np
 import torch
 import imageio as imageio
 import math
-from skimage.transform import resize
 import torch.nn.functional as F
-from kornia.enhance import equalize_clahe
 
 SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -120,9 +118,8 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
             y_src = y_coords[valid_mask].long()
             x_src = x_coords[valid_mask].long()
             output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src]
+
     output_image = torch.div(output_image, max_overlap)
-    output_image = equalize_clahe(output_image, clip_limit=4.0, slow_and_differentiable=True)
-    output_image = torch.div(output_image, output_image.max())
     return output_image
 
 # def generate(images, comap_yx, dim_lens_lf_yx, num_lens, sensor_size, alpha_map):
