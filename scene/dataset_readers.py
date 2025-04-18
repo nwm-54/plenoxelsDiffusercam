@@ -440,7 +440,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     ply_path = os.path.join(path, "points3d.ply")
     if True: #not os.path.exists(ply_path):
         # Since this data set has no colmap data, we start with random points
-        num_pts = 10_000
+        num_pts = 100_000
         print(f"Generating random point cloud with {num_pts} points")
         
         # Cuboid

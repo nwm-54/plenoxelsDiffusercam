@@ -162,11 +162,16 @@ def training(dataset: ModelParams,
             if iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+                if iteration >= 2999:
+                    print(torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter]))
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                    size_threshold = 20 if iteration > opt.opacity_reset_interval else None
-                    gaussians.densify_and_prune(opt.densify_grad_threshold, 0.005, scene.cameras_extent, size_threshold)
+                    size_threshold = 500 if iteration > 1750 else None
+                    gaussians.densify_and_prune(max_grad=opt.densify_grad_threshold, 
+                                                min_opacity=0.005,
+                                                extent=scene.cameras_extent * 10, 
+                                                max_screen_size=size_threshold)
                 
                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                     gaussians.reset_opacity()
@@ -242,7 +247,7 @@ def training_report(tb_writer,
                 psnr_test = 0.0
                 # print(config['name'], len(config['cameras']))
                 for idx, viewpoint in enumerate(config['cameras']):
-                    image = torch.clamp(renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"], 0.0, 1.0)
+                    image = renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"]
 
                     gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
                     if tb_writer and (idx < 5):
