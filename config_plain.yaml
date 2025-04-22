@@ -1,27 +1,29 @@
 # config.yaml
 program: train_sim_plain.py
-method: grid
-name: tv_and_tv_unseen_sweep
+method: bayes
+name: magic_numbers_sweep
 metric:
   goal: maximize
-  name: psnr_test
+  name: adjacent test camera/psnr
 parameters:
   tv_weight: 
-    values: [0.01, 0.1, 1, 10, 50, 100, 200, 500, 1000]
+    values: [0.01, 0.1, 0.5, 1, 5, 10, 25, 50]
   tv_unseen_weight:
-    values: [0.01, 0.1, 1, 10, 50, 100, 200, 500, 1000]
+    values: [0.01, 0.1, 0.5, 1, 5, 10, 25, 50, 100]
+  size_threshold:
+    values: [10, 20, 50, 70, 100, 120, 150, 200, 250, 300, 350, 400]
+  extent_multiplier:
+    values: [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 14.5, 15]
 command:
   - ${interpreter}
   - ${program}
   - -s 
   - /home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12
-  - -m 
-  - ./output5/lego_gen12_800_dls20_tv_sweep
   - -r 
   - 1
   - --iterations
-  - 7000
+  - 3000
   - --dls
-  - 20
+  - 22
   - ${args}
   
