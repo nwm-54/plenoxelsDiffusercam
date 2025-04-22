@@ -52,7 +52,9 @@ def training(dataset: ModelParams,
              debug_from, 
              source_path: str, 
              resolution: int, 
-             dls: float):
+             dls: float,
+             size_threshold_arg: int,
+             extent_multiplier: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
@@ -150,7 +152,6 @@ def training(dataset: ModelParams,
                             scene, 
                             render, 
                             (pipe, background), 
-                            tv_image, 
                             model_path, 
                             output_image,
                             gt_image)
@@ -167,10 +168,10 @@ def training(dataset: ModelParams,
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
-                    size_threshold = 500 if iteration > 1750 else None
+                    size_threshold = size_threshold_arg if iteration > opt.opacity_reset_interval else None
                     gaussians.densify_and_prune(max_grad=opt.densify_grad_threshold, 
                                                 min_opacity=0.005,
-                                                extent=scene.cameras_extent * 10, 
+                                                extent=scene.cameras_extent * extent_multiplier, 
                                                 max_screen_size=size_threshold)
                 
                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
@@ -194,7 +195,7 @@ def prepare_output_and_logger(args):
             unique_str=os.getenv('OAR_JOB_ID')
         else:
             unique_str = str(uuid.uuid4())
-        args.model_path = os.path.join("./output/", unique_str[0:10])
+        args.model_path = os.path.join("./output5/", unique_str[0:10])
         
     # Set up output folder
     print("Output folder: {}".format(args.model_path))
@@ -204,10 +205,10 @@ def prepare_output_and_logger(args):
 
     # Create Tensorboard writer
     tb_writer = None
-    if TENSORBOARD_FOUND:
-        tb_writer = SummaryWriter(args.model_path)
-    else:
-        print("Tensorboard not available: not logging progress")
+    # if TENSORBOARD_FOUND:
+    #     tb_writer = SummaryWriter(args.model_path)
+    # else:
+    #     print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
 def training_report(tb_writer, 
@@ -217,86 +218,82 @@ def training_report(tb_writer,
                     loss, 
                     elapsed, 
                     testing_iterations, 
-                    scene : Scene, 
+                    scene: Scene, 
                     renderFunc, 
                     renderArgs, 
-                    tv_image, 
                     model_path, 
                     multiplexed_image,
                     true_gt_image=None):
+    log_dict = {
+        'train_loss/l1_loss': Ll1.item(),
+        'train_loss/tv_loss': Ltv.item(),
+        'train_loss/total_loss': loss.item(),
+        'iter_time': elapsed,
+    }
+
     if tb_writer:
-        tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
-        tb_writer.add_scalar('train_loss_patches/tv_loss', Ltv.item(), iteration)
-        tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
-        tb_writer.add_scalar('iter_time', elapsed, iteration)
-    f = open(f"{model_path}/output.txt", "a")
-    
-    # Report test and samples of training set
-    if iteration in testing_iterations:
-        torch.cuda.empty_cache()
-        validation_configs = ({'name': 'test', 'cameras' : scene.getTestCameras()}, 
-                              {'name': 'non adj test', 'cameras' : scene.getFullTestCameras()}, 
-                              {'name': 'train', 'cameras' : [scene.getTrainCameras()[idx] for idx in range(0,len(scene.getTrainCameras()))]})
-        if tv_image is not None:
-            tb_writer.add_images("tv_image", tv_image[None], global_step=iteration)
-        rendered_trained_images = []
-        rendered_gt_images = []
-        for config in validation_configs:
-            if config['cameras'] and len(config['cameras']) > 0:
-                l1_test = 0.0
-                psnr_test = 0.0
-                # print(config['name'], len(config['cameras']))
-                for idx, viewpoint in enumerate(config['cameras']):
-                    image = renderFunc(viewpoint, scene.gaussians, *renderArgs)["render"]
+        for key, val in log_dict.items():
+            tb_writer.add_scalar(key, val, iteration)
 
-                    gt_image = torch.clamp(viewpoint.original_image.to("cuda"), 0.0, 1.0)
-                    if tb_writer and (idx < 5):
-                        # simulation or non multiplex only
-                        tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-                        tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)
-                    l1_test += l1_loss(image, gt_image).mean().double()
-                    psnr_test += psnr(image, gt_image).mean().double()
-                    
-                    if config["name"]=="train":
-                        rendered_trained_images.append(image[None])
-                        rendered_gt_images.append(gt_image[None])
-                                                
-                psnr_test /= len(config['cameras'])
-                l1_test /= len(config['cameras'])   
+    wandb.log(log_dict, step=iteration)
+    with open(f"{model_path}/output.txt", "a") as f:
+        if iteration in testing_iterations:
+            torch.cuda.empty_cache()
+            img_dict = {}
 
-                if config['name'] == 'test':
-                    wandb.log(
-                    {
-                        "epoch": iteration,
-                        "psnr_test": psnr_test,
-                        "l1_test": l1_test,
-                    }
-                )
+            validation_configs = (
+                {'name': 'adjacent test camera', 'cameras': scene.getTestCameras()},
+                {'name': 'full test camera',     'cameras': scene.getFullTestCameras()},
+                {'name': 'train camera',         'cameras': scene.getTrainCameras()},
+            )
+
+            for config in validation_configs:
+                cams = config['cameras']
+                if not cams: continue
+
+                l1_test, psnr_test = 0.0, 0.0
+                for idx, vp in enumerate(cams):
+                    out = renderFunc(vp, scene.gaussians, *renderArgs)["render"]
+                    gt  = vp.original_image.to(device)
+
+                    if idx < 5:
+                        if tb_writer:
+                            tb_writer.add_images(f"{config['name']}_{vp.image_name}/render",      out[None], global_step=iteration)
+                            tb_writer.add_images(f"{config['name']}_{vp.image_name}/ground_truth", gt[None], global_step=iteration)
+                        img_dict[f"{config['name']}_{vp.image_name}/render"] = wandb.Image(out.cpu())
+                        img_dict[f"{config['name']}_{vp.image_name}/ground_truth"] = wandb.Image(gt.cpu())
                     
-                if config['name'] == 'non adj test':
-                    wandb.log(
-                    {
-                        "epoch": iteration,
-                        "psnr_test_full": psnr_test,
-                        "l1_test_full": l1_test,
-                    }
-                )
-                
-                print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
-                f.write("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
+                    l1_test   += l1_loss(out, gt).mean().double()
+                    psnr_test += psnr(out, gt).mean().double()
+
+                l1_test   /= len(cams)
+                psnr_test /= len(cams)
+
+                msg = f"\n[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test} PSNR {psnr_test}"
+                print(msg); f.write(msg)
+
                 if tb_writer:
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - l1_loss', l1_test, iteration)
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
+                    tb_writer.add_scalar(f"{config['name']}/l1_loss",  l1_test, iteration)
+                    tb_writer.add_scalar(f"{config['name']}/psnr",     psnr_test, iteration)
+                log_dict[f"{config['name']}/l1_loss"]  = l1_test.item()
+                log_dict[f"{config['name']}/psnr"]     = psnr_test.item()
 
-                    if config["name"]=="train" and len(rendered_trained_images) > 0:
-                        tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
+            if tb_writer:
+                tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
+            img_dict['trained_multiplex'] = wandb.Image(multiplexed_image.cpu())
 
-        tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
-            
-        if tb_writer:
-            tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
-        torch.cuda.empty_cache()
-    f.close()
+            if true_gt_image is not None:
+                if tb_writer:
+                    tb_writer.add_images("gt_multiplex", true_gt_image.unsqueeze(0), global_step=iteration)
+                # img_dict['gt_multiplex'] = wandb.Image(true_gt_image.cpu())
+
+            total_pts = scene.gaussians.get_xyz.shape[0]
+            if tb_writer:
+                tb_writer.add_scalar('total_points', total_pts, iteration)
+            log_dict['total_points'] = total_pts
+
+            wandb.log({**log_dict, **img_dict}, step=iteration)
+            torch.cuda.empty_cache()
 
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -308,33 +305,46 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=6001)
     parser.add_argument('--debug_from', type=int, default=3000)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=list(range(10, 30_000 + 1, 500)))
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10] + list(range(500, 30_000 + 1, 250)))
     parser.add_argument("--save_iterations", nargs="+", type=int, default=list(range(2000, 30_000 + 1, 1000)))
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500, 2_000, 2_500, 3000, 4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--device", type=int, default = 0)
+    parser.add_argument("--size_threshold", type=int, default = 100)
+    parser.add_argument("--extent_multiplier", type=float, default = 10)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
-    wandb.init()
+    dataset = lp.extract(args)
+    opt = op.extract(args)
+    pipe = pp.extract(args)
+
+    # run_name = f"{os.path.basename(dataset.source_path)}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}_sizethreshold{args.size_threshold}_extent{args.extent_multiplier}"
+    run_name = f"tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}_sizethreshold{args.size_threshold}_extent{args.extent_multiplier}"
+
+    if not dataset.model_path:
+        dataset.model_path = "output5/" + run_name
+    wandb.init(name=run_name)
 
     # Start GUI server, configure and run training
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
-    training(dataset=lp.extract(args), 
-             opt=op.extract(args), 
-             pipe=pp.extract(args), 
+    training(dataset=dataset, 
+             opt=opt, 
+             pipe=pipe, 
              testing_iterations=args.test_iterations, 
              saving_iterations=args.save_iterations, 
              checkpoint_iterations=args.checkpoint_iterations, 
              debug_from=args.debug_from, 
              source_path=args.source_path, 
              resolution=args.resolution, 
-             dls=args.dls)
+             dls=args.dls,
+             size_threshold_arg=args.size_threshold,
+             extent_multiplier=args.extent_multiplier)
 
     # All done
     print("\nTraining complete.")
