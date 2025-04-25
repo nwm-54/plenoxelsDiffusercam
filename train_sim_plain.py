@@ -14,6 +14,7 @@ import random
 import sys
 import uuid
 from argparse import ArgumentParser, Namespace
+import time
 
 import torch
 import torch.nn.functional as F
@@ -24,6 +25,7 @@ from tqdm import tqdm
 from utils.general_utils import safe_state
 from utils.image_utils import psnr
 from utils.loss_utils import l1_loss, ssim
+from lpipsPyTorch import lpips
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -127,12 +129,16 @@ def training(dataset: ModelParams,
         # Loss
         L_l1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
         L_tv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight + tv_train_loss / len(scene_train_cameras) * opt.tv_weight
-        loss = (1.0 - opt.lambda_dssim) * L_l1 + opt.lambda_dssim * (1.0 - ssim(output_image, gt_image)) + L_tv
+        _ssim = ssim(output_image, gt_image)
+        loss = (1.0 - opt.lambda_dssim) * L_l1 + opt.lambda_dssim * (1.0 - _ssim) + L_tv
         
         loss.backward()
         iter_end.record()
 
         with torch.no_grad():
+            # ssim_score = _ssim
+            # psnr_score = psnr(output_image, gt_image).mean().double()
+            # lpips_score = lpips(output_image.unsqueeze(0), gt_image.unsqueeze(0), net_type='vgg').mean().double()
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
             if iteration % 10 == 0:
@@ -146,6 +152,9 @@ def training(dataset: ModelParams,
                             iteration, 
                             L_l1,
                             L_tv, 
+                            # ssim_score,
+                            # psnr_score,
+                            # lpips_score,
                             loss, 
                             iter_start.elapsed_time(iter_end), 
                             testing_iterations, 
@@ -163,8 +172,8 @@ def training(dataset: ModelParams,
             if iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
-                if iteration >= 2999:
-                    print(torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter]))
+                # if iteration >= 2999:
+                #     print(torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter]))
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
@@ -205,16 +214,19 @@ def prepare_output_and_logger(args):
 
     # Create Tensorboard writer
     tb_writer = None
-    # if TENSORBOARD_FOUND:
-    #     tb_writer = SummaryWriter(args.model_path)
-    # else:
-    #     print("Tensorboard not available: not logging progress")
+    if TENSORBOARD_FOUND:
+        tb_writer = SummaryWriter(args.model_path)
+    else:
+        print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
 def training_report(tb_writer, 
                     iteration, 
                     Ll1, 
                     Ltv, 
+                    # ssim_score,
+                    # psnr_score,
+                    # lpips_score,
                     loss, 
                     elapsed, 
                     testing_iterations, 
@@ -228,6 +240,9 @@ def training_report(tb_writer,
         'train_loss/l1_loss': Ll1.item(),
         'train_loss/tv_loss': Ltv.item(),
         'train_loss/total_loss': loss.item(),
+        # 'train_loss/ssim': ssim_score.item(),
+        # 'train_loss/psnr': psnr_score.item(),
+        # 'train_loss/lpips': lpips_score.item(),
         'iter_time': elapsed,
     }
 
@@ -248,10 +263,11 @@ def training_report(tb_writer,
             )
 
             for config in validation_configs:
+                t1 = time.time()
                 cams = config['cameras']
                 if not cams: continue
 
-                l1_test, psnr_test = 0.0, 0.0
+                l1_test, psnr_test, ssim_test, lpips_test = 0.0, 0.0, 0.0, 0.0
                 for idx, vp in enumerate(cams):
                     out = renderFunc(vp, scene.gaussians, *renderArgs)["render"]
                     gt  = vp.original_image.to(device)
@@ -261,22 +277,31 @@ def training_report(tb_writer,
                             tb_writer.add_images(f"{config['name']}_{vp.image_name}/render",      out[None], global_step=iteration)
                             tb_writer.add_images(f"{config['name']}_{vp.image_name}/ground_truth", gt[None], global_step=iteration)
                         img_dict[f"{config['name']}_{vp.image_name}/render"] = wandb.Image(out.cpu())
-                        img_dict[f"{config['name']}_{vp.image_name}/ground_truth"] = wandb.Image(gt.cpu())
+                        # img_dict[f"{config['name']}_{vp.image_name}/ground_truth"] = wandb.Image(gt.cpu())
                     
                     l1_test   += l1_loss(out, gt).mean().double()
                     psnr_test += psnr(out, gt).mean().double()
+                    ssim_test += ssim(out, gt)
+                    lpips_test += lpips(out.unsqueeze(0), gt.unsqueeze(0), net_type='vgg').mean().double()
 
                 l1_test   /= len(cams)
                 psnr_test /= len(cams)
+                ssim_test /= len(cams)
+                lpips_test /= len(cams)
 
-                msg = f"\n[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test} PSNR {psnr_test}"
+                msg = f"\n[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test} PSNR {psnr_test} SSIM {ssim_test} LPIPS {lpips_test}"
                 print(msg); f.write(msg)
 
                 if tb_writer:
                     tb_writer.add_scalar(f"{config['name']}/l1_loss",  l1_test, iteration)
                     tb_writer.add_scalar(f"{config['name']}/psnr",     psnr_test, iteration)
+                    tb_writer.add_scalar(f"{config['name']}/ssim",    ssim_test, iteration)
+                    tb_writer.add_scalar(f"{config['name']}/lpips",   lpips_test, iteration)
                 log_dict[f"{config['name']}/l1_loss"]  = l1_test.item()
                 log_dict[f"{config['name']}/psnr"]     = psnr_test.item()
+                log_dict[f"{config['name']}/ssim"]    = ssim_test.item()
+                log_dict[f"{config['name']}/lpips"]   = lpips_test.item()
+                # print(time.time() - t1)
 
             if tb_writer:
                 tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
@@ -293,7 +318,7 @@ def training_report(tb_writer,
             log_dict['total_points'] = total_pts
 
             wandb.log({**log_dict, **img_dict}, step=iteration)
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
 
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -311,8 +336,8 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[1_500, 2_000, 2_500, 3000, 4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--device", type=int, default = 0)
-    parser.add_argument("--size_threshold", type=int, default = 100)
-    parser.add_argument("--extent_multiplier", type=float, default = 10)
+    parser.add_argument("--size_threshold", type=int, default = 200)
+    parser.add_argument("--extent_multiplier", type=float, default = 4.)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
@@ -323,11 +348,13 @@ if __name__ == "__main__":
     opt = op.extract(args)
     pipe = pp.extract(args)
 
-    # run_name = f"{os.path.basename(dataset.source_path)}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}_sizethreshold{args.size_threshold}_extent{args.extent_multiplier}"
-    run_name = f"tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}_sizethreshold{args.size_threshold}_extent{args.extent_multiplier}"
+
+    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
+    run_name = f"{dataset_name}_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
+    # run_name = f"tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}_sizethreshold{args.size_threshold}_extent{args.extent_multiplier}"
 
     if not dataset.model_path:
-        dataset.model_path = "output5/" + run_name
+        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output7/" + run_name
     wandb.init(name=run_name)
 
     # Start GUI server, configure and run training
