@@ -1,138 +1,40 @@
 #
-# Copyright (C) 2023, Inria
-# GRAPHDECO research group, https://team.inria.fr/graphdeco
-# All rights reserved.
-#
-# This software is free for non-commercial, research and evaluation use 
-# under the terms of the LICENSE.md file.
-#
-# For inquiries contact  george.drettakis@inria.fr
+# For real iamges
 #
 
+import collections
+import json
 import os
 import random
-import numpy as np
-import scipy
-import scipy.ndimage
-import torch
-from random import randint
-from utils.loss_utils import l1_loss, ssim, l2_loss
-from gaussian_renderer import render, network_gui
 import sys
-from scene import Scene, GaussianModel
-from utils.general_utils import safe_state
 import uuid
-from tqdm import tqdm
-import scene as scn
-import torch.nn.functional as F
-
-from utils.image_utils import psnr
 from argparse import ArgumentParser, Namespace
-from arguments import ModelParams, PipelineParams, OptimizationParams
-import json
-import collections
+from random import randint
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+import wandb
+from arguments import ModelParams, OptimizationParams, PipelineParams
+from gaussian_renderer import render
+from lpipsPyTorch import lpips
+from scene import GaussianModel, Scene, multiplexing
+from tqdm import tqdm
+from utils.general_utils import safe_state
+from utils.image_utils import psnr
+from utils.loss_utils import l1_loss, ssim
+
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
     
-import torch
-import torch.nn.functional as F
-
-def shift_image_pytorch(image, shift):
-    """
-    Shifts an image tensor using grid_sample.
-
-    Args:
-        image: Tensor of shape (C, H, W), where C is the number of channels,
-               H is height, and W is width.
-        shift: A tuple (shift_x, shift_y) indicating the shift in x and y axes.
-
-    Returns:
-        Shifted image tensor of shape (C, H, W).
-    """
-    # Get image height and width
-    _, H, W = image.shape
-
-    # Create mesh grid
-    grid_y, grid_x = torch.meshgrid(torch.arange(H), torch.arange(W))
-
-    # Normalize grid to be in [-1, 1] (required by grid_sample)
-    grid_x = 2.0 * grid_x.float() / (W - 1) - 1
-    grid_y = 2.0 * grid_y.float() / (H - 1) - 1
-
-    # Create flow field by adding the shift
-    shift_x = 2.0 * shift[1] / (W - 1)
-    shift_y = 2.0 * shift[0] / (H - 1)
-
-    grid_x = grid_x + shift_x
-    grid_y = grid_y + shift_y
-
-    # Stack and transpose to get grid in the format expected by grid_sample
-    grid = torch.stack((grid_x, grid_y), dim=-1).unsqueeze(0).cuda()
-
-    # Apply grid_sample to shift the image
-    shifted_image = F.grid_sample(image.unsqueeze(0), grid, mode='bilinear', padding_mode='zeros', align_corners=True)
-
-    return shifted_image.squeeze(0)
-def crop_non_zero(tensor):
-    # Get the size of the tensor
-    d1, d2, d3 = tensor.size()
-    
-    # Create a boolean mask for non-zero values
-    mask = tensor != 0
-    
-    mask = mask.float()
-    
-    # Determine non-zero mask for the second and third dimensions
-    non_zero_rows = torch.any(mask, dim=2)  # Shape: [d1, d2]
-    non_zero_cols = torch.any(mask, dim=1)  # Shape: [d1, d3]
-    
-    non_zero_rows = non_zero_rows.float()
-    non_zero_cols = non_zero_cols.float()
-    
-    # Find the first and last non-zero indices in the second dimension
-    row_start = torch.argmax(non_zero_rows, dim=1)
-    row_end = d2 - torch.argmax(non_zero_rows.flip(1), dim=1) - 1
-    
-    # Find the first and last non-zero indices in the third dimension
-    col_start = torch.argmax(non_zero_cols, dim=1)
-    col_end = d3 - torch.argmax(non_zero_cols.flip(1), dim=1) - 1
-    
-    # Prepare the cropped tensor
-    cropped_shape = (d1, (row_end - row_start + 1).max().item(), (col_end - col_start + 1).max().item())
-    cropped_tensor = torch.zeros(cropped_shape, dtype=tensor.dtype)
-    # cropped_tensor = torch.zeros((d1, row_end - row_start + 1, col_end - col_start + 1), dtype=tensor.dtype)
-    
-    for i in range(d1):
-        r_start = row_start[i].item()
-        r_end = row_end[i].item() + 1
-        c_start = col_start[i].item()
-        c_end = col_end[i].item() + 1
-        cropped_tensor[i, :r_end - r_start, :c_end - c_start] = tensor[i, r_start:r_end, c_start:c_end]
-    
-    
-    return cropped_tensor
-
-def pad_tensor_even(tensor, target_size):
-    # Compute the padding needed for each dimension
-    pad_height = target_size[1] - tensor.size(1)
-    pad_width = target_size[2] - tensor.size(2)
-
-    # Calculate padding for each side
-    pad_top = pad_height // 2
-    pad_bottom = pad_height - pad_top
-    pad_left = pad_width // 2
-    pad_right = pad_width - pad_left
-
-    # Apply padding: (left, right, top, bottom)
-    padding = (pad_left, pad_right, pad_top, pad_bottom)
-
-    # Pad the tensor
-    padded_tensor = F.pad(tensor, padding, mode='constant', value=0)
-    
-    return padded_tensor
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.set_device(0)
+print(f"Using device: {device}")
+print(f"GPU Name: {torch.cuda.get_device_name(device)}")
+wandb.login()
 
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
     first_iter = 0
@@ -149,11 +51,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     num_lens = 16
     d_lens_sensor = 10
     MAX_PER_PIXEL =  5
-    comap_yx, _ = scn.multiplexing.get_comap(num_lens, d_lens_sensor, H, W)
-    maps_pixel_to_rays, real_ray_mask, _ = scn.multiplexing.get_rays_per_pixel(H,W, comap_yx,MAX_PER_PIXEL, num_lens)
-    multiplexed_mask, pad_mapping, border_minmax = scn.multiplexing.model_output_mask(comap_yx, num_lens, maps_pixel_to_rays, real_ray_mask, H,W, MAX_PER_PIXEL)
-    rgb_gt, _ = scn.multiplexing.generate(comap_yx, "59", "/home/vitran/plenoxels/blender_data/lego_gen12/train_multilens_16_black", num_lens, H, W)
-    rgb_gt = torch.from_numpy(rgb_gt)[:,:,:3].permute(2,0,1).float().cuda()
+    comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, d_lens_sensor, H, W)
+    comap_yx = torch.from_numpy(comap_yx).to(device)
     ##### SIMULATION
     ##
     
@@ -171,28 +70,11 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     iter_start = torch.cuda.Event(enable_timing = True)
     iter_end = torch.cuda.Event(enable_timing = True)
 
-    viewpoint_stack = None
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
     for iteration in range(first_iter, opt.iterations + 1):        
-        if network_gui.conn == None:
-            network_gui.try_connect()
-        while network_gui.conn != None:
-            try:
-                net_image_bytes = None
-                custom_cam, do_training, pipe.convert_SHs_python, pipe.compute_cov3D_python, keep_alive, scaling_modifer = network_gui.receive()
-                if custom_cam != None:
-                    net_image = render(custom_cam, gaussians, pipe, background, scaling_modifer)["render"]
-                    net_image_bytes = memoryview((torch.clamp(net_image, min=0, max=1.0) * 255).byte().permute(1, 2, 0).contiguous().cpu().numpy())
-                network_gui.send(net_image_bytes, dataset.source_path)
-                if do_training and ((iteration < int(opt.iterations)) or not keep_alive):
-                    break
-            except Exception as e:
-                network_gui.conn = None
-
         iter_start.record()
-
         gaussians.update_learning_rate(iteration)
 
         # Every 1000 its we increase the levels of SH up to a maximum degree
@@ -206,28 +88,19 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         pair = collections.defaultdict(dict)
         bg = torch.rand((3), device="cuda") if opt.random_background else background
         render_pkg = []
-        model_output = []
         image_list = []
         gt_list = []
-        negative_images = []
         scene_train_cameras = scene.getTrainCameras()
        
         tv_loss = 0.
         for j,single_viewpoint in enumerate(scene_train_cameras):
             render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
             image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-            # print(image_raw.size())
             tv_loss += tv_2d(image_raw)
-            # image_raw = scn.multiplexing.generate_single_training(j, border_minmax, comap_yx, image_raw, multiplexed_mask, pad_mapping, maps_pixel_to_rays, H, W  )
-            # image_raw = scn.multiplexing.generate_single_training_pinhole_with_mask(image_raw, single_viewpoint)
             # print(j, single_viewpoint.image_name)
             image_list.append(image_raw)  #or image for multiplexing          
             gt_image = scene.getTrainCameras()[j].original_image.cuda()
             gt_list.append(gt_image)
-           
-            # flip_mask = 1- single_viewpoint.mask #torch.where(single_viewpoint.mask != 0, 0, 1)
-            # negative_image = image * flip_mask
-            # negative_images.append(negative_image)
             
         #TV viewpoint
         # tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
@@ -427,13 +300,26 @@ if __name__ == "__main__":
     
     print("Optimizing " + args.model_path)
 
-    # Initialize system state (RNG)
     safe_state(args.quiet)
-
-    # Start GUI server, configure and run training
-    network_gui.init(args.ip, args.port)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
-    training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from)
+
+    dataset = lp.extract(args)
+    opt = op.extract(args)
+    pipe = pp.extract(args)
+    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
+    run_name = f"{dataset_name}_multiview_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
+    if not dataset.model_path:
+        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output7/" + run_name
+    wandb.init(name=run_name)
+
+    training(dataset=dataset,
+             opt=opt,
+             pipe=pipe,
+             testing_iterations=args.test_iterations, 
+             saving_iterations=args.save_iterations, 
+             checkpoint_iterations=args.checkpoint_iterations, 
+             checkpoint=args.start_checkpoint, 
+             debug_from=args.debug_from)
 
     # All done
     print("\nTraining complete.")

@@ -8,24 +8,26 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
+import json
 import os
 import random
 import sys
-from PIL import Image
+from pathlib import Path
 from typing import NamedTuple
 
 import cv2
-import torch
-from scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
-    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary, read_points3D_text
-from utils.graphics_utils import getWorld2View2, focal2fov, fov2focal
 import numpy as np
-import json
-from pathlib import Path
+import torch
+from PIL import Image
 from plyfile import PlyData, PlyElement
-from utils.sh_utils import SH2RGB
-from scene.gaussian_model import BasicPointCloud
 from scene import multiplexing
+from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
+                                 read_extrinsics_text, read_intrinsics_binary,
+                                 read_intrinsics_text)
+from scene.gaussian_model import BasicPointCloud
+from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
+from utils.sh_utils import SH2RGB
+
 
 class PinholeMask(NamedTuple):
     bbox: list
@@ -365,11 +367,11 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
     cam_infos = []
     cam_infos_test = []
     if 'lego' in path:
-        adjacent_views = multiplexing.get_adjacent_views([59], path) #59 for lego, 2 for others
+        adjacent_views = multiplexing.get_adjacent_views(59, path) 
     elif 'hotdog' in path:
-        adjacent_views = multiplexing.get_adjacent_views([0], path) #59 for lego, 2 for others
+        adjacent_views = multiplexing.get_adjacent_views(0, path) 
     else:
-        adjacent_views = multiplexing.get_adjacent_views([2], path) #59 for lego, 2 for others
+        adjacent_views = multiplexing.get_adjacent_views(2, path)
     # print("adjacent views", adjacent_views)
 
     with open(os.path.join(path, transformsfile)) as json_file:
@@ -421,27 +423,19 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
     #lego - chair -others
     #hotdog
-    if 'hotdog' in path:
-        # train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_r0.json", white_background, extension)
-        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
-    else : #if 'lego' in path:
-        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting.json", white_background, extension)
+    train_cam_infos, _ = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting.json", white_background, extension)
         
-    #lego
-    # test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
-    #hotdog - chair -others
+
     test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
-    # if not eval:
-    #     train_cam_infos.extend(test_cam_infos)
-    #     test_cam_infos = []
+
 
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
     ply_path = os.path.join(path, "points3d.ply")
-    if True: #not os.path.exists(ply_path):
+    if True: 
         # Since this data set has no colmap data, we start with random points
         num_pts = 100_000
-        print(f"Generating random point cloud with {num_pts} points")
+        print(f"Generating random spherical point cloud with {num_pts} points")
         
         # Cuboid
         # We create random points inside the bounds of the synthetic Blender scenes
@@ -449,8 +443,8 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         
         # Spherical
         # Generate random radii, uniformly distributed within [0, 1)
-        r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
-        r = np.random.random(num_pts) ** (1/3)
+        r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume + magic number 1.3
+        # r = np.random.random(num_pts) ** (1/3)
 
         # Generate spherical coordinates
         theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
@@ -475,8 +469,8 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
                            test_cameras=test_cam_infos,
                            tv_cameras=None,
                            nerf_normalization=nerf_normalization,
-                           ply_path=ply_path, full_test_cameras=full_test_cam_infos)
-    torch.cuda.empty_cache()
+                           ply_path=ply_path, 
+                           full_test_cameras=full_test_cam_infos)
     return scene_info
 
 sceneLoadTypeCallbacks = {

@@ -1,31 +1,26 @@
 #
-# Copyright (C) 2023, Inria
-# GRAPHDECO research group, https://team.inria.fr/graphdeco
-# All rights reserved.
-#
-# This software is free for non-commercial, research and evaluation use 
-# under the terms of the LICENSE.md file.
-#
-# For inquiries contact  george.drettakis@inria.fr
+# For simulation images - single view
 #
 
 import os
 import random
 import sys
+import time
 import uuid
 from argparse import ArgumentParser, Namespace
-import time
 
+import numpy as np
 import torch
 import torch.nn.functional as F
+import wandb
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
+from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from tqdm import tqdm
 from utils.general_utils import safe_state
 from utils.image_utils import psnr
 from utils.loss_utils import l1_loss, ssim
-from lpipsPyTorch import lpips
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -33,17 +28,12 @@ try:
 except ImportError:
     TENSORBOARD_FOUND = False
     
-import numpy as np
-import torch
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
-
-import wandb
-
 wandb.login()
+
 
 def training(dataset: ModelParams, 
              opt: OptimizationParams, 
@@ -68,11 +58,9 @@ def training(dataset: ModelParams,
     print("Test Cameras: ", len(scene.getTestCameras()))
     print("Full Test Cameras: ", len(scene.getFullTestCameras()))
 
-    ##SIMILATED data
     H = W = 800 // resolution
     num_lens = 16
     comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
-    # alpha_map = torch.from_numpy(multiplexing.generate_alpha_map(comap_yx, num_lens, H, W)).float().to(device)
     comap_yx = torch.from_numpy(comap_yx).to(device)
     max_overlap = multiplexing.get_max_overlap(comap_yx, num_lens, H, W)
     if 'lego' in source_path:
@@ -93,7 +81,6 @@ def training(dataset: ModelParams,
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     for iteration in range(1, opt.iterations + 1):        
-
         iter_start.record()
         gaussians.update_learning_rate(iteration)
 
@@ -109,16 +96,16 @@ def training(dataset: ModelParams,
         image_list = []
         scene_train_cameras = scene.getTrainCameras()
         tv_train_loss = 0.
-        tv_loss = 0.
         for j, single_viewpoint in enumerate(scene_train_cameras):
             render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
             image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
             tv_train_loss += tv_2d(image_raw)
             image_list.append(image_raw)        
             
-        #TV viewpoint
+        # TV viewpoint
         tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) #scene.getFullTestCameras() #
         # tv_viewpoints = random.choices(scene.getTestCameras(), k=1) #scene.getFullTestCameras() #
+        tv_loss = 0.
         tv_image = None
         for tv_viewpoint in tv_viewpoints:
             tv_image = render(tv_viewpoint, gaussians, pipe, bg)["render"]
@@ -127,7 +114,7 @@ def training(dataset: ModelParams,
         output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
        
         # Loss
-        L_l1 = l1_loss(output_image, gt_image)  #use image_tensor, gt_tensor for non-multiplex
+        L_l1 = l1_loss(output_image, gt_image)
         L_tv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight + tv_train_loss / len(scene_train_cameras) * opt.tv_weight
         _ssim = ssim(output_image, gt_image)
         loss = (1.0 - opt.lambda_dssim) * L_l1 + opt.lambda_dssim * (1.0 - _ssim) + L_tv
@@ -136,9 +123,6 @@ def training(dataset: ModelParams,
         iter_end.record()
 
         with torch.no_grad():
-            # ssim_score = _ssim
-            # psnr_score = psnr(output_image, gt_image).mean().double()
-            # lpips_score = lpips(output_image.unsqueeze(0), gt_image.unsqueeze(0), net_type='vgg').mean().double()
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
             if iteration % 10 == 0:
@@ -152,9 +136,6 @@ def training(dataset: ModelParams,
                             iteration, 
                             L_l1,
                             L_tv, 
-                            # ssim_score,
-                            # psnr_score,
-                            # lpips_score,
                             loss, 
                             iter_start.elapsed_time(iter_end), 
                             testing_iterations, 
@@ -240,9 +221,6 @@ def training_report(tb_writer,
         'train_loss/l1_loss': Ll1.item(),
         'train_loss/tv_loss': Ltv.item(),
         'train_loss/total_loss': loss.item(),
-        # 'train_loss/ssim': ssim_score.item(),
-        # 'train_loss/psnr': psnr_score.item(),
-        # 'train_loss/lpips': lpips_score.item(),
         'iter_time': elapsed,
     }
 
@@ -253,7 +231,6 @@ def training_report(tb_writer,
     wandb.log(log_dict, step=iteration)
     with open(f"{model_path}/output.txt", "a") as f:
         if iteration in testing_iterations:
-            torch.cuda.empty_cache()
             img_dict = {}
 
             validation_configs = (
@@ -279,14 +256,14 @@ def training_report(tb_writer,
                         img_dict[f"{config['name']}_{vp.image_name}/render"] = wandb.Image(out.cpu())
                         # img_dict[f"{config['name']}_{vp.image_name}/ground_truth"] = wandb.Image(gt.cpu())
                     
-                    l1_test   += l1_loss(out, gt).mean().double()
-                    psnr_test += psnr(out, gt).mean().double()
-                    ssim_test += ssim(out, gt)
+                    l1_test    += l1_loss(out, gt).mean().double()
+                    psnr_test  += psnr(out, gt).mean().double()
+                    ssim_test  += ssim(out, gt)
                     lpips_test += lpips(out.unsqueeze(0), gt.unsqueeze(0), net_type='vgg').mean().double()
 
-                l1_test   /= len(cams)
-                psnr_test /= len(cams)
-                ssim_test /= len(cams)
+                l1_test    /= len(cams)
+                psnr_test  /= len(cams)
+                ssim_test  /= len(cams)
                 lpips_test /= len(cams)
 
                 msg = f"\n[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test} PSNR {psnr_test} SSIM {ssim_test} LPIPS {lpips_test}"
@@ -318,7 +295,6 @@ def training_report(tb_writer,
             log_dict['total_points'] = total_pts
 
             wandb.log({**log_dict, **img_dict}, step=iteration)
-            # torch.cuda.empty_cache()
 
 if __name__ == "__main__":
     # Set up command line argument parser
@@ -343,11 +319,11 @@ if __name__ == "__main__":
     
     # Initialize system state (RNG)
     safe_state(args.quiet)
+    torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
     dataset = lp.extract(args)
     opt = op.extract(args)
     pipe = pp.extract(args)
-
 
     dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
     run_name = f"{dataset_name}_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
@@ -357,8 +333,6 @@ if __name__ == "__main__":
         dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output7/" + run_name
     wandb.init(name=run_name)
 
-    # Start GUI server, configure and run training
-    torch.autograd.set_detect_anomaly(args.detect_anomaly)
 
     training(dataset=dataset, 
              opt=opt, 

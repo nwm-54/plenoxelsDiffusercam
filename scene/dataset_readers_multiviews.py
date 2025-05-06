@@ -9,24 +9,27 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
-from collections import defaultdict
+import json
 import os
 import random
 import sys
-from PIL import Image
+from collections import defaultdict
+from pathlib import Path
 from typing import NamedTuple
 
 import cv2
-from scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
-    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary, read_points3D_text
-from utils.graphics_utils import getWorld2View2, focal2fov, fov2focal
 import numpy as np
-import json
-from pathlib import Path
+from PIL import Image
 from plyfile import PlyData, PlyElement
-from utils.sh_utils import SH2RGB
-from scene.gaussian_model import BasicPointCloud
 from scene import multiplexing
+from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
+                                 read_extrinsics_text, read_intrinsics_binary,
+                                 read_intrinsics_text, read_points3D_binary,
+                                 read_points3D_text)
+from scene.gaussian_model import BasicPointCloud
+from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
+from utils.sh_utils import SH2RGB
+
 
 class PinholeMask(NamedTuple):
     bbox: list
@@ -319,32 +322,29 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     return scene_info
 
 def readCamerasFromTransforms(path, transformsfile, white_background, extension=".png", views=[]):
-    cam_infos = defaultdict(list)
+    is_testing = "test" in transformsfile
+    cam_infos = [] if is_testing else defaultdict(list) 
     cam_infos_test = []
-    # adjacent_views = multiplexing.get_adjacent_views([59], path) #59 for lego, 2 for others
-    adjacent_views = []
-    # print('line 326 ', views)
-    for view in views:
-        adj= multiplexing.get_adjacent_views(views, path) #59 for lego, 2 for others
-        adjacent_views.extend(adj)
-    adjacent_views = list(set(adjacent_views))
-    print("adjacent views", adjacent_views)
-
+    if is_testing:
+        adjacent_views = []
+        for view in views:
+            adjacent_views.extend(multiplexing.get_adjacent_views(view, path))
+        adjacent_views = list(set(adjacent_views))
     with open(os.path.join(path, transformsfile)) as json_file:
         contents = json.load(json_file)
         fovx = contents["camera_angle_x"]
-
         frames = contents["frames"]
-        for idx, frame in enumerate(frames): 
-            
+
+        for frame in frames: 
             cam_name = os.path.join(path, frame["file_path"] + extension)
+            view_id = frame['file_path'].split('/')[-1].split('_')
+            index = int(view_id[1])
+
+            if not is_testing:
+                subimage = view_id[2]
+                if index not in views:
+                    continue
             
-            index = int(frame['file_path'].split('/')[-1].split('_')[1])
-            if "test" not in transformsfile:
-                subimage = frame['file_path'].split('/')[-1].split('_')[2]
-            
-            if "test" not in transformsfile and int(index) not in views:
-                continue
             # print('continue with views', index)
             # NeRF 'transform_matrix' is a camera-to-world transform
             c2w = np.array(frame["transform_matrix"])
@@ -358,14 +358,10 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
 
             image_path = os.path.join(path, cam_name)
             image_name = Path(cam_name).stem
-            image = Image.open(image_path)
-            # image = image.resize((200, 200))
-            im_data = np.array(image.convert("RGBA"))
+            im_data = np.array(Image.open(image_path).convert("RGBA")) / 255.0
 
             bg = np.array([1,1,1]) if white_background else np.array([0, 0, 0])
-
-            norm_data = im_data / 255.0
-            arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + bg * (1 - norm_data[:, :, 3:4])
+            arr = im_data[:,:,:3] * im_data[:, :, 3:4] + bg * (1 - im_data[:, :, 3:4])
             image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
 
             fovy = focal2fov(fov2focal(fovx, image.size[0]), image.size[1])
@@ -373,58 +369,35 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
             FovX = fovx
 
             #fix the below part for non simulation
-            if ("test" not in transformsfile): #or ("test" in transformsfile and idx in adjacent_views):
+            if not is_testing:
                 cam_infos[index].append(CameraInfo(uid=subimage, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-            elif "test" in transformsfile: #non adjacent view
-                cam_infos_test.append(CameraInfo(uid=idx, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
+            elif is_testing and index in adjacent_views: #non adjacent view
+                cam_infos.append(CameraInfo(uid=index, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
+                            image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
+            elif is_testing:
+                cam_infos_test.append(CameraInfo(uid=index, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
                             image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
     return cam_infos, cam_infos_test
 
 def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=[]):
-    print("Reading Training Transforms")
-    # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
-    #lego
-    # drums
-    if "drums" in path:
-        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_multiviews.json", white_background, extension, views=views)
-    #hotdog
-    elif "hotdog" in path:
-        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_grid_att3_processed.json", white_background, extension)
-    #lego - chair -others
-    else: #if 'lego' in path:
-        train_cam_infos, test_cam_infos = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_5views.json", white_background, extension, views=views)
-        train_cam_infos.pop(2, None)
-        print('line 400 len train', train_cam_infos.keys(), len(train_cam_infos[2]))
-        
-    print("Reading Test Transforms")
-    #lego
-    if "lego" in path:
-        test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test_black.json", white_background, extension)
-    else:
-    #hotdog - chair -others
-        test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
-    print('len test', len(test_cam_infos))
-    print('full len test', len(full_test_cam_infos))
-    # if not eval:
-    #     train_cam_infos.extend(test_cam_infos)
-    #     test_cam_infos = []
+    train_cam_infos, _ = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_multiviews.json", white_background, extension, views=views)
+    test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension, views=views)
 
     all_cams = []
-    if 2 in train_cam_infos.keys(): 
-        print("delete keys 2")
-        del train_cam_infos[2]
+    # if 2 in train_cam_infos.keys(): 
+    #     print("delete keys 2")
+    #     del train_cam_infos[2]
 
     for k, cam in train_cam_infos.items():
-        print('line 417 ', k, type(k))
         all_cams.extend(cam)
     nerf_normalization = getNerfppNorm(all_cams)
 
     ply_path = os.path.join(path, "points3d.ply")
-    if True: #not os.path.exists(ply_path):
+    if True: 
         # Since this data set has no colmap data, we start with random points
         num_pts = 100_000
-        print(f"Generating random point cloud ({num_pts})...")
+        print(f"Generating random spherical point cloud with {num_pts} points")
         
         # Cuboid
         # We create random points inside the bounds of the synthetic Blender scenes
@@ -441,7 +414,6 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=
         y = r * np.sin(phi) * np.sin(theta)
         z = r * np.cos(phi)
         xyz = np.stack((x, y, z), axis=-1)
-        print('make sphere')
 
         shs = np.random.random((num_pts, 3)) / 255.0
         pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
@@ -457,7 +429,8 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=
                            test_cameras=test_cam_infos,
                            tv_cameras=None,
                            nerf_normalization=nerf_normalization,
-                           ply_path=ply_path, full_test_cameras=full_test_cam_infos)
+                           ply_path=ply_path, 
+                           full_test_cameras=full_test_cam_infos)
     return scene_info
 
 sceneLoadTypeCallbacks = {
