@@ -23,14 +23,14 @@ class Scene:
 
     gaussians : GaussianModel
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, shuffle=True, resolution_scales=[1.0], multiviews=[]):
+    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, resolution_scales=[1.0], multiviews=[]):
         """b
         :param path: Path to colmap scene main folder.
         """
         self.model_path = args.model_path
         self.loaded_iter = None
         self.gaussians = gaussians
-        self.multiviews =  multiviews
+        self.multiviews = multiviews
 
         if load_iteration:
             if load_iteration == -1:
@@ -43,8 +43,7 @@ class Scene:
         self.test_cameras = {}
         self.tv_cameras = {}
         self.full_test_cameras = {}
-
-        if len(self.multiviews)>0:
+        if len(self.multiviews) > 0:
             if os.path.exists(os.path.join(args.source_path, "sparse")):
                 scene_info = sceneLoadTypeCallbacks_multiviews["Colmap"](args.source_path, args.images, args.eval)
             elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
@@ -92,7 +91,6 @@ class Scene:
             print("Loading Training Cameras")
             self.train_cameras[resolution_scale] = {}
             if len(self.multiviews)>0:
-                print("add views ", scene_info.train_cameras.keys())
                 for k, view in scene_info.train_cameras.items():
                     self.train_cameras[resolution_scale][k] = cameraList_from_camInfos(view, resolution_scale, args)
             else:    
