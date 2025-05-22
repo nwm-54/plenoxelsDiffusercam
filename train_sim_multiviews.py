@@ -8,7 +8,7 @@ import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
-from typing import Dict, List, Literal, Tuple
+from typing import Dict, List, Literal, Tuple, Optional
 
 import numpy as np
 import torch
@@ -207,7 +207,7 @@ def training(dataset: ModelParams,
                             (pipe, background), 
                             unseen_tv, 
                             model_path,
-                            (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap))
+                            (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
@@ -285,7 +285,7 @@ def training_report(tb_writer: SummaryWriter,
                     renderArgs: Tuple[PipelineParams, torch.Tensor], 
                     unseen_tv_loss: torch.Tensor, 
                     model_path: str,
-                    multiplexing_args: Tuple[torch.Tensor, List[int], int, int, int, int]):
+                    multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None):
     log_dict = {
         'train_loss/total_loss': loss.item(),
         'unseen_tv_loss': unseen_tv_loss.item(),
@@ -344,12 +344,13 @@ def training_report(tb_writer: SummaryWriter,
                 log_dict[f"ssim/{config['name']}"]    = ssim_test.item()
                 log_dict[f"lpips/{config['name']}"]   = lpips_test.item()
 
-            train_cameras = list(scene.getTrainCameras().values())[0]
-            image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
-            multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
-            if tb_writer:
-                tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
-            img_dict["trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
+            if multiplexing_args is not None:
+                train_cameras = list(scene.getTrainCameras().values())[0]
+                image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
+                multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
+                if tb_writer:
+                    tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
+                img_dict["trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
 
             total_pts = scene.gaussians.get_xyz.shape[0]
             if tb_writer:
@@ -388,7 +389,8 @@ if __name__ == "__main__":
     pipe = pp.extract(args)
 
     dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
-    run_name = f"{dataset_name}_{args.num_views}views_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
+    multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
+    run_name = f"{dataset_name}_{args.num_views}views_{multiplexing_str}_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
 
     if not dataset.model_path:
         dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output8/" + run_name
