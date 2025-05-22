@@ -20,6 +20,7 @@ import numpy as np
 import torch
 from PIL import Image
 from plyfile import PlyData, PlyElement
+
 from scene import multiplexing
 from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
                                  read_extrinsics_text, read_intrinsics_binary,
@@ -52,7 +53,6 @@ class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
     train_cameras: list
     test_cameras: list
-    tv_cameras: list
     nerf_normalization: dict
     ply_path: str
     full_test_cameras:list
@@ -122,6 +122,7 @@ def draw_bounding_box(image_path, bbox):
     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     return image
+
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
     test_scene = []
@@ -316,7 +317,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     # We create random points inside the bounds of the synthetic Blender scenes
     # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3 #original
     # custom mean and std
-    mean_xyz = [ 0.44064777, -0.25568339, 14.77189822]
+    mean_xyz = [0.44064777, -0.25568339, 14.77189822]
     std_xyz = [1.66879624, 2.07055282, 2.40053613]
     xyz = [] 
     for n in range(3):
@@ -358,7 +359,6 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,
                            test_cameras=test_cam_infos,
-                           tv_cameras=None,
                            nerf_normalization=nerf_normalization,
                            ply_path=ply_path, full_test_cameras=[])
     return scene_info
@@ -467,7 +467,6 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,
                            test_cameras=test_cam_infos,
-                           tv_cameras=None,
                            nerf_normalization=nerf_normalization,
                            ply_path=ply_path, 
                            full_test_cameras=full_test_cam_infos)

@@ -1,15 +1,17 @@
 import json
+import math
+from typing import List, Tuple
+
+import imageio as imageio
 import numpy as np
 import torch
-import imageio as imageio
-import math
 import torch.nn.functional as F
 
 SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # from multiplexing_updated.py
-def get_comap(num_lens, d_lens_sensor, H, W):
+def get_comap(num_lens: int, d_lens_sensor: int, H: int, W: int) -> Tuple[np.ndarray, List[int]]:
     # Verify input and calculate the grid dimensions
     if math.sqrt(num_lens)**2 == num_lens:
         num_lenses_yx = [int(math.sqrt(num_lens)), int(math.sqrt(num_lens))]
@@ -58,11 +60,11 @@ def get_comap(num_lens, d_lens_sensor, H, W):
     dim_lens_lf_yx = [microlens_height, microlens_width]
     return comap_yx, dim_lens_lf_yx
 
-def read_images(num_lens, model_path, base):
+def read_images(num_lens, img_dir, base):
     images = []
     for j in range(num_lens):
         sub_lens_path = f"r_{base}_{j}.png"
-        im_gt = imageio.imread(f'{model_path}/{sub_lens_path}').astype(np.float32) / 255.0
+        im_gt = imageio.imread(f'{img_dir}/{sub_lens_path}').astype(np.float32) / 255.0
         im_tensor = torch.from_numpy(im_gt[:, :, :3]).permute(2, 0, 1).to(device)
         images.append(im_tensor)  # Keep only RGB channels
 
@@ -73,7 +75,7 @@ def get_max_overlap(comap_yx, num_lens, H, W):
     for i in range(num_lens):
         valid_mask = (comap_yx[i][:,:,1] != -1)
         overlap_count += valid_mask
-    return overlap_count.max()
+    return overlap_count.max().item()
 
 def generate_alpha_map(comap_yx, num_lens, H, W):
     overlap_count = np.zeros((H, W), dtype=np.int32)
