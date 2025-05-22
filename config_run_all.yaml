@@ -1,0 +1,36 @@
+# config.yaml
+program: train_sim_multiviews.py
+method: grid
+name: run_everything
+parameters:
+  tv_weight: 
+    values: [0.0, 1.0]
+  tv_unseen_weight:
+    values: [0.0, 0.1]
+  dls:
+    values: [14, 18, 22]
+  resolution:
+    values: [1, 2, 4, 8]
+  source_path:
+    values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/materials",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/mic",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ship",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
+  num_views:
+    values: [1, 3, 5]
+  use_multiplexing:
+    values:
+      - true
+      - false
+command:
+  - ${interpreter}
+  - ${program}
+  - --iterations
+  - 7000
+  - ${args}
+  - ${args_no_boolean_flags}
+  

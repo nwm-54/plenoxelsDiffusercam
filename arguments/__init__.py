@@ -77,7 +77,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.train_test_exp = False
         self.data_device = "cuda"
         self.eval = False
-        self.use_multiplexing = True
+        self.use_multiplexing = False
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":
