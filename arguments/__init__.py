@@ -12,12 +12,15 @@
 from argparse import ArgumentParser, Namespace
 import sys
 import os
+from typing import Generic, TypeVar, cast
+
+T = TypeVar('T', bound="ParamGroup")
 
 class GroupParams:
     pass
 
-class ParamGroup:
-    def __init__(self, parser: ArgumentParser, name : str, fill_none = False):
+class ParamGroup(Generic[T]):
+    def __init__(self, parser: ArgumentParser, name : str, fill_none = False) -> None:
         group = parser.add_argument_group(name)
         for key, value in vars(self).items():
             shorthand = False
@@ -37,15 +40,33 @@ class ParamGroup:
                 else:
                     group.add_argument("--" + key, default=value, type=t)
 
-    def extract(self, args):
-        group = GroupParams()
-        for arg in vars(args).items():
-            if arg[0] in vars(self) or ("_" + arg[0]) in vars(self):
-                setattr(group, arg[0], arg[1])
-        return group
+    def extract(self: T, args: Namespace) -> T:
+        group: GroupParams = GroupParams()
+        for k, v in vars(args).items():
+            if k in vars(self) or f"_{k}" in vars(self):
+                setattr(group, k, v)
+        return cast(T, group)
 
-class ModelParams(ParamGroup): 
-    def __init__(self, parser, sentinel=False):
+class ModelParams(ParamGroup["ModelParams"]): 
+    sh_degree: int
+    _source_path: str
+    _model_path: str
+    _images: str
+    _depths: str
+    _resolution: int
+    _white_background: bool
+    train_test_exp: bool
+    data_device: str
+    eval: bool
+    use_multiplexing: bool
+    source_path: str
+    model_path: str
+    images: str
+    depths: str
+    resolution: int
+    white_background: bool
+
+    def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
         self._source_path = ""
         self._model_path = ""
@@ -56,23 +77,57 @@ class ModelParams(ParamGroup):
         self.train_test_exp = False
         self.data_device = "cuda"
         self.eval = False
+        self.use_multiplexing = True
         super().__init__(parser, "Loading Parameters", sentinel)
 
-    def extract(self, args):
+    def extract(self, args: Namespace) -> "ModelParams":
         g = super().extract(args)
         g.source_path = os.path.abspath(g.source_path)
         return g
 
-class PipelineParams(ParamGroup):
-    def __init__(self, parser):
+class PipelineParams(ParamGroup["PipelineParams"]):
+    convert_SHs_python: bool
+    compute_cov3D_python: bool
+    debug: bool
+    antialiasing: bool
+
+    def __init__(self, parser: ArgumentParser):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
         self.antialiasing = False
         super().__init__(parser, "Pipeline Parameters")
 
-class OptimizationParams(ParamGroup):
-    def __init__(self, parser):
+class OptimizationParams(ParamGroup["OptimizationParams"]):
+    iterations: int
+    position_lr_init: float
+    position_lr_final: float
+    position_lr_delay_mult: float
+    position_lr_max_steps: int
+    feature_lr: float
+    opacity_lr: float
+    scaling_lr: float
+    rotation_lr: float
+    exposure_lr_init: float
+    exposure_lr_final: float
+    exposure_lr_delay_steps: int
+    exposure_lr_delay_mult: float
+    percent_dense: float
+    lambda_dssim: float
+    densification_interval: int
+    opacity_reset_interval: int
+    densify_from_iter: int
+    densify_until_iter: int
+    densify_grad_threshold: float
+    depth_l1_weight_init: float
+    depth_l1_weight_final: float
+    random_background: bool
+    tv_weight: float
+    tv_train_weight: float
+    tv_unseen_weight: float
+    optimizer_type: str
+
+    def __init__(self, parser: ArgumentParser):
         self.iterations = 30_000
         self.position_lr_init = 0.00016
         self.position_lr_final = 0.0000016
@@ -102,7 +157,7 @@ class OptimizationParams(ParamGroup):
         self.optimizer_type = "default"
         super().__init__(parser, "Optimization Parameters")
 
-def get_combined_args(parser : ArgumentParser):
+def get_combined_args(parser: ArgumentParser):
     cmdlne_string = sys.argv[1:]
     cfgfile_string = "Namespace()"
     args_cmdline = parser.parse_args(cmdlne_string)

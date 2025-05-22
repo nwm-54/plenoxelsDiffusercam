@@ -9,124 +9,98 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
+import json
 import os
 import random
-import json
-from utils.system_utils import searchForMaxIteration
-from scene.dataset_readers import sceneLoadTypeCallbacks
-from scene.dataset_readers_multiviews import sceneLoadTypeCallbacks as sceneLoadTypeCallbacks_multiviews
-from scene.gaussian_model import GaussianModel
+from typing import Dict, List
+
 from arguments import ModelParams
-from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON
+from scene.cameras import Camera
+from scene.dataset_readers_multiviews import (CameraInfo, readColmapSceneInfo,
+                                              readNerfSyntheticInfo)
+from scene.gaussian_model import GaussianModel
+from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
+
 
 class Scene:
-
     gaussians : GaussianModel
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, load_iteration=None, resolution_scales=[1.0], multiviews=[]):
-        """b
+    def __init__(self, args: ModelParams, gaussians: GaussianModel, load_iteration=None, 
+                 resolution_scales=[1.0], views_index=[]):
+        """
         :param path: Path to colmap scene main folder.
         """
         self.model_path = args.model_path
-        self.loaded_iter = None
         self.gaussians = gaussians
-        self.multiviews = multiviews
 
-        if load_iteration:
-            if load_iteration == -1:
-                self.loaded_iter = searchForMaxIteration(os.path.join(self.model_path, "point_cloud"))
-            else:
-                self.loaded_iter = load_iteration
-            print("Loading trained model at iteration {}".format(self.loaded_iter))
+        self.train_cameras: Dict[float, Dict[int, List]] = {}
+        self.test_cameras: Dict[float, List] = {}
+        self.full_test_cameras: Dict[float, List] = {}
 
-        self.train_cameras = {}
-        self.test_cameras = {}
-        self.tv_cameras = {}
-        self.full_test_cameras = {}
-        if len(self.multiviews) > 0:
-            if os.path.exists(os.path.join(args.source_path, "sparse")):
-                scene_info = sceneLoadTypeCallbacks_multiviews["Colmap"](args.source_path, args.images, args.eval)
-            elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
-                print("Found transforms_train.json file, assuming Blender data set!")
-                scene_info = sceneLoadTypeCallbacks_multiviews["Blender"](args.source_path, args.white_background, args.eval, views=self.multiviews)
-            else:
-                assert False, "Could not recognize scene type!"
+        blender_transform_files = [
+            "transforms_train.json",
+            "transforms_test.json",
+            "transforms_train_gaussian_splatting.json",
+            "transforms_train_gaussian_splatting_multiviews.json",
+        ]
+        is_blender_type = any(os.path.exists(os.path.join(args.source_path, f)) for f in blender_transform_files)
+
+        if os.path.exists(os.path.join(args.source_path, "sparse")): # COLMAP
+            print("Found sparse folder, assuming COLMAP dataset")
+            self.n_multiplexed_images = 9 # TODO: set the number of multiplexed images
+            scene_info = readColmapSceneInfo(args.source_path, args.images, args.eval, use_multiplexing=args.use_multiplexing,
+                                             n_multiplexed_images=self.n_multiplexed_images) 
+        elif is_blender_type: # Blender
+            self.n_multiplexed_images = 16
+            print("Found transforms_*.json file, assuming Blender dataset")
+            scene_info = readNerfSyntheticInfo(args.source_path, args.white_background, args.eval, 
+                                               views_index=views_index, use_multiplexing=args.use_multiplexing,
+                                               n_multiplexed_images=self.n_multiplexed_images)
         else:
-            if os.path.exists(os.path.join(args.source_path, "sparse")):
-                scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.images, args.eval)
-            elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
-                print("Found transforms_train.json file, assuming Blender data set!")
-                scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path, args.white_background, args.eval)
-            else:
-                assert False, "Could not recognize scene type!"
+            raise ValueError(f"Could not infer scene type from source path: {args.source_path}")
 
-        if not self.loaded_iter:
-            with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
-                dest_file.write(src_file.read())
-            json_cams = []
-            camlist = []
-            if scene_info.test_cameras:
-                camlist.extend(scene_info.test_cameras)
-            if scene_info.train_cameras:
-                if len(self.multiviews)>0:
-                    all_cams = []
-                    for _, cam in scene_info.train_cameras.items():
-                        all_cams.extend(cam)
-                    camlist.extend(all_cams)
-                else:
-                    camlist.extend(scene_info.train_cameras)
-            
-            for id, cam in enumerate(camlist):
-                json_cams.append(camera_to_JSON(id, cam))
-            with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
-                json.dump(json_cams, file)
-
-        # if shuffle:
-        #     random.shuffle(scene_info.train_cameras)  # Multi-res consistent random shuffling
-        #     random.shuffle(scene_info.test_cameras)  # Multi-res consistent random shuffling
+        with open(scene_info.ply_path, 'rb') as src_file, \
+            open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
+            dest_file.write(src_file.read())
+        
+        json_cams: List[CameraInfo] = []
+        camlist_for_json = []
+        if scene_info.train_cameras:
+            for cam in scene_info.train_cameras.values():
+                camlist_for_json.extend(cam)
+        if scene_info.test_cameras: camlist_for_json.extend(scene_info.test_cameras)
+        if scene_info.full_test_cameras: camlist_for_json.extend(scene_info.full_test_cameras)        
+        for id, cam in enumerate(camlist_for_json):
+            json_cams.append(camera_to_JSON(id, cam))
+        with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
+            json.dump(json_cams, file)
 
         self.cameras_extent = scene_info.nerf_normalization["radius"]
 
         for resolution_scale in resolution_scales:
-            print("Loading Training Cameras")
+            # Train cameras; Dict[main_view_idx, List[Camera]]
             self.train_cameras[resolution_scale] = {}
-            if len(self.multiviews)>0:
-                for k, view in scene_info.train_cameras.items():
-                    self.train_cameras[resolution_scale][k] = cameraList_from_camInfos(view, resolution_scale, args)
-            else:    
-                self.train_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.train_cameras, resolution_scale, args)
-            print("Loading Test Cameras")
-            self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
-            print("Loading Full Test Cameras")
-            self.full_test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.full_test_cameras, resolution_scale, args)
-            if scene_info.tv_cameras is not None:
-                print("Loading TV Cameras")
-                self.tv_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.tv_cameras, resolution_scale, args)
+            if scene_info.train_cameras:
+                for view_idx, cam_infos_for_view in scene_info.train_cameras.items():
+                    self.train_cameras[resolution_scale][view_idx] \
+                        = cameraList_from_camInfos(cam_infos_for_view, resolution_scale, args)
+            self.test_cameras[resolution_scale] \
+                = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
+            self.full_test_cameras[resolution_scale] \
+                = cameraList_from_camInfos(scene_info.full_test_cameras, resolution_scale, args)
 
-        # Testing random init with real data
         self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
-        #Uncomment to get original code
-        # if self.loaded_iter:
-        #     self.gaussians.load_ply(os.path.join(self.model_path,
-        #                                                    "point_cloud",
-        #                                                    "iteration_" + str(self.loaded_iter),
-        #                                                    "point_cloud.ply"))
-        # else:
-        #     self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
 
     def save(self, iteration):
         point_cloud_path = os.path.join(self.model_path, "point_cloud/iteration_{}".format(iteration))
         print("saving point cloud at ", point_cloud_path)
         self.gaussians.save_ply(os.path.join(point_cloud_path, "point_cloud.ply"))
 
-    def getTrainCameras(self, scale=1.0):
+    def getTrainCameras(self, scale=1.0) -> Dict[int, List[Camera]]:
         return self.train_cameras[scale]
 
-    def getTestCameras(self, scale=1.0):
+    def getTestCameras(self, scale=1.0) -> List[Camera]:
         return self.test_cameras[scale]
     
-    def getFullTestCameras(self, scale=1.0):
+    def getFullTestCameras(self, scale=1.0) -> List[Camera]:
         return self.full_test_cameras[scale]
-    
-    def getTvCameras(self, scale=1.0):
-        return random.choice(self.tv_cameras[scale])

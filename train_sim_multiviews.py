@@ -8,23 +8,25 @@ import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
-from typing import Literal
+from typing import Dict, List, Literal, Tuple
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
+
 import wandb
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
-from tqdm import tqdm
+from scene.cameras import Camera
 from utils.general_utils import safe_state
 from utils.image_utils import psnr
 from utils.loss_utils import l1_loss, ssim
 
 try:
-    from torch.utils.tensorboard import SummaryWriter
+    from torch.utils.tensorboard.writer import SummaryWriter
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
@@ -35,77 +37,85 @@ print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 wandb.login()
 
-multiview_5_idx = {
-    'lego': [50, 59, 60, 70, 90],
-    'hotdog': [0, 11, 23, 27, 37],
-    'chair': [2, 25, 38, 79, 90],
-    'drums': [2, 25, 38, 79, 90],
-    'ficus': [2, 25, 38, 79, 90],
-    'materials': [2, 25, 38, 79, 90],
-    'mic': [2, 25, 38, 79, 90],
-    'ship': [2, 25, 38, 79, 90],
+MULTIVIEW_INDICES: Dict[Literal[1, 3, 5], Dict[str, List[int]]] = {
+    5: { # 5 views
+        'lego': [50, 59, 60, 70, 90],
+        'hotdog': [0, 11, 23, 27, 37],
+        'chair': [2, 25, 38, 79, 90],
+        'drums': [2, 25, 38, 79, 90],
+        'ficus': [2, 25, 38, 79, 90],
+        'materials': [2, 25, 38, 79, 90],
+        'mic': [2, 25, 38, 79, 90],
+        'ship': [2, 25, 38, 79, 90],
+    },
+    3: { # 3 views
+        'lego': [50, 70, 90],
+        'hotdog': [0, 23, 37],
+        'chair': [2, 79, 90],
+        'drums': [25, 38, 90],
+        'ficus': [2, 79, 90],
+        'materials': [2, 38, 79],
+        'mic': [2, 38, 79],
+        'ship': [2, 25, 79],
+    },
+    1: { # single view
+        'lego': [59],
+        'hotdog': [0],
+        'chair': [2],
+        'drums': [38],
+        'ficus': [2],
+        'materials': [79],
+        'mic': [25],
+        'ship': [25],
+    }
 }
-
-multiview_3_idx = {
-    'lego': [50, 59, 60],
-    'hotdog': [0, 11, 23],
-    'chair': [2, 25, 38],
-    'drums': [2, 25, 38],
-    'ficus': [2, 25, 38],
-    'materials': [2, 25, 38],
-    'mic': [2, 25, 38],
-    'ship': [2, 25, 38],
-}
-
 
 def training(dataset: ModelParams, 
              opt: OptimizationParams, 
              pipe: PipelineParams, 
-             testing_iterations, 
-             saving_iterations, 
-             checkpoint_iterations, 
-             checkpoint, 
-             debug_from, 
+             testing_iterations: List[int], 
+             saving_iterations: List[int], 
+             checkpoint_iterations: List[int], 
+             checkpoint: int, 
+             debug_from: int, 
              source_path: str, 
              resolution: int, 
              dls: float, 
-             num_views: Literal[3, 5],
+             num_views: Literal[1, 3, 5],
              size_threshold_arg: int,
              extent_multiplier: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
     dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
-    views_index = multiview_5_idx[dataset_name] if num_views == 5 else multiview_3_idx[dataset_name]
+    views_index = MULTIVIEW_INDICES[int(num_views)][dataset_name]
+    
     gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians, multiviews=views_index)
+    scene = Scene(dataset, gaussians, views_index=views_index)
     gaussians.training_setup(opt)
         
     print("Tv weight ", opt.tv_weight)
     print("TV unseen weight ", opt.tv_unseen_weight)
     print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
-    print("Test cameras:", len(scene.getTestCameras()))
+    print("Adjacent test cameras:", len(scene.getTestCameras()))
     print("Full test cameras:", len(scene.getFullTestCameras()))
-    print("Views index:", views_index)
+    print("Main training views indices:", views_index)
 
-    H = W = 800 // resolution
-    num_lens = 16
-    comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
-    comap_yx = torch.from_numpy(comap_yx).to(device)
-    max_overlap = multiplexing.get_max_overlap(comap_yx, num_lens, H, W)
-    rgb_gts = {}
-    for view in views_index:
-        if 'lego' in source_path:
-            input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/train_multilens_16_black", str(view))
-        elif 'hotdog' in source_path:
-            input_images = multiplexing.read_images(num_lens, "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog/render_5_views", str(view))
-        else:
-            input_images = multiplexing.read_images(num_lens, f"{source_path}/render_5_views", str(view))
-        rgb_gts[view] = multiplexing.generate(input_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
+    if dataset.use_multiplexing:
+        print(f"Using multiplexing with {scene.n_multiplexed_images} sub-images")
+        H = W = 800 // resolution
+        num_lens = scene.n_multiplexed_images
+        comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
+        comap_yx = torch.from_numpy(comap_yx).to(device)
+        max_overlap = multiplexing.get_max_overlap(comap_yx, num_lens, H, W)
+        multiplexed_gt = _load_ground_truth(dataset.source_path, dataset_name, views_index, comap_yx, 
+                                            dim_lens_lf_yx, num_lens, H, W, max_overlap)
+        # print(f"Indices in multiplexed_gt: {multiplexed_gt.keys()}")
+    else: multiplexed_gt = None
     
-    bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
-    background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
+    background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], 
+                              dtype=torch.float32, device=device)
+    iter_start, iter_end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
 
-    iter_start = torch.cuda.Event(enable_timing = True)
-    iter_end = torch.cuda.Event(enable_timing = True)
+    viewpoint_stack: Dict[int, List[Camera]] = scene.getTrainCameras().copy()
 
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
@@ -121,39 +131,59 @@ def training(dataset: ModelParams,
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
-        bg = torch.rand((3), device="cuda") if opt.random_background else background
-        render_pkg = []
-        scene_train_cameras = scene.getTrainCameras()
-       
-        total_loss = 0.
-        for scene_index, train_cameras in scene_train_cameras.items():
-            tv_train_loss = 0.
-            image_list = []
-            for j, single_viewpoint in enumerate(train_cameras):
+        # Pick a random camera
+        if not viewpoint_stack:
+            viewpoint_stack = scene.getTrainCameras().copy()
+        viewpoint_cam: List[Camera] = viewpoint_stack.pop(random.choice(list(viewpoint_stack.keys())))
+        bg = torch.rand((3), device=device) if opt.random_background else background
+        
+        tv_train_loss = 0.
+        all_render_pkgs: List[Dict[str, torch.Tensor]] = []
+        gt_image = None
+        rendered_image = None
+
+        if dataset.use_multiplexing: # multiplexing case
+            rendered_sub_images = []
+            for j, single_viewpoint in enumerate(viewpoint_cam):
                 render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
-                image_raw, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
-                tv_train_loss += tv_2d(image_raw)
-                image_list.append(image_raw)
-
-            output_image = multiplexing.generate(image_list, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
-            gt_image = rgb_gts[scene_index] #/torch.max(_gt_image) FOR real data # rgb_gt #for simulation only #_gt_image #/torch.max(_gt_image) 
-
-            L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(output_image, gt_image)
-            _ssim = opt.lambda_dssim * (1.0 - ssim(output_image, gt_image))
-            train_tv = opt.tv_weight * tv_train_loss / len(train_cameras)
-            total_loss += L_l1 + _ssim + train_tv
+                all_render_pkgs.append(render_pkg)
+                rendered_sub_image = render_pkg["render"]
+                if single_viewpoint.mask is not None:
+                    mask = single_viewpoint.mask.to(device)
+                    rendered_sub_image *= mask
+                tv_train_loss += tv_2d(rendered_sub_image)
+                rendered_sub_images.append(rendered_sub_image)
+            tv_train_loss /= len(viewpoint_cam)
+            rendered_image = multiplexing.generate(rendered_sub_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
+            viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1] )
+            gt_image = multiplexed_gt[viewpoint_index].to(device)
+        else: # single view case
+            assert len(viewpoint_cam) == 1, "There should only be one camera in viewpoint_cam"
+            cam: Camera = viewpoint_cam[0]
+            render_pkg = render(cam, gaussians, pipe, bg, scaling_modifier=1.)
+            all_render_pkgs.append(render_pkg)
+            tv_train_loss = tv_2d(render_pkg["render"])
+            rendered_image = render_pkg["render"]
+            if cam.mask is not None:
+                mask = cam.mask.to(device)
+                rendered_image *= mask
+            gt_image = cam.original_image.to(device)
+            
+        L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
+        _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
+        train_tv = opt.tv_weight * tv_train_loss
+        total_train_loss = L_l1 + _ssim + train_tv
             
         # TV viewpoint
-        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1) # scene.getFullTestCameras()
+        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1)
         tv_loss = 0.
-        tv_image = None
         for tv_viewpoint in tv_viewpoints:
             tv_image = render(tv_viewpoint, gaussians, pipe, bg)["render"]
             tv_loss += tv_2d(tv_image)
 
         # Loss
         unseen_tv = tv_loss / len(tv_viewpoints) * opt.tv_unseen_weight
-        loss = total_loss / len(scene_train_cameras.keys()) + unseen_tv
+        loss = total_train_loss + unseen_tv
         
         loss.backward()
         iter_end.record()
@@ -185,8 +215,10 @@ def training(dataset: ModelParams,
             # Densification
             if iteration < opt.densify_until_iter:
                 # Keep track of max radii in image-space for pruning
-                gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
-                gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
+                for render_pkg in all_render_pkgs:
+                    visibility_filter, radii, viewspace_point_tensor = render_pkg["visibility_filter"], render_pkg["radii"], render_pkg["viewspace_points"]
+                    gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+                    gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                     size_threshold = size_threshold_arg if iteration > opt.opacity_reset_interval else None
@@ -207,7 +239,19 @@ def training(dataset: ModelParams,
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
-def tv_2d(image):
+def _load_ground_truth(root: str, scene_name: str, view_index: List[int], comap_yx: np.ndarray, 
+                       dim_lf: List[int], num_lens: int, H: int, W: int, max_overlap: int) -> Dict[int, torch.Tensor]:
+    image_dir = {
+        'lego': os.path.join(root, "train_multilens_16_black"), # lego image dir substitution
+    }.get(scene_name, os.path.join(root, "render_5_views"))
+
+    gt = {}
+    for view in view_index:
+        images = multiplexing.read_images(num_lens=num_lens, img_dir=image_dir, base=str(view))
+        gt[view] = multiplexing.generate(images, comap_yx, dim_lf, num_lens, H, W, max_overlap)
+    return gt
+
+def tv_2d(image: torch.Tensor) -> torch.Tensor:
     return torch.square(image[:,1:,:] - image[:,:-1,:]).mean() + torch.square(image[:,:,1:] - image[:,:,:-1]).mean()
 
 def prepare_output_and_logger(args):    
@@ -232,16 +276,16 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
-def training_report(tb_writer, 
-                    iteration,
-                    loss, 
-                    elapsed, 
-                    testing_iterations, 
-                    scene : Scene, 
-                    renderArgs, 
-                    unseen_tv_loss, 
-                    model_path,
-                    multiplexing_args):
+def training_report(tb_writer: SummaryWriter, 
+                    iteration: int,
+                    loss: torch.Tensor, 
+                    elapsed: float, 
+                    testing_iterations: List[int], 
+                    scene: Scene, 
+                    renderArgs: Tuple[PipelineParams, torch.Tensor], 
+                    unseen_tv_loss: torch.Tensor, 
+                    model_path: str,
+                    multiplexing_args: Tuple[torch.Tensor, List[int], int, int, int, int]):
     log_dict = {
         'train_loss/total_loss': loss.item(),
         'unseen_tv_loss': unseen_tv_loss.item(),
@@ -260,7 +304,6 @@ def training_report(tb_writer,
             validation_configs = (
                 {'name': 'adjacent test camera', 'cameras' : scene.getTestCameras()}, 
                 {'name': 'full test camera',     'cameras' : scene.getFullTestCameras()}, 
-                # TODO: maybe get all train cameras instead of the 6th one at each viewpoint
                 {'name': 'train camera',         'cameras' : [cam for cam_list in scene.getTrainCameras().values() for cam in cam_list]})
 
             for config in validation_configs:
@@ -274,9 +317,9 @@ def training_report(tb_writer,
 
                     if idx < 10:
                         if tb_writer:
-                            tb_writer.add_images(f"{config['name']}_{viewpoint.image_name}/render",      out[None], global_step=iteration)
-                            tb_writer.add_images(f"{config['name']}_{viewpoint.image_name}/ground_truth", gt[None], global_step=iteration)
-                        img_dict[f"{config['name']}_{viewpoint.image_name}/render"] = wandb.Image(out.cpu())
+                            tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out[None], global_step=iteration)
+                            tb_writer.add_images(f"ground_truth/{config['name']}_{viewpoint.image_name}/", gt[None], global_step=iteration)
+                        img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = wandb.Image(out.cpu())
                     
                     l1_test    += l1_loss(out, gt).mean().double()
                     psnr_test  += psnr(out, gt).mean().double()
@@ -292,14 +335,14 @@ def training_report(tb_writer,
                 print(msg); f.write(msg)
 
                 if tb_writer:
-                    tb_writer.add_scalar(f"{config['name']}/l1_loss", l1_test, iteration)
-                    tb_writer.add_scalar(f"{config['name']}/psnr",    psnr_test, iteration)
-                    tb_writer.add_scalar(f"{config['name']}/ssim",    ssim_test, iteration)
-                    tb_writer.add_scalar(f"{config['name']}/lpips",   lpips_test, iteration)
-                log_dict[f"{config['name']}/l1_loss"] = l1_test.item()
-                log_dict[f"{config['name']}/psnr"]    = psnr_test.item()
-                log_dict[f"{config['name']}/ssim"]    = ssim_test.item()
-                log_dict[f"{config['name']}/lpips"]   = lpips_test.item()
+                    tb_writer.add_scalar(f"l1_loss/{config['name']}", l1_test, iteration)
+                    tb_writer.add_scalar(f"psnr/{config['name']}",    psnr_test, iteration)
+                    tb_writer.add_scalar(f"ssim/{config['name']}",    ssim_test, iteration)
+                    tb_writer.add_scalar(f"lpips/{config['name']}",   lpips_test, iteration)
+                log_dict[f"l1_loss/{config['name']}"] = l1_test.item()
+                log_dict[f"psnr/{config['name']}"]    = psnr_test.item()
+                log_dict[f"ssim/{config['name']}"]    = ssim_test.item()
+                log_dict[f"lpips/{config['name']}"]   = lpips_test.item()
 
             train_cameras = list(scene.getTrainCameras().values())[0]
             image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
@@ -330,14 +373,12 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--dls", type=int, default = 20)
-    parser.add_argument('--num_views', nargs='+', type=int, choices=[3, 5], default=5)
+    parser.add_argument('--num_views', type=int, choices=[1, 3, 5], default=5)
     parser.add_argument("--size_threshold", type=int, default = 200)
     parser.add_argument("--extent_multiplier", type=float, default = 4.)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
-    print("Optimizing " + args.model_path)
-
     # Initialize system state (RNG)
     safe_state(args.quiet)
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
@@ -345,12 +386,13 @@ if __name__ == "__main__":
     dataset = lp.extract(args)
     opt = op.extract(args)
     pipe = pp.extract(args)
-    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
-    run_name = f"{dataset_name}_multiview{args.num_views}_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
-    if not dataset.model_path:
-        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output7/" + run_name
-    wandb.init(name=run_name)
 
+    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
+    run_name = f"{dataset_name}_{args.num_views}views_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
+
+    if not dataset.model_path:
+        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output8/" + run_name
+    wandb.init(name=run_name)
     
     training(dataset=dataset,
              opt=opt, 

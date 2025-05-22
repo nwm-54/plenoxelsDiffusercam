@@ -15,12 +15,13 @@ import random
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import NamedTuple
+from typing import List, NamedTuple, Optional, Dict, Tuple
 
 import cv2
 import numpy as np
 from PIL import Image
 from plyfile import PlyData, PlyElement
+
 from scene import multiplexing
 from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
                                  read_extrinsics_text, read_intrinsics_binary,
@@ -30,36 +31,34 @@ from scene.gaussian_model import BasicPointCloud
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
 from utils.sh_utils import SH2RGB
 
-
 class PinholeMask(NamedTuple):
     bbox: list
-    mask: np.array 
+    mask: np.ndarray 
     path: str
     
 class CameraInfo(NamedTuple):
     uid: int
-    R: np.array
-    T: np.array
-    FovY: np.array
-    FovX: np.array
-    image: np.array
+    R: np.ndarray
+    T: np.ndarray
+    FovY: np.ndarray
+    FovX: np.ndarray
+    image: np.ndarray
     image_path: str
     image_name: str
     width: int
     height: int
-    mask_name:str
-    mask:np.array
+    mask_name: str
+    mask: np.ndarray
 
 class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
-    train_cameras: list
-    test_cameras: list
-    tv_cameras: list
-    nerf_normalization: dict
+    train_cameras: Dict[int, List[CameraInfo]]
+    test_cameras: List[CameraInfo]
+    full_test_cameras: List[CameraInfo]
+    nerf_normalization: Dict[str, np.ndarray]
     ply_path: str
-    full_test_cameras:list
 
-def getNerfppNorm(cam_info):
+def getNerfppNorm(cam_info: List[CameraInfo]):
     def get_center_and_diag(cam_centers):
         cam_centers = np.hstack(cam_centers)
         avg_cam_center = np.mean(cam_centers, axis=1, keepdims=True)
@@ -69,7 +68,6 @@ def getNerfppNorm(cam_info):
         return center.flatten(), diagonal
 
     cam_centers = []
-
     for cam in cam_info:
         W2C = getWorld2View2(cam.R, cam.T)
         C2W = np.linalg.inv(W2C)
@@ -77,35 +75,45 @@ def getNerfppNorm(cam_info):
 
     center, diagonal = get_center_and_diag(cam_centers)
     radius = diagonal * 1.1
-
     translate = -center
 
     return {"translate": translate, "radius": radius}
 
-def get_bounding_box(image_path):
-    # Read the grayscale image
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+def fetchPly(path) -> BasicPointCloud:
+    plydata = PlyData.read(path)
+    vertices = plydata['vertex']
+    positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
+    colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
+    normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
+    return BasicPointCloud(points=positions, colors=colors, normals=normals)
 
-    if image is None:
-        raise FileNotFoundError(f"Image file {image_path} not found.")
-
-    # Apply a binary threshold to get a binary image
-    _, binary_image = cv2.threshold(image, 20, 255, cv2.THRESH_BINARY)
+def storePly(path, xyz, rgb):
+    # Define the dtype for the structured array
+    dtype = [('x', 'f4'), ('y', 'f4'), ('z', 'f4'),
+            ('nx', 'f4'), ('ny', 'f4'), ('nz', 'f4'),
+            ('red', 'u1'), ('green', 'u1'), ('blue', 'u1')]
     
+    normals = np.zeros_like(xyz)
+
+    elements = np.empty(xyz.shape[0], dtype=dtype)
+    attributes = np.concatenate((xyz, normals, rgb), axis=1)
+    elements[:] = list(map(tuple, attributes))
+
+    # Create the PlyData object and write to file
+    vertex_element = PlyElement.describe(elements, 'vertex')
+    ply_data = PlyData([vertex_element])
+    ply_data.write(path)
+
+def get_bounding_box(image_path):
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    _, binary_image = cv2.threshold(image, 20, 255, cv2.THRESH_BINARY)
     scale_factor = 1/8
     binary_image = cv2.resize(binary_image, (0, 0), fx=scale_factor, fy=scale_factor)
-
-
-    # Find contours in the binary image
     contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if not contours:
         raise ValueError("No contours found in the image.")
-
-    # Get the largest contour (assuming the circle is the largest object in the image)
     largest_contour = max(contours, key=cv2.contourArea)
-
-    # Get the bounding box for the largest contour
     x, y, w, h = cv2.boundingRect(largest_contour)
 
     return (x, y, w, h), largest_contour
@@ -114,9 +122,6 @@ def draw_bounding_box(image_path, bbox):
     image = cv2.imread(image_path)
     scale_factor = 1/8
     image = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
-    
-    if image is None:
-        raise FileNotFoundError(f"Image file {image_path} not found.")
     _, image = cv2.threshold(image, 20, 255, cv2.THRESH_BINARY)
 
     x, y, w, h = bbox
@@ -124,6 +129,8 @@ def draw_bounding_box(image_path, bbox):
     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     return image
+
+# TODO: fix the below function and retrain with and without multiplexing
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
     test_scene = []
@@ -140,10 +147,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     # random.sample(range(0,42,1), k=35)
     selected_img_name = [f"IMG_00{i}.JPG" for i in [45,43,41,31,29,27,16,14,12]] 
     # must_have_test = "IMG_0029.JPG"
-    print("print selected ", selected_img_name)
     for idx, key in enumerate(cam_extrinsics):
-        # if key not in cam_extrinsics_keys:
-        #     continue
         sys.stdout.write('\r')
         # the exact output you're looking for:
         sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
@@ -171,23 +175,49 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         image_name = os.path.basename(image_path).split(".")[0]
         image = Image.open(image_path)
         
-        image_mask_combo = {"IMG_0012.JPG":"IMG_0097.JPG", 
+        image_mask_combo = {"IMG_0011.JPG":"IMG_0098.JPG", 
+                            "IMG_0012.JPG":"IMG_0097.JPG", 
+                            "IMG_0013.JPG":"IMG_0096.JPG", 
                             "IMG_0014.JPG":"IMG_0095.JPG", 
+                            "IMG_0015.JPG":"IMG_0094.JPG", 
                             "IMG_0016.JPG":"IMG_0093.JPG", 
+                            "IMG_0017.JPG":"IMG_0092.JPG", 
+                            # "IMG_0018.JPG":"IMG_0091.JPG", 
+                            "IMG_0019.JPG":"IMG_0091.JPG", 
                             "IMG_0020.JPG":"IMG_0090.JPG", 
+                            "IMG_0021.JPG":"IMG_0089.JPG", 
                             "IMG_0022.JPG":"IMG_0088.JPG", 
+                            "IMG_0023.JPG":"IMG_0086.JPG", 
+                            "IMG_0024.JPG":"IMG_0085.JPG", 
+                            "IMG_0025.JPG":"IMG_0084.JPG", 
+                            "IMG_0026.JPG":"IMG_0083.JPG", 
                             "IMG_0027.JPG":"IMG_0082.JPG", 
+                            "IMG_0028.JPG":"IMG_0081.JPG", 
                             "IMG_0029.JPG":"IMG_0080.JPG", 
                             "IMG_0030.JPG":"IMG_0079.JPG", 
                             "IMG_0031.JPG":"IMG_0078.JPG", 
+                            "IMG_0032.JPG":"IMG_0077.JPG", 
                             "IMG_0033.JPG":"IMG_0076.JPG", 
+                            "IMG_0034.JPG":"IMG_0075.JPG", 
+                            "IMG_0035.JPG":"IMG_0074.JPG", 
+                            "IMG_0036.JPG":"IMG_0073.JPG", 
                             "IMG_0037.JPG":"IMG_0072.JPG", 
+                            "IMG_0038.JPG":"IMG_0071.JPG", 
+                            "IMG_0039.JPG":"IMG_0070.JPG", 
+                            "IMG_0040.JPG":"IMG_0055.JPG", 
                             "IMG_0041.JPG":"IMG_0056.JPG", 
+                            "IMG_0042.JPG":"IMG_0057.JPG", 
                             "IMG_0043.JPG":"IMG_0058.JPG", 
                             "IMG_0044.JPG":"IMG_0059.JPG",
                             "IMG_0045.JPG":"IMG_0060.JPG",
                             "IMG_0046.JPG":"IMG_0061.JPG",
-                            "IMG_0047.JPG":"IMG_0062.JPG",} 
+                            "IMG_0047.JPG":"IMG_0062.JPG",
+                            "IMG_0048.JPG":"IMG_0063.JPG", 
+                            "IMG_0049.JPG":"IMG_0064.JPG", 
+                            "IMG_0050.JPG":"IMG_0065.JPG", 
+                            "IMG_0051.JPG":"IMG_0066.JPG", 
+                            "IMG_0052.JPG":"IMG_0067.JPG", 
+                            "IMG_0053.JPG":"IMG_0069.JPG",}
         mask_name = ""
         if image_mask_combo.get(extr.name, None):
             # mask_path = f"/home/vitran/gs6/2024_04_06/masks/{image_mask_combo[extr.name]}"
@@ -213,32 +243,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     sys.stdout.write('\n')
     return cam_infos, test_scene
 
-def fetchPly(path):
-    plydata = PlyData.read(path)
-    vertices = plydata['vertex']
-    positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
-    colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
-    normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
-    return BasicPointCloud(points=positions, colors=colors, normals=normals)
-
-def storePly(path, xyz, rgb):
-    # Define the dtype for the structured array
-    dtype = [('x', 'f4'), ('y', 'f4'), ('z', 'f4'),
-            ('nx', 'f4'), ('ny', 'f4'), ('nz', 'f4'),
-            ('red', 'u1'), ('green', 'u1'), ('blue', 'u1')]
-    
-    normals = np.zeros_like(xyz)
-
-    elements = np.empty(xyz.shape[0], dtype=dtype)
-    attributes = np.concatenate((xyz, normals, rgb), axis=1)
-    elements[:] = list(map(tuple, attributes))
-
-    # Create the PlyData object and write to file
-    vertex_element = PlyElement.describe(elements, 'vertex')
-    ply_data = PlyData([vertex_element])
-    ply_data.write(path)
-
-def readColmapSceneInfo(path, images, eval, llffhold=8):
+def readColmapSceneInfo(path, images, eval, use_multiplexing=False, n_multiplexed_images=16, llffhold=8):
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -316,122 +321,124 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     scene_info = SceneInfo(point_cloud=pcd,
                            train_cameras=train_cam_infos,
                            test_cameras=test_cam_infos,
-                           tv_cameras=None,
                            nerf_normalization=nerf_normalization,
                            ply_path=ply_path, full_test_cameras=[])
     return scene_info
 
-def readCamerasFromTransforms(path, transformsfile, white_background, extension=".png", views=[]):
-    is_testing = "test" in transformsfile
-    cam_infos = [] if is_testing else defaultdict(list) 
-    cam_infos_test = []
-    if is_testing:
-        adjacent_views = []
-        for view in views:
-            adjacent_views.extend(multiplexing.get_adjacent_views(view, path))
-        adjacent_views = list(set(adjacent_views))
-    with open(os.path.join(path, transformsfile)) as json_file:
+def read_camera(image_filepath: str, image_name: str, transform_matrix: np.array, 
+                white_background: bool, uid_for_image: int, fov_x: float) -> CameraInfo:
+    c2w = np.array(transform_matrix) # NeRF 'transform_matrix' is a camera-to-world transform
+    c2w[:3, 1:3] *= -1 # change from OpenGL/Blender camera axes (Y up, Z back) to COLMAP (Y down, Z forward)
+    w2c = np.linalg.inv(c2w) # get the world-to-camera transform and set R, T
+    R = np.transpose(w2c[:3, :3]) # R is stored transposed due to 'glm' in CUDA code
+    T = w2c[:3, 3]
+
+    image = np.array(Image.open(image_filepath).convert("RGBA")) / 255.0
+    bg = np.array([1, 1, 1]) if white_background else np.array([0, 0, 0])
+    image = image[:,:,:3] * image[:, :, 3:4] + bg * (1 - image[:, :, 3:4])
+    image = Image.fromarray(np.array(image * 255.0, dtype=np.byte), "RGB")
+    fov_y = focal2fov(fov2focal(fov_x, image.size[0]), image.size[1])
+
+    return CameraInfo(uid=uid_for_image, R=R, T=T, FovY=fov_y, FovX=fov_x,
+                      image=image, mask=None, mask_name="", image_path=image_filepath,
+                      image_name=image_name, width=image.size[0], height=image.size[1])
+
+def read_cameras_from_transforms(path: str, train_transforms_file: str, test_transforms_file: str,
+                                 view_index: List[int], 
+                                 white_background: bool = False, extension: str = ".png", 
+                                 use_multiplexing: bool = False, 
+                                 n_multiplexed_images: int = 16, 
+                                 is_testing: False = False) -> Tuple[Dict[int, List[CameraInfo]], CameraInfo, CameraInfo]:
+    train_cameras_info, test_cameras_info, full_test_cameras_info = defaultdict(list), [], []
+
+    with open(os.path.join(path, train_transforms_file)) as json_file:
         contents = json.load(json_file)
-        fovx = contents["camera_angle_x"]
+        fov_x = contents["camera_angle_x"]
         frames = contents["frames"]
 
-        for frame in frames: 
-            cam_name = os.path.join(path, frame["file_path"] + extension)
-            view_id = frame['file_path'].split('/')[-1].split('_')
-            index = int(view_id[1])
+        for frame in frames:
+            image_name: str = frame['file_path'].split('/')[-1]
+            parts = image_name.split('_')
+            index = int(parts[1])
+            if index not in view_index: continue
 
-            if not is_testing:
-                subimage = view_id[2]
-                if index not in views:
-                    continue
-            
-            # print('continue with views', index)
-            # NeRF 'transform_matrix' is a camera-to-world transform
-            c2w = np.array(frame["transform_matrix"])
-            # change from OpenGL/Blender camera axes (Y up, Z back) to COLMAP (Y down, Z forward)
-            c2w[:3, 1:3] *= -1
+            subimage = parts[2] if len(parts) > 2 else None        # either subimage or no subimage
+            image_filepath = os.path.join(path, frame["file_path"] + extension)
+            uid_for_image = subimage if subimage else index
+            train_cameras_info[index].append(read_camera(image_filepath, image_name, frame["transform_matrix"], 
+                                                         white_background, uid_for_image, fov_x))
+                        
+    for k, cam in train_cameras_info.items():
+        if use_multiplexing: assert len(cam) == n_multiplexed_images, f"Expected {n_multiplexed_images} images for view {k}, but got {len(cam)}"
+        # if this is triggered can sort by ascending order of uid and take the first n_multiplexed_images
 
-            # get the world-to-camera transform and set R, T
-            w2c = np.linalg.inv(c2w)
-            R = np.transpose(w2c[:3,:3])  # R is stored transposed due to 'glm' in CUDA code
-            T = w2c[:3, 3]
+    adjacent_views = []
+    for view in view_index:
+        adjacent_views.extend(multiplexing.get_adjacent_views(view, path))
+    adjacent_views = list(set(adjacent_views))
+    with open(os.path.join(path, test_transforms_file)) as json_file:
+        contents = json.load(json_file)
+        fov_x = contents["camera_angle_x"]
+        frames = contents["frames"]
 
-            image_path = os.path.join(path, cam_name)
-            image_name = Path(cam_name).stem
-            im_data = np.array(Image.open(image_path).convert("RGBA")) / 255.0
+        for frame in frames:
+            image_name: str = frame['file_path'].split('/')[-1]
+            parts = image_name.split('_')
+            index = int(parts[1])
+            image_filepath = os.path.join(path, frame["file_path"] + extension)
+            camera_info = read_camera(image_filepath, image_name, frame["transform_matrix"],
+                                      white_background, index, fov_x)
+            if index in adjacent_views:
+                test_cameras_info.append(camera_info)
+            full_test_cameras_info.append(camera_info)
 
-            bg = np.array([1,1,1]) if white_background else np.array([0, 0, 0])
-            arr = im_data[:,:,:3] * im_data[:, :, 3:4] + bg * (1 - im_data[:, :, 3:4])
-            image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
+    return train_cameras_info, test_cameras_info, full_test_cameras_info
 
-            fovy = focal2fov(fov2focal(fovx, image.size[0]), image.size[1])
-            FovY = fovy 
-            FovX = fovx
+def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool, 
+                          extension: str = ".png", 
+                          views_index: Optional[List[int]] = None,
+                          use_multiplexing: bool = False,
+                          n_multiplexed_images: int = 16) -> SceneInfo:
+    print(f"Reading Nerf synthetic scene from {path}")
+    print(f"Train view indices: {views_index}, use multiplexing: {use_multiplexing}")
 
-            #fix the below part for non simulation
-            if not is_testing:
-                cam_infos[index].append(CameraInfo(uid=subimage, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
-                            image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-            elif is_testing and index in adjacent_views: #non adjacent view
-                cam_infos.append(CameraInfo(uid=index, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
-                            image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-            elif is_testing:
-                cam_infos_test.append(CameraInfo(uid=index, R=R, T=T, FovY=FovY, FovX=FovX, image=image, mask=None, mask_name="",
-                            image_path=image_path, image_name=image_name, width=image.size[0], height=image.size[1]))
-    return cam_infos, cam_infos_test
+    train_transforms_file = "transforms_train_gaussian_splatting_multiviews.json" if use_multiplexing else "transforms_train.json"
+    test_transforms_file = "transforms_test.json"
 
-def readNerfSyntheticInfo(path, white_background, eval, extension=".png", views=[]):
-    train_cam_infos, _ = readCamerasFromTransforms(path, "transforms_train_gaussian_splatting_multiviews.json", white_background, extension, views=views)
-    test_cam_infos, full_test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension, views=views)
-
-    all_cams = []
-    # if 2 in train_cam_infos.keys(): 
-    #     print("delete keys 2")
-    #     del train_cam_infos[2]
-
-    for k, cam in train_cam_infos.items():
-        all_cams.extend(cam)
-    nerf_normalization = getNerfppNorm(all_cams)
+    train_cameras_info, test_cameras_info, \
+        full_test_cameras_info = read_cameras_from_transforms(path, train_transforms_file, test_transforms_file, 
+                                                              views_index, white_background, extension, 
+                                                              use_multiplexing, n_multiplexed_images)
+    
+    nerf_normalization = getNerfppNorm([cam for cam_list in train_cameras_info.values() for cam in cam_list])
 
     ply_path = os.path.join(path, "points3d.ply")
-    if True: 
-        # Since this data set has no colmap data, we start with random points
-        num_pts = 100_000
-        print(f"Generating random spherical point cloud with {num_pts} points")
-        
-        # Cuboid
-        # We create random points inside the bounds of the synthetic Blender scenes
-        # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
-        
-        # Spherical
-        # Generate random radii, uniformly distributed within [0, 1)
-        r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume + magic number 1.3
-        # Generate spherical coordinates
-        theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
-        phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]
-        # Convert spherical coordinates to Cartesian coordinates
-        x = r * np.sin(phi) * np.cos(theta)
-        y = r * np.sin(phi) * np.sin(theta)
-        z = r * np.cos(phi)
-        xyz = np.stack((x, y, z), axis=-1)
+    num_pts = 100_000
+    print(f"Generating random spherical point cloud with {num_pts} points")
+    # Cuboid
+    # We create random points inside the bounds of the synthetic Blender scenes
+    # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
+    
+    # Spherical
+    # Generate random radii, uniformly distributed within [0, 1)
+    r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
+    theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
+    phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]
+    # Convert spherical coordinates to Cartesian coordinates
+    x = r * np.sin(phi) * np.cos(theta)
+    y = r * np.sin(phi) * np.sin(theta)
+    z = r * np.cos(phi)
+    xyz = np.stack((x, y, z), axis=-1)
+    shs = np.random.random((num_pts, 3)) / 255.0 # random colors
+    pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
+    storePly(ply_path, xyz, SH2RGB(shs) * 255)
 
-        shs = np.random.random((num_pts, 3)) / 255.0
-        pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
-
-        storePly(ply_path, xyz, SH2RGB(shs) * 255)
-    try:
-        pcd = fetchPly(ply_path)
-    except:
-        pcd = None
-
-    scene_info = SceneInfo(point_cloud=pcd,
-                           train_cameras=train_cam_infos,
-                           test_cameras=test_cam_infos,
-                           tv_cameras=None,
-                           nerf_normalization=nerf_normalization,
-                           ply_path=ply_path, 
-                           full_test_cameras=full_test_cam_infos)
-    return scene_info
+    return SceneInfo(point_cloud=pcd,
+                     train_cameras=train_cameras_info,
+                     test_cameras=test_cameras_info,
+                     nerf_normalization=nerf_normalization,
+                     ply_path=ply_path, 
+                     full_test_cameras=full_test_cameras_info)
 
 sceneLoadTypeCallbacks = {
     "Colmap": readColmapSceneInfo,
