@@ -168,7 +168,7 @@ def training(dataset: ModelParams,
                 mask = cam.mask.to(device)
                 rendered_image *= mask
             gt_image = cam.original_image.to(device)
-            
+
         L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
         _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
         train_tv = opt.tv_weight * tv_train_loss
@@ -222,10 +222,12 @@ def training(dataset: ModelParams,
 
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                     size_threshold = size_threshold_arg if iteration > opt.opacity_reset_interval else None
+                    if scene.cameras_extent < 0.05: scene.cameras_extent = 4.8 # hotfix for when single-view case is not able to set cameras_extent
                     gaussians.densify_and_prune(max_grad=opt.densify_grad_threshold, 
                                                 min_opacity=0.005, 
                                                 extent=scene.cameras_extent * extent_multiplier, 
-                                                max_screen_size=size_threshold)
+                                                max_screen_size=size_threshold,
+                                                radii=radii)
                 
                 if iteration % opt.opacity_reset_interval == 0 or (dataset.white_background and iteration == opt.densify_from_iter):
                     gaussians.reset_opacity()
@@ -233,7 +235,7 @@ def training(dataset: ModelParams,
             # Optimizer step
             if iteration < opt.iterations:
                 gaussians.optimizer.step()
-                gaussians.optimizer.zero_grad(set_to_none = True)
+                gaussians.optimizer.zero_grad(set_to_none=True)
 
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
@@ -375,8 +377,8 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument('--num_views', type=int, choices=[1, 3, 5], default=5)
-    parser.add_argument("--size_threshold", type=int, default = 200)
-    parser.add_argument("--extent_multiplier", type=float, default = 4.)
+    parser.add_argument("--size_threshold", type=int, default = 150)
+    parser.add_argument("--extent_multiplier", type=float, default = 1.)
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     

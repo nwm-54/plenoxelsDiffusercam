@@ -1,4 +1,6 @@
 #!/bin/bash
+#SBATCH --job-name=3dgs_multiviews
+#SBATCH --output=slurm_logs/%j.out
 #SBATCH --partition=gpu --gres=gpu:1
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
@@ -9,4 +11,4 @@
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/shushoct
+wandb agent shamus-team/multiplexed-pixels/zqxtntu1
