@@ -409,10 +409,14 @@ class GaussianModel:
         self.densify_and_split(grads, max_grad, extent)
 
         prune_mask = (self.get_opacity < min_opacity).squeeze()
+        # print("Pruning points with opacity < ", min_opacity, " : ", prune_mask.sum().item(), " out of ", self.get_xyz.shape[0])
         if max_screen_size:
             big_points_vs = self.max_radii2D > max_screen_size
+            # print("Pruning points with max radii2D > ", max_screen_size, " : ", big_points_vs.sum().item(), " out of ", self.get_xyz.shape[0])
             big_points_ws = self.get_scaling.max(dim=1).values > 0.1 * extent
+            # print("Pruning points with max scaling > 0.1 * extent : ", big_points_ws.sum().item(), " out of ", self.get_xyz.shape[0])
             prune_mask = torch.logical_or(torch.logical_or(prune_mask, big_points_vs), big_points_ws)
+        # print("Pruning points with mask : ", prune_mask.sum().item(), " out of ", self.get_xyz.shape[0])
         self.prune_points(prune_mask)
         tmp_radii = self.tmp_radii
         self.tmp_radii = None

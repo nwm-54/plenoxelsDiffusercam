@@ -22,7 +22,7 @@ from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
 from utils.general_utils import safe_state
-from utils.image_utils import psnr
+from utils.image_utils import psnr, heteroscedastic_noise, quantize_14bit
 from utils.loss_utils import l1_loss, ssim
 
 try:
@@ -91,7 +91,7 @@ def training(dataset: ModelParams,
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians, views_index=views_index)
     gaussians.training_setup(opt)
-        
+
     print("Tv weight ", opt.tv_weight)
     print("TV unseen weight ", opt.tv_unseen_weight)
     print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
@@ -114,11 +114,9 @@ def training(dataset: ModelParams,
     background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], 
                               dtype=torch.float32, device=device)
     iter_start, iter_end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
-
-    viewpoint_stack: Dict[int, List[Camera]] = scene.getTrainCameras().copy()
-
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
+
     for iteration in range(1, opt.iterations + 1):        
         iter_start.record()
         gaussians.update_learning_rate(iteration)
@@ -131,51 +129,56 @@ def training(dataset: ModelParams,
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
-        # Pick a random camera
-        if not viewpoint_stack:
-            viewpoint_stack = scene.getTrainCameras().copy()
-        viewpoint_cam: List[Camera] = viewpoint_stack.pop(random.choice(list(viewpoint_stack.keys())))
+        all_train_cameras = scene.getTrainCameras()
         bg = torch.rand((3), device=device) if opt.random_background else background
         
-        tv_train_loss = 0.
+        total_train_loss = 0.
         all_render_pkgs: List[Dict[str, torch.Tensor]] = []
-        gt_image = None
-        rendered_image = None
 
-        if dataset.use_multiplexing: # multiplexing case
-            rendered_sub_images = []
-            for j, single_viewpoint in enumerate(viewpoint_cam):
-                render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
+        for _, viewpoint_cam in all_train_cameras.items():
+            tv_train_loss = 0.
+            gt_image = None
+            rendered_image = None
+
+            if dataset.use_multiplexing:
+                rendered_sub_images = []
+                for single_viewpoint in viewpoint_cam:
+                    render_pkg = render(single_viewpoint, gaussians, pipe, bg, scaling_modifier=1.)
+                    all_render_pkgs.append(render_pkg)
+                    rendered_sub_image = render_pkg["render"]
+                    if single_viewpoint.mask is not None:
+                        mask = single_viewpoint.mask.to(device)
+                        rendered_sub_image *= mask
+                    tv_train_loss += tv_2d(rendered_sub_image)
+                    rendered_sub_images.append(rendered_sub_image)
+                tv_train_loss /= len(viewpoint_cam)
+                rendered_image = multiplexing.generate(rendered_sub_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
+                viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1])
+                gt_image = multiplexed_gt[viewpoint_index].to(device)
+            else: # single view case
+                assert len(viewpoint_cam) == 1, "There should only be one camera in viewpoint_cam"
+                cam: Camera = viewpoint_cam[0]
+                render_pkg = render(cam, gaussians, pipe, bg, scaling_modifier=1.)
                 all_render_pkgs.append(render_pkg)
-                rendered_sub_image = render_pkg["render"]
-                if single_viewpoint.mask is not None:
-                    mask = single_viewpoint.mask.to(device)
-                    rendered_sub_image *= mask
-                tv_train_loss += tv_2d(rendered_sub_image)
-                rendered_sub_images.append(rendered_sub_image)
-            tv_train_loss /= len(viewpoint_cam)
-            rendered_image = multiplexing.generate(rendered_sub_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
-            viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1] )
-            gt_image = multiplexed_gt[viewpoint_index].to(device)
-        else: # single view case
-            assert len(viewpoint_cam) == 1, "There should only be one camera in viewpoint_cam"
-            cam: Camera = viewpoint_cam[0]
-            render_pkg = render(cam, gaussians, pipe, bg, scaling_modifier=1.)
-            all_render_pkgs.append(render_pkg)
-            tv_train_loss = tv_2d(render_pkg["render"])
-            rendered_image = render_pkg["render"]
-            if cam.mask is not None:
-                mask = cam.mask.to(device)
-                rendered_image *= mask
-            gt_image = cam.original_image.to(device)
+                tv_train_loss = tv_2d(render_pkg["render"])
+                rendered_image = render_pkg["render"]
+                if cam.mask is not None:
+                    mask = cam.mask.to(device)
+                    rendered_image *= mask
+                gt_image = cam.original_image.to(device)
 
-        L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
-        _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
-        train_tv = opt.tv_weight * tv_train_loss
-        total_train_loss = L_l1 + _ssim + train_tv
-            
+            # add heteroscedastic noise
+            rendered_image = heteroscedastic_noise(rendered_image, opt.lambda_read, opt.lambda_shot)
+            # quantize rendered image to 14 bit depth
+            rendered_image = quantize_14bit(rendered_image)
+            L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
+            _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
+            train_tv = opt.tv_weight * tv_train_loss
+            total_train_loss += L_l1 + _ssim + train_tv
+        
+        total_train_loss /= len(all_train_cameras)
         # TV viewpoint
-        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=1)
+        tv_viewpoints = random.choices(scene.getFullTestCameras(), k=3)
         tv_loss = 0.
         for tv_viewpoint in tv_viewpoints:
             tv_image = render(tv_viewpoint, gaussians, pipe, bg)["render"]
@@ -207,6 +210,7 @@ def training(dataset: ModelParams,
                             (pipe, background), 
                             unseen_tv, 
                             model_path,
+                            total_train_loss,
                             (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -236,10 +240,6 @@ def training(dataset: ModelParams,
             if iteration < opt.iterations:
                 gaussians.optimizer.step()
                 gaussians.optimizer.zero_grad(set_to_none=True)
-
-            if (iteration in checkpoint_iterations):
-                print("\n[ITER {}] Saving Checkpoint".format(iteration))
-                torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
 def _load_ground_truth(root: str, scene_name: str, view_index: List[int], comap_yx: np.ndarray, 
                        dim_lf: List[int], num_lens: int, H: int, W: int, max_overlap: int) -> Dict[int, torch.Tensor]:
@@ -287,10 +287,12 @@ def training_report(tb_writer: SummaryWriter,
                     renderArgs: Tuple[PipelineParams, torch.Tensor], 
                     unseen_tv_loss: torch.Tensor, 
                     model_path: str,
-                    multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None):
+                    train_loss: torch.Tensor,
+                    multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None,):
     log_dict = {
-        'train_loss/total_loss': loss.item(),
+        'total_loss': loss.item(),
         'unseen_tv_loss': unseen_tv_loss.item(),
+        'train_loss': train_loss.item(),
         'iter_time': elapsed,
     }
 
@@ -317,7 +319,7 @@ def training_report(tb_writer: SummaryWriter,
                     out = render(viewpoint, scene.gaussians, *renderArgs)["render"]
                     gt = viewpoint.original_image.to(device)
 
-                    if idx < 10:
+                    if idx < 3:
                         if tb_writer:
                             tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out[None], global_step=iteration)
                             tb_writer.add_images(f"ground_truth/{config['name']}_{viewpoint.image_name}/", gt[None], global_step=iteration)
@@ -351,8 +353,8 @@ def training_report(tb_writer: SummaryWriter,
                 image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
                 multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
                 if tb_writer:
-                    tb_writer.add_images("trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
-                img_dict["trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
+                    tb_writer.add_images("render/trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
+                img_dict["render/trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
 
             total_pts = scene.gaussians.get_xyz.shape[0]
             if tb_writer:
@@ -370,8 +372,8 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=6004)
     parser.add_argument('--debug_from', type=int, default=3000)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10] + list(range(500, 30_000 + 1, 250)))
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=list(range(2000, 30_000 + 1, 1000)))
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[10] + list(range(250, 30_000 + 1, 250)))
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=list(range(2000, 30_000 + 1, 3000)))
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
@@ -389,6 +391,8 @@ if __name__ == "__main__":
     dataset = lp.extract(args)
     opt = op.extract(args)
     pipe = pp.extract(args)
+
+    if opt.iterations not in args.save_iterations: args.save_iterations.append(opt.iterations)
 
     dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
     multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
