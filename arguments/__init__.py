@@ -126,6 +126,8 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
     tv_train_weight: float
     tv_unseen_weight: float
     optimizer_type: str
+    lambda_read: float
+    lambda_shot: float
 
     def __init__(self, parser: ArgumentParser):
         self.iterations = 30_000
@@ -155,6 +157,8 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.tv_train_weight = 0.1
         self.tv_unseen_weight = 0.05
         self.optimizer_type = "default"
+        self.lambda_read = 0.03
+        self.lambda_shot = 0.03
         super().__init__(parser, "Optimization Parameters")
 
 def get_combined_args(parser: ArgumentParser):

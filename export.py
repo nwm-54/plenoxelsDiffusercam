@@ -3,9 +3,10 @@ import wandb
 from tqdm import tqdm
 
 api = wandb.Api()
+sweep = api.sweep("shamus-team/multiplexed-pixels/2a91lniq")
 
 # Project is specified by <entity/project-name>
-runs = api.runs("shamus-team/multiplexed-pixels")
+runs = sweep.runs
 
 summary_list, config_list, name_list = [], [], []
 for run in tqdm(runs): 
@@ -28,4 +29,4 @@ runs_df = pd.DataFrame({
     "name": name_list
     })
 
-runs_df.to_csv("project.csv")
+runs_df.to_csv(f"project_{sweep.id}.csv")

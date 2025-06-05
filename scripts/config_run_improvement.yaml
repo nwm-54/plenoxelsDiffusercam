@@ -1,7 +1,7 @@
 # config.yaml
 program: train_sim_multiviews.py
 method: grid
-name: run_everything
+name: run_improvement
 parameters:
   tv_weight: 
     values: [0.0, 1.0]
@@ -10,7 +10,7 @@ parameters:
   dls:
     values: [14, 22]
   resolution:
-    values: [1, 2, 4, 8]
+    values: [1]
   source_path:
     values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
@@ -30,6 +30,6 @@ command:
   - ${interpreter}
   - ${program}
   - --iterations
-  - 7000
+  - 3000
   - ${args_no_boolean_flags}
   
