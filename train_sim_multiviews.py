@@ -133,6 +133,7 @@ def training(dataset: ModelParams,
         bg = torch.rand((3), device=device) if opt.random_background else background
         
         total_train_loss = 0.
+        mean_train_tv_loss = 0.
         all_render_pkgs: List[Dict[str, torch.Tensor]] = []
 
         for _, viewpoint_cam in all_train_cameras.items():
@@ -174,9 +175,11 @@ def training(dataset: ModelParams,
             L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
             _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
             train_tv = opt.tv_weight * tv_train_loss
+            mean_train_tv_loss += train_tv.item()
             total_train_loss += L_l1 + _ssim + train_tv
         
         total_train_loss /= len(all_train_cameras)
+        mean_train_tv_loss /= len(all_train_cameras)
         # TV viewpoint
         tv_viewpoints = random.choices(scene.getFullTestCameras(), k=3)
         tv_loss = 0.
@@ -211,6 +214,7 @@ def training(dataset: ModelParams,
                             unseen_tv, 
                             model_path,
                             total_train_loss,
+                            mean_train_tv_loss,
                             (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -228,7 +232,7 @@ def training(dataset: ModelParams,
                     size_threshold = size_threshold_arg if iteration > opt.opacity_reset_interval else None
                     if scene.cameras_extent < 0.05: scene.cameras_extent = 4.8 # hotfix for when single-view case is not able to set cameras_extent
                     gaussians.densify_and_prune(max_grad=opt.densify_grad_threshold, 
-                                                min_opacity=0.005, 
+                                                min_opacity=0.003, 
                                                 extent=scene.cameras_extent * extent_multiplier, 
                                                 max_screen_size=size_threshold,
                                                 radii=radii)
@@ -288,11 +292,25 @@ def training_report(tb_writer: SummaryWriter,
                     unseen_tv_loss: torch.Tensor, 
                     model_path: str,
                     train_loss: torch.Tensor,
+                    mean_train_tv_loss: float,
                     multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None,):
+    subset_cameras = random.sample(scene.getFullTestCameras(), 10)
+    l1_subset, psnr_subset = 0.0, 0.0
+    for viewpoint in subset_cameras:
+        out = render(viewpoint, scene.gaussians, *renderArgs)["render"]
+        gt = viewpoint.original_image.to(device)
+        l1_subset += l1_loss(out, gt).mean().double()
+        psnr_subset += psnr(out, gt).mean().double()
+    
+    total_pts = scene.gaussians.get_xyz.shape[0]
     log_dict = {
         'total_loss': loss.item(),
         'unseen_tv_loss': unseen_tv_loss.item(),
+        'train_tv_loss': mean_train_tv_loss,
         'train_loss': train_loss.item(),
+        'eval_l1': l1_subset.item() / len(subset_cameras),
+        'eval_psnr': psnr_subset.item() / len(subset_cameras),
+        'total_points': total_pts,
         'iter_time': elapsed,
     }
 
@@ -301,66 +319,59 @@ def training_report(tb_writer: SummaryWriter,
             tb_writer.add_scalar(key, value, iteration)
 
     wandb.log(log_dict, step=iteration)
-    with open(f"{model_path}/output.txt", "a") as f:
-        if iteration in testing_iterations:
-            img_dict = {}
+    if iteration in testing_iterations:
+        img_dict = {}
 
-            validation_configs = (
-                {'name': 'adjacent test camera', 'cameras' : scene.getTestCameras()}, 
-                {'name': 'full test camera',     'cameras' : scene.getFullTestCameras()}, 
-                {'name': 'train camera',         'cameras' : [cam for cam_list in scene.getTrainCameras().values() for cam in cam_list]})
+        validation_configs = (
+            {'name': 'adjacent test camera', 'cameras' : scene.getTestCameras()}, 
+            {'name': 'full test camera',     'cameras' : scene.getFullTestCameras()}, 
+            {'name': 'train camera',         'cameras' : [cam for cam_list in scene.getTrainCameras().values() for cam in cam_list]})
 
-            for config in validation_configs:
-                cams = config['cameras']
-                if not cams: continue
+        for config in validation_configs:
+            cams = config['cameras']
+            if not cams: continue
 
-                l1_test, psnr_test, ssim_test, lpips_test = 0.0, 0.0, 0.0, 0.0
-                for idx, viewpoint in enumerate(cams):
-                    out = render(viewpoint, scene.gaussians, *renderArgs)["render"]
-                    gt = viewpoint.original_image.to(device)
+            l1_test, psnr_test, ssim_test, lpips_test = 0.0, 0.0, 0.0, 0.0
+            for idx, viewpoint in enumerate(cams):
+                out = render(viewpoint, scene.gaussians, *renderArgs)["render"]
+                gt = viewpoint.original_image.to(device)
 
-                    if idx < 3:
-                        if tb_writer:
-                            tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out[None], global_step=iteration)
-                            tb_writer.add_images(f"ground_truth/{config['name']}_{viewpoint.image_name}/", gt[None], global_step=iteration)
-                        img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = wandb.Image(out.cpu())
-                    
-                    l1_test    += l1_loss(out, gt).mean().double()
-                    psnr_test  += psnr(out, gt).mean().double()
-                    ssim_test  += ssim(out, gt)
-                    lpips_test += lpips(out.unsqueeze(0), gt.unsqueeze(0), net_type='vgg').mean().double()
+                if idx < 3:
+                    if tb_writer:
+                        tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out[None], global_step=iteration)
+                        tb_writer.add_images(f"ground_truth/{config['name']}_{viewpoint.image_name}/", gt[None], global_step=iteration)
+                    img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = wandb.Image(out.cpu())
                 
-                l1_test    /= len(cams)
-                psnr_test  /= len(cams)
-                ssim_test  /= len(cams)
-                lpips_test /= len(cams)
+                l1_test    += l1_loss(out, gt).mean().double()
+                psnr_test  += psnr(out, gt).mean().double()
+                ssim_test  += ssim(out, gt)
+                lpips_test += lpips(out.unsqueeze(0), gt.unsqueeze(0), net_type='vgg').mean().double()
+            
+            l1_test    /= len(cams)
+            psnr_test  /= len(cams)
+            ssim_test  /= len(cams)
+            lpips_test /= len(cams)
 
-                msg = f"\n[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test:.4f} PSNR {psnr_test:.4f} SSIM {ssim_test:.4f} LPIPS {lpips_test:.4f}"
-                print(msg); f.write(msg)
+            msg = f"[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test:.4f} PSNR {psnr_test:.4f} SSIM {ssim_test:.4f} LPIPS {lpips_test:.4f}"
 
-                if tb_writer:
-                    tb_writer.add_scalar(f"l1_loss/{config['name']}", l1_test, iteration)
-                    tb_writer.add_scalar(f"psnr/{config['name']}",    psnr_test, iteration)
-                    tb_writer.add_scalar(f"ssim/{config['name']}",    ssim_test, iteration)
-                    tb_writer.add_scalar(f"lpips/{config['name']}",   lpips_test, iteration)
-                log_dict[f"l1_loss/{config['name']}"] = l1_test.item()
-                log_dict[f"psnr/{config['name']}"]    = psnr_test.item()
-                log_dict[f"ssim/{config['name']}"]    = ssim_test.item()
-                log_dict[f"lpips/{config['name']}"]   = lpips_test.item()
-
-            if multiplexing_args is not None:
-                train_cameras = list(scene.getTrainCameras().values())[0]
-                image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
-                multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
-                if tb_writer:
-                    tb_writer.add_images("render/trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
-                img_dict["render/trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
-
-            total_pts = scene.gaussians.get_xyz.shape[0]
             if tb_writer:
-                tb_writer.add_scalar('total_points', total_pts, iteration)
-            log_dict['total_points'] = total_pts
-            wandb.log({**log_dict, **img_dict}, step=iteration)
+                tb_writer.add_scalar(f"l1_loss/{config['name']}", l1_test, iteration)
+                tb_writer.add_scalar(f"psnr/{config['name']}",    psnr_test, iteration)
+                tb_writer.add_scalar(f"ssim/{config['name']}",    ssim_test, iteration)
+                tb_writer.add_scalar(f"lpips/{config['name']}",   lpips_test, iteration)
+            log_dict[f"l1_loss/{config['name']}"] = l1_test.item()
+            log_dict[f"psnr/{config['name']}"]    = psnr_test.item()
+            log_dict[f"ssim/{config['name']}"]    = ssim_test.item()
+            log_dict[f"lpips/{config['name']}"]   = lpips_test.item()
+
+        if multiplexing_args is not None:
+            train_cameras = list(scene.getTrainCameras().values())[0]
+            image_list = [render(single_viewpoint, scene.gaussians, *renderArgs)["render"] for single_viewpoint in train_cameras]
+            multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
+            if tb_writer:
+                tb_writer.add_images("render/trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
+            img_dict["render/trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
+        wandb.log({**log_dict, **img_dict}, step=iteration)
 
 if __name__ == "__main__":
     # Set up command line argument parser
