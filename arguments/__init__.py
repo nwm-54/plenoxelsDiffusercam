@@ -154,7 +154,6 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.depth_l1_weight_final = 0.01
         self.random_background = False
         self.tv_weight = 0.9
-        self.tv_train_weight = 0.1
         self.tv_unseen_weight = 0.05
         self.optimizer_type = "default"
         self.lambda_read = 0.03
