@@ -169,9 +169,9 @@ def training(dataset: ModelParams,
                 gt_image = cam.original_image.to(device)
 
             # add heteroscedastic noise
-            rendered_image = heteroscedastic_noise(rendered_image, opt.lambda_read, opt.lambda_shot)
-            # quantize rendered image to 14 bit depth
-            rendered_image = quantize_14bit(rendered_image)
+            # rendered_image = heteroscedastic_noise(rendered_image, opt.lambda_read, opt.lambda_shot)
+            # # quantize rendered image to 14 bit depth
+            # rendered_image = quantize_14bit(rendered_image)
             L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
             _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
             train_tv = opt.tv_weight * tv_train_loss
@@ -215,7 +215,9 @@ def training(dataset: ModelParams,
                             model_path,
                             total_train_loss,
                             mean_train_tv_loss,
-                            (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None)
+                            opt,
+                            (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None,
+                            gt_image)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
@@ -232,7 +234,7 @@ def training(dataset: ModelParams,
                     size_threshold = size_threshold_arg if iteration > opt.opacity_reset_interval else None
                     if scene.cameras_extent < 0.05: scene.cameras_extent = 4.8 # hotfix for when single-view case is not able to set cameras_extent
                     gaussians.densify_and_prune(max_grad=opt.densify_grad_threshold, 
-                                                min_opacity=0.003, 
+                                                min_opacity=0.005, 
                                                 extent=scene.cameras_extent * extent_multiplier, 
                                                 max_screen_size=size_threshold,
                                                 radii=radii)
@@ -293,7 +295,9 @@ def training_report(tb_writer: SummaryWriter,
                     model_path: str,
                     train_loss: torch.Tensor,
                     mean_train_tv_loss: float,
-                    multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None,):
+                    opt: OptimizationParams,
+                    multiplexing_args: Optional[Tuple[torch.Tensor, List[int], int, int, int, int]]=None,
+                    gt_image: Optional[torch.Tensor]=None):
     subset_cameras = random.sample(scene.getFullTestCameras(), 10)
     l1_subset, psnr_subset = 0.0, 0.0
     for viewpoint in subset_cameras:
@@ -337,10 +341,12 @@ def training_report(tb_writer: SummaryWriter,
                 gt = viewpoint.original_image.to(device)
 
                 if idx < 3:
+                    out_render = heteroscedastic_noise(out, opt.lambda_read, opt.lambda_shot)
+                    out_render = quantize_14bit(out_render)
                     if tb_writer:
-                        tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out[None], global_step=iteration)
+                        tb_writer.add_images(f"render/{config['name']}_{viewpoint.image_name}/",      out_render[None], global_step=iteration)
                         tb_writer.add_images(f"ground_truth/{config['name']}_{viewpoint.image_name}/", gt[None], global_step=iteration)
-                    img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = wandb.Image(out.cpu())
+                    img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = wandb.Image(out_render.cpu())
                 
                 l1_test    += l1_loss(out, gt).mean().double()
                 psnr_test  += psnr(out, gt).mean().double()
@@ -353,6 +359,7 @@ def training_report(tb_writer: SummaryWriter,
             lpips_test /= len(cams)
 
             msg = f"[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test:.4f} PSNR {psnr_test:.4f} SSIM {ssim_test:.4f} LPIPS {lpips_test:.4f}"
+            print(msg)
 
             if tb_writer:
                 tb_writer.add_scalar(f"l1_loss/{config['name']}", l1_test, iteration)
@@ -371,6 +378,11 @@ def training_report(tb_writer: SummaryWriter,
             if tb_writer:
                 tb_writer.add_images("render/trained_multiplex", multiplexed_image.unsqueeze(0), global_step=iteration)
             img_dict["render/trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
+        
+        if gt_image is not None:
+            if tb_writer:
+                tb_writer.add_images("render/gt_image", gt_image.unsqueeze(0), global_step=iteration)
+            img_dict["render/gt_image"] = wandb.Image(gt_image.cpu())
         wandb.log({**log_dict, **img_dict}, step=iteration)
 
 if __name__ == "__main__":
