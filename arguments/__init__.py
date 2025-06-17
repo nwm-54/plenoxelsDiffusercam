@@ -65,6 +65,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     depths: str
     resolution: int
     white_background: bool
+    camera_offset: float
 
     def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
@@ -78,6 +79,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.data_device = "cuda"
         self.eval = False
         self.use_multiplexing = False
+        self.camera_offset = 0.0
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":
@@ -146,8 +148,8 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.percent_dense = 0.01
         self.lambda_dssim = 0.2
         self.densification_interval = 100
-        self.opacity_reset_interval = 1750
-        self.densify_from_iter = 500
+        self.opacity_reset_interval = 1000
+        self.densify_from_iter = 300
         self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
         self.depth_l1_weight_init = 1.0
@@ -156,8 +158,8 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.tv_weight = 0.9
         self.tv_unseen_weight = 0.05
         self.optimizer_type = "default"
-        self.lambda_read = 0.03
-        self.lambda_shot = 0.03
+        self.lambda_read = 0.01
+        self.lambda_shot = 0.01
         super().__init__(parser, "Optimization Parameters")
 
 def get_combined_args(parser: ArgumentParser):

@@ -4,11 +4,11 @@ method: grid
 name: run_improvement
 parameters:
   tv_weight: 
-    values: [0.0, 1.0]
+    values: [0.0]
   tv_unseen_weight:
-    values: [0.0, 0.1]
+    values: [0.0]
   dls:
-    values: [14, 22]
+    values: [12, 20]
   resolution:
     values: [1]
   source_path:

@@ -3,7 +3,7 @@ import ast
 import re
 import pandas as pd
 
-PSNR_KEY = "psnr/adjacent test camera"
+PSNR_KEY = "psnr/full test camera"
 SCENE_REMAP = {"lego_gen12": "lego"}
 SCENES = ["chair", "drums", "ficus", "hotdog", "lego", "materials", "mic", "ship"]
 

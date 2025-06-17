@@ -421,7 +421,8 @@ def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool,
     
     # Spherical
     # Generate random radii, uniformly distributed within [0, 1)
-    r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
+    # r = np.random.random(num_pts) ** (1/3) * 1.3 # Adjust distribution to account for volume
+    r = np.random.random(num_pts) ** (1/3)
     theta = np.random.uniform(0, 2 * np.pi, num_pts)  # Azimuthal angle [0, 2π)
     phi = np.random.uniform(0, np.pi, num_pts)        # Polar angle [0, π]
     # Convert spherical coordinates to Cartesian coordinates

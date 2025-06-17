@@ -169,9 +169,9 @@ def training(dataset: ModelParams,
                 gt_image = cam.original_image.to(device)
 
             # add heteroscedastic noise
-            # rendered_image = heteroscedastic_noise(rendered_image, opt.lambda_read, opt.lambda_shot)
-            # # quantize rendered image to 14 bit depth
-            # rendered_image = quantize_14bit(rendered_image)
+            rendered_image = heteroscedastic_noise(rendered_image, opt.lambda_read, opt.lambda_shot)
+            # quantize rendered image to 14 bit depth
+            rendered_image = quantize_14bit(rendered_image)
             L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_image, gt_image)
             _ssim = opt.lambda_dssim * (1.0 - ssim(rendered_image, gt_image))
             train_tv = opt.tv_weight * tv_train_loss
@@ -250,7 +250,7 @@ def training(dataset: ModelParams,
 def _load_ground_truth(root: str, scene_name: str, view_index: List[int], comap_yx: np.ndarray, 
                        dim_lf: List[int], num_lens: int, H: int, W: int, max_overlap: int) -> Dict[int, torch.Tensor]:
     image_dir = {
-        'lego': os.path.join(root, "train_multilens_16_black"), # lego image dir substitution
+        'lego': os.path.join(root, "new_multiplexed_views"), # lego image dir substitution
     }.get(scene_name, os.path.join(root, "render_5_views"))
 
     gt = {}
