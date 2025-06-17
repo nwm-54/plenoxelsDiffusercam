@@ -12,16 +12,21 @@
 import json
 import os
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+import imageio.v3 as iio
+import numpy as np
+import torch
 from arguments import ModelParams
+from scene import multiplexing
 from scene.cameras import Camera
 from scene.dataset_readers_multiviews import (CameraInfo, readColmapSceneInfo,
                                               readNerfSyntheticInfo)
 from scene.gaussian_model import GaussianModel
 from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
+from utils.graphics_utils import getWorld2View2
 
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Scene:
     gaussians : GaussianModel
 
@@ -104,3 +109,22 @@ class Scene:
     
     def getFullTestCameras(self, scale=1.0) -> List[Camera]:
         return self.full_test_cameras[scale]
+    
+    def init_multiplexing(self, dls: int, H: int, W: int): 
+        comap_yx, dim_lens_lf_yx = multiplexing.get_comap(self.n_multiplexed_images, dls, H, W)
+        self.comap_yx = torch.from_numpy(comap_yx).to(device)
+        self.dim_lens_lf_yx = dim_lens_lf_yx
+        self.max_overlap = multiplexing.get_max_overlap(comap_yx, self.n_multiplexed_images, dls, H, W)
+        self.multiplexed_gt = self._load_ground_truth(H, W)
+    
+    def _load_ground_truth(self, H: int, W: int, scale=1.0) -> Dict[int, torch.Tensor]:
+        gt: Dict[int, torch.Tensor] = {}
+        for view_idx, cam_list in self.getTrainCameras(scale).items():
+            if not isinstance(view_idx, int):
+                continue
+
+            cam_list = sorted(cam_list, key=lambda c: c.uid)
+            imgs = [cam.original_image.to(cam.data_device) for cam in cam_list]
+            gt[view_idx] = multiplexing.generate(imgs, self.comap_yx, self.dim_lens_lf_yx, 
+                                                 self.n_multiplexed_images, H, W, self.max_overlap)
+        return gt

@@ -3,7 +3,7 @@ import wandb
 from tqdm import tqdm
 
 api = wandb.Api()
-sweep = api.sweep("shamus-team/multiplexed-pixels/2a91lniq")
+sweep = api.sweep("shamus-team/multiplexed-pixels/4efmnuwu")
 
 # Project is specified by <entity/project-name>
 runs = sweep.runs
