@@ -102,14 +102,10 @@ def training(dataset: ModelParams,
     if dataset.use_multiplexing:
         print(f"Using multiplexing with {scene.n_multiplexed_images} sub-images")
         H = W = 800 // resolution
-        num_lens = scene.n_multiplexed_images
-        comap_yx, dim_lens_lf_yx = multiplexing.get_comap(num_lens, dls, H, W)
-        comap_yx = torch.from_numpy(comap_yx).to(device)
-        max_overlap = multiplexing.get_max_overlap(comap_yx, num_lens, H, W)
-        multiplexed_gt = _load_ground_truth(dataset.source_path, dataset_name, views_index, comap_yx, 
-                                            dim_lens_lf_yx, num_lens, H, W, max_overlap)
-        # print(f"Indices in multiplexed_gt: {multiplexed_gt.keys()}")
-    else: multiplexed_gt = None
+        scene.init_multiplexing(dls, H, W)
+    multiplexed_gt = scene.multiplexed_gt
+    # print(f"Indices in multiplexed_gt: {multiplexed_gt.keys()}")
+
     
     background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], 
                               dtype=torch.float32, device=device)
@@ -122,9 +118,10 @@ def training(dataset: ModelParams,
         gaussians.update_learning_rate(iteration)
 
         # Every 1000 its we increase the levels of SH up to a maximum degree
+        # TODO make this more frequent because we are only using 3000 iterations
         if iteration % 1000 == 0:
             gaussians.oneupSHdegree()
-
+            
         # Render
         if (iteration - 1) == debug_from:
             pipe.debug = True
@@ -153,7 +150,7 @@ def training(dataset: ModelParams,
                     tv_train_loss += tv_2d(rendered_sub_image)
                     rendered_sub_images.append(rendered_sub_image)
                 tv_train_loss /= len(viewpoint_cam)
-                rendered_image = multiplexing.generate(rendered_sub_images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap)
+                rendered_image = multiplexing.generate(rendered_sub_images, scene.comap_yx, scene.dim_lens_lf_yx, scene.n_multiplexed_images, H, W, scene.max_overlap)
                 viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1])
                 gt_image = multiplexed_gt[viewpoint_index].to(device)
             else: # single view case
@@ -216,7 +213,7 @@ def training(dataset: ModelParams,
                             total_train_loss,
                             mean_train_tv_loss,
                             opt,
-                            (comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap) if dataset.use_multiplexing else None,
+                            (scene.comap_yx, scene.dim_lens_lf_yx, scene.n_multiplexed_images, H, W, scene.max_overlap) if dataset.use_multiplexing else None,
                             gt_image)
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -246,18 +243,6 @@ def training(dataset: ModelParams,
             if iteration < opt.iterations:
                 gaussians.optimizer.step()
                 gaussians.optimizer.zero_grad(set_to_none=True)
-
-def _load_ground_truth(root: str, scene_name: str, view_index: List[int], comap_yx: np.ndarray, 
-                       dim_lf: List[int], num_lens: int, H: int, W: int, max_overlap: int) -> Dict[int, torch.Tensor]:
-    image_dir = {
-        'lego': os.path.join(root, "new_multiplexed_views"), # lego image dir substitution
-    }.get(scene_name, os.path.join(root, "render_5_views"))
-
-    gt = {}
-    for view in view_index:
-        images = multiplexing.read_images(num_lens=num_lens, img_dir=image_dir, base=str(view))
-        gt[view] = multiplexing.generate(images, comap_yx, dim_lf, num_lens, H, W, max_overlap)
-    return gt
 
 def tv_2d(image: torch.Tensor) -> torch.Tensor:
     return torch.square(image[:,1:,:] - image[:,:-1,:]).mean() + torch.square(image[:,:,1:] - image[:,:,:-1]).mean()

@@ -9,20 +9,27 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
+import copy
 import json
 import os
 import random
 import sys
+from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Dict, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
+import torch
 
 import cv2
+import imageio.v3 as iio
 import numpy as np
+from arguments import ModelParams, PipelineParams
+from gaussian_renderer import render
 from PIL import Image
 from plyfile import PlyData, PlyElement
-
+from scene.gaussian_model import GaussianModel
 from scene import multiplexing
+from scene.cameras import Camera
 from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
                                  read_extrinsics_text, read_intrinsics_binary,
                                  read_intrinsics_text, read_points3D_binary,
@@ -30,6 +37,7 @@ from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
 from scene.gaussian_model import BasicPointCloud
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
 from utils.sh_utils import SH2RGB
+
 
 class PinholeMask(NamedTuple):
     bbox: list
@@ -445,3 +453,52 @@ sceneLoadTypeCallbacks = {
     "Colmap": readColmapSceneInfo,
     "Blender" : readNerfSyntheticInfo
 }
+
+def _camera_forward(camera: Camera, device) -> np.ndarray:
+        z_cam = np.array([0, 0, 1])
+        forward = camera.R * z_cam
+        return forward / np.linalg.norm(forward)
+
+def apply_offset(args: ModelParams, scene_info: SceneInfo):
+    if args.pretrained_ply and os.path.exists(args.pretrained_ply):
+        print(f"Loading pretrained ply to generate new views: {args.pretrained_ply}")
+        print(f"Camera offset: {args.camera_offset}")
+        dummy_args = ArgumentParser()
+        pp = PipelineParams(dummy_args).extract(dummy_args.parse_args([]))
+
+        gs = GaussianModel(sh_degree=3)
+        gs.load_ply(args.pretrained_ply)
+        bg = torch.tensor([0.0, 0.0, 0.0], device=args.data_device, dtype=torch.float32)
+        out_dir = os.path.join(args.model_path, "offset_views")
+        os.makedirs(out_dir, exist_ok=True)
+
+        for view_index, cam_info_list in scene_info.train_cameras.items():
+            for cam_info in cam_info_list:
+                world_center = cam_info.R.T @ cam_info.T
+                delta = _camera_forward(cam_info, device=args.data_device) * float(args.camera_offset)
+                new_world = world_center + delta
+                cam_info.T = -cam_info.R.T @ new_world # TODO: why can't you set attribute
+
+                tmp_camera = Camera(
+                    colmap_id=cam_info.id,
+                    R=cam_info.R,
+                    T=cam_info.T,
+                    FoVx=cam_info.FovX,
+                    FoVy=cam_info.FovY,
+                    # TODO: don't hardcode
+                    image=torch.zeros((3, 800, 800), device=args.data_device, dtype=torch.float32),
+                    gt_alpha_mask=None,
+                    mask=cam_info.mask,
+                    image_name=cam_info.image_name,
+                    uid=0,
+                    data_device=args.data_device
+                )
+
+                with torch.no_grad():
+                    rgb = render(tmp_camera, gs, pp, bg)['render']
+                
+                png_name = f"{cam_info.image_name}_offset{args.camera_offset:+.3f}.png"
+                png_path = os.path.join(out_dir, png_name)
+                iio.imwrite(png_path, (rgb.permute(1, 2, 0).cpu().numpy() * 255).clip(0, 255).astype('uint8'))
+                cam_info.image_path = png_path
+                cam_info.image = rgb.permute(1, 2, 0).cpu().numpy()

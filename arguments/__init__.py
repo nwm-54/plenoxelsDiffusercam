@@ -66,6 +66,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     resolution: int
     white_background: bool
     camera_offset: float
+    pretrained_ply: str
 
     def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
@@ -80,6 +81,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.eval = False
         self.use_multiplexing = False
         self.camera_offset = 0.0
+        self.pretrained_ply = ""
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":

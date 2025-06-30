@@ -74,7 +74,7 @@ def get_max_overlap(comap_yx, num_lens, H, W):
     overlap_count = torch.zeros(H, W, dtype=torch.int32, device=device)
     for i in range(num_lens):
         valid_mask = (comap_yx[i][:,:,1] != -1)
-        overlap_count += valid_mask
+        overlap_count = overlap_count + valid_mask
     return overlap_count.max().item()
 
 def generate_alpha_map(comap_yx, num_lens, H, W):
@@ -82,7 +82,7 @@ def generate_alpha_map(comap_yx, num_lens, H, W):
     
     for i in range(num_lens):
         valid_mask = (comap_yx[i, :, :, 0] != -1)
-        overlap_count += valid_mask
+        overlap_count = overlap_count + valid_mask
     
     alpha_map = np.zeros((H, W))
     non_zero_mask = (overlap_count > 0)
