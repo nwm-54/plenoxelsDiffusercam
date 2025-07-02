@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from arguments import ModelParams
     from scene.dataset_readers_multiviews import CameraInfo, SceneInfo
 
-PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/gs7/plys")
+PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
 
 def load_pretrained_ply(args: ModelParams) -> Optional[GaussianModel]:
     ply_path: Optional[str] = None
