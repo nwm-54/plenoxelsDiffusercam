@@ -24,6 +24,7 @@ from scene.dataset_readers_multiviews import (CameraInfo, SceneInfo, fetchPly,
 from scene.gaussian_model import GaussianModel
 from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
 from utils.graphics_utils import getWorld2View2
+from utils.render_utils import load_pretrained_ply, render_ply
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Scene:
@@ -67,7 +68,11 @@ class Scene:
             open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
             dest_file.write(src_file.read())
 
-        apply_offset(args, scene_info)
+        # re-rendering new views based on pretrained ply
+        gs = load_pretrained_ply(args)
+        if gs is not None:
+            scene_info = apply_offset(args, gs, scene_info)
+            scene_info = render_ply(args, gs, scene_info)
 
         json_cams: List[CameraInfo] = []
         camlist_for_json = []

@@ -1,19 +1,14 @@
-#
-# Copyright (C) 2023, Inria
-# GRAPHDECO research group, https://team.inria.fr/graphdeco
-# All rights reserved.
-#
-# This software is free for non-commercial, research and evaluation use 
-# under the terms of the LICENSE.md file.
-#
-# For inquiries contact  george.drettakis@inria.fr
-#
+from __future__ import annotations
 
-from scene.cameras import Camera
-from scene.dataset_readers_multiviews import CameraInfo
+from typing import TYPE_CHECKING
+
 import numpy as np
-from utils.general_utils import PILtoTorch,NptoTorch
+from scene.cameras import Camera
+from utils.general_utils import NptoTorch, PILtoTorch
 from utils.graphics_utils import fov2focal
+
+if TYPE_CHECKING:
+    from scene.dataset_readers_multiviews import CameraInfo
 
 WARNED = False
 
