@@ -18,23 +18,24 @@ from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Tuple
+import torch
 
 import cv2
+import imageio.v3 as iio
 import numpy as np
-import torch
 from arguments import ModelParams, PipelineParams
 from gaussian_renderer import render
 from PIL import Image
 from plyfile import PlyData, PlyElement
+from scene.gaussian_model import GaussianModel
 from scene import multiplexing
 from scene.cameras import Camera
 from scene.colmap_loader import (qvec2rotmat, read_extrinsics_binary,
                                  read_extrinsics_text, read_intrinsics_binary,
                                  read_intrinsics_text, read_points3D_binary,
                                  read_points3D_text)
-from scene.gaussian_model import BasicPointCloud, GaussianModel
+from scene.gaussian_model import BasicPointCloud
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.render_utils import camera_forward
 from utils.sh_utils import SH2RGB
 
 
@@ -412,25 +413,16 @@ def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool,
     train_transforms_file = "transforms_train_gaussian_splatting_multiviews.json" if use_multiplexing else "transforms_train.json"
     test_transforms_file = "transforms_test.json"
 
-    train_cameras_info, test_cameras_info, full_test_cameras_info = read_cameras_from_transforms(path, 
-                                                              train_transforms_file, test_transforms_file, 
+    train_cameras_info, test_cameras_info, \
+        full_test_cameras_info = read_cameras_from_transforms(path, train_transforms_file, test_transforms_file, 
                                                               views_index, white_background, extension, 
                                                               use_multiplexing, n_multiplexed_images)
     
     nerf_normalization = getNerfppNorm([cam for cam_list in train_cameras_info.values() for cam in cam_list])
 
-    pcd, ply_path = generate_random_pcd(path, num_pts=100_000)
-    return SceneInfo(point_cloud=pcd,
-                     train_cameras=train_cameras_info,
-                     test_cameras=test_cameras_info,
-                     nerf_normalization=nerf_normalization,
-                     ply_path=ply_path, 
-                     full_test_cameras=full_test_cameras_info)
-
-def generate_random_pcd(path: str, num_pts: int = 100_000) -> Tuple[BasicPointCloud, str]:
-    print(f"Generating random spherical point cloud with {num_pts} points")
     ply_path = os.path.join(path, "points3d.ply")
-    
+    num_pts = 100_000
+    print(f"Generating random spherical point cloud with {num_pts} points")
     # Cuboid
     # We create random points inside the bounds of the synthetic Blender scenes
     # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
@@ -449,48 +441,64 @@ def generate_random_pcd(path: str, num_pts: int = 100_000) -> Tuple[BasicPointCl
     shs = np.random.random((num_pts, 3)) / 255.0 # random colors
     pcd = BasicPointCloud(points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3)))
     storePly(ply_path, xyz, SH2RGB(shs) * 255)
-    
-    return pcd, ply_path
 
+    return SceneInfo(point_cloud=pcd,
+                     train_cameras=train_cameras_info,
+                     test_cameras=test_cameras_info,
+                     nerf_normalization=nerf_normalization,
+                     ply_path=ply_path, 
+                     full_test_cameras=full_test_cameras_info)
 
+sceneLoadTypeCallbacks = {
+    "Colmap": readColmapSceneInfo,
+    "Blender" : readNerfSyntheticInfo
+}
 
-def apply_offset(args: ModelParams, gs: GaussianModel, scene_info: SceneInfo) -> SceneInfo:
-    print(f"Applying camera offset: {args.camera_offset}")
+def _camera_forward(camera: Camera, device) -> np.ndarray:
+        z_cam = np.array([0, 0, 1])
+        forward = camera.R * z_cam
+        return forward / np.linalg.norm(forward)
 
-    new_train_cameras = copy.deepcopy(scene_info.train_cameras)
-    gs_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
+def apply_offset(args: ModelParams, scene_info: SceneInfo):
+    if args.pretrained_ply and os.path.exists(args.pretrained_ply):
+        print(f"Loading pretrained ply to generate new views: {args.pretrained_ply}")
+        print(f"Camera offset: {args.camera_offset}")
+        dummy_args = ArgumentParser()
+        pp = PipelineParams(dummy_args).extract(dummy_args.parse_args([]))
 
-    for view_index, cam_info_list in scene_info.train_cameras.items():
-        updated_cam_info_list = []
-        for cam_info in cam_info_list:
-            world_center = -cam_info.R @ cam_info.T
-            initial_distance = np.linalg.norm(world_center - gs_center)
+        gs = GaussianModel(sh_degree=3)
+        gs.load_ply(args.pretrained_ply)
+        bg = torch.tensor([0.0, 0.0, 0.0], device=args.data_device, dtype=torch.float32)
+        out_dir = os.path.join(args.model_path, "offset_views")
+        os.makedirs(out_dir, exist_ok=True)
 
-            delta = camera_forward(cam_info) * float(args.camera_offset)
-            new_world_center = world_center + delta
-            new_T = -cam_info.R.T @ new_world_center
-            
-            new_distance = np.linalg.norm(new_world_center - gs_center)
-            focal_scaling_factor = new_distance / initial_distance
-            
-            initial_focal_x = fov2focal(cam_info.FovX, cam_info.width)
-            initial_focal_y = fov2focal(cam_info.FovY, cam_info.height)
-            
-            new_focal_x = initial_focal_x * focal_scaling_factor
-            new_focal_y = initial_focal_y * focal_scaling_factor
-            
-            newFovX = focal2fov(new_focal_x, cam_info.width)
-            newFovY = focal2fov(new_focal_y, cam_info.height)
-            
-            updated_cam_info = cam_info._replace(
-                T=new_T,
-                FovX=newFovX,
-                FovY=newFovY
-            )
-            updated_cam_info_list.append(updated_cam_info)
-        new_train_cameras[view_index] = updated_cam_info_list        
+        for view_index, cam_info_list in scene_info.train_cameras.items():
+            for cam_info in cam_info_list:
+                world_center = cam_info.R.T @ cam_info.T
+                delta = _camera_forward(cam_info, device=args.data_device) * float(args.camera_offset)
+                new_world = world_center + delta
+                cam_info.T = -cam_info.R.T @ new_world # TODO: why can't you set attribute
 
-    return scene_info._replace(train_cameras=new_train_cameras)
+                tmp_camera = Camera(
+                    colmap_id=cam_info.id,
+                    R=cam_info.R,
+                    T=cam_info.T,
+                    FoVx=cam_info.FovX,
+                    FoVy=cam_info.FovY,
+                    # TODO: don't hardcode
+                    image=torch.zeros((3, 800, 800), device=args.data_device, dtype=torch.float32),
+                    gt_alpha_mask=None,
+                    mask=cam_info.mask,
+                    image_name=cam_info.image_name,
+                    uid=0,
+                    data_device=args.data_device
+                )
 
-def create_multiplexed_views(args: ModelParams, scene_info: SceneInfo) -> SceneInfo:
-    return
+                with torch.no_grad():
+                    rgb = render(tmp_camera, gs, pp, bg)['render']
+                
+                png_name = f"{cam_info.image_name}_offset{args.camera_offset:+.3f}.png"
+                png_path = os.path.join(out_dir, png_name)
+                iio.imwrite(png_path, (rgb.permute(1, 2, 0).cpu().numpy() * 255).clip(0, 255).astype('uint8'))
+                cam_info.image_path = png_path
+                cam_info.image = rgb.permute(1, 2, 0).cpu().numpy()
