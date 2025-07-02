@@ -404,7 +404,6 @@ if __name__ == "__main__":
 
     dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
     multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
-<<<<<<< HEAD
     run_name = f"{dataset_name}_{args.num_views}views_{multiplexing_str}_dls{args.dls}"
     if opt.tv_weight > 0:
         run_name += f"_tv{opt.tv_weight}"
@@ -415,12 +414,6 @@ if __name__ == "__main__":
 
     if not dataset.model_path:
         dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output10/" + run_name
-=======
-    run_name = f"{dataset_name}_{args.num_views}views_{multiplexing_str}_resolution{800 // dataset.resolution}_dls{args.dls}_tv{opt.tv_weight}_unseen{opt.tv_unseen_weight}"
-
-    if not dataset.model_path:
-        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output8/" + run_name
->>>>>>> c96e8a7f4292116d96a9e299ace5bafc557fcaf5
     wandb.init(name=run_name)
     
     training(dataset=dataset,
