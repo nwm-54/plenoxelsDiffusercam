@@ -8,21 +8,22 @@ import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
-from typing import Dict, List, Literal, Tuple, Optional
+from utils.general_utils import get_dataset_name
+from typing import Dict, List, Literal, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.nn.functional as F
-from tqdm import tqdm
-
 import wandb
 from arguments import ModelParams, OptimizationParams, PipelineParams
+from arguments.multiviews_indices import MULTIVIEW_INDICES
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
+from tqdm import tqdm
 from utils.general_utils import safe_state
-from utils.image_utils import psnr, heteroscedastic_noise, quantize_14bit
+from utils.image_utils import heteroscedastic_noise, psnr, quantize_14bit
 from utils.loss_utils import l1_loss, ssim
 
 try:
@@ -36,39 +37,6 @@ torch.cuda.set_device(0)
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 wandb.login()
-
-MULTIVIEW_INDICES: Dict[Literal[1, 3, 5], Dict[str, List[int]]] = {
-    5: { # 5 views
-        'lego': [50, 59, 60, 70, 90],
-        'hotdog': [0, 11, 23, 27, 37],
-        'chair': [2, 25, 38, 79, 90],
-        'drums': [2, 25, 38, 79, 90],
-        'ficus': [2, 25, 38, 79, 90],
-        'materials': [2, 25, 38, 79, 90],
-        'mic': [2, 25, 38, 79, 90],
-        'ship': [2, 25, 38, 79, 90],
-    },
-    3: { # 3 views
-        'lego': [50, 70, 90],
-        'hotdog': [0, 23, 37],
-        'chair': [2, 79, 90],
-        'drums': [25, 38, 90],
-        'ficus': [2, 79, 90],
-        'materials': [2, 38, 79],
-        'mic': [2, 38, 79],
-        'ship': [2, 25, 79],
-    },
-    1: { # single view
-        'lego': [59],
-        'hotdog': [0],
-        'chair': [2],
-        'drums': [38],
-        'ficus': [2],
-        'materials': [79],
-        'mic': [25],
-        'ship': [25],
-    }
-}
 
 def training(dataset: ModelParams, 
              opt: OptimizationParams, 
@@ -85,8 +53,7 @@ def training(dataset: ModelParams,
              size_threshold_arg: int,
              extent_multiplier: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
-    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
-    views_index = MULTIVIEW_INDICES[int(num_views)][dataset_name]
+    views_index = MULTIVIEW_INDICES[int(num_views)][get_dataset_name(dataset)]
     
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians, views_index=views_index)
@@ -402,9 +369,8 @@ if __name__ == "__main__":
 
     if opt.iterations not in args.save_iterations: args.save_iterations.append(opt.iterations)
 
-    dataset_name = os.path.basename(dataset.source_path).replace("lego_gen12", "lego")
     multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
-    run_name = f"{dataset_name}_{args.num_views}views_{multiplexing_str}_dls{args.dls}"
+    run_name = f"{get_dataset_name(dataset)}_{args.num_views}views_{multiplexing_str}_dls{args.dls}"
     if opt.tv_weight > 0:
         run_name += f"_tv{opt.tv_weight}"
     if opt.tv_unseen_weight > 0:

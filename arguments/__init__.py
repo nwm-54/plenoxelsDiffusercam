@@ -67,6 +67,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     white_background: bool
     camera_offset: float
     pretrained_ply: str
+    n_train_images: int
 
     def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
@@ -82,6 +83,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.use_multiplexing = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
+        self.n_train_images = -1
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":
@@ -164,7 +166,7 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.lambda_shot = 0.01
         super().__init__(parser, "Optimization Parameters")
 
-def get_combined_args(parser: ArgumentParser):
+def get_combined_args(parser: ArgumentParser) -> Namespace:
     cmdlne_string = sys.argv[1:]
     cfgfile_string = "Namespace()"
     args_cmdline = parser.parse_args(cmdlne_string)
@@ -173,7 +175,7 @@ def get_combined_args(parser: ArgumentParser):
         cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
         print("Looking for config file in", cfgfilepath)
         with open(cfgfilepath) as cfg_file:
-            print("Config file found: {}".format(cfgfilepath))
+            print(f"Config file found: {cfgfilepath}")
             cfgfile_string = cfg_file.read()
     except TypeError:
         print("Config file not found at")
@@ -181,7 +183,7 @@ def get_combined_args(parser: ArgumentParser):
     args_cfgfile = eval(cfgfile_string)
 
     merged_dict = vars(args_cfgfile).copy()
-    for k,v in vars(args_cmdline).items():
-        if v != None:
+    for k, v in vars(args_cmdline).items():
+        if v is not None:
             merged_dict[k] = v
     return Namespace(**merged_dict)

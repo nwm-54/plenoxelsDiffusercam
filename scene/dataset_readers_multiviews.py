@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 2023, Inria
 # GRAPHDECO research group, https://team.inria.fr/graphdeco
@@ -14,15 +13,13 @@ import json
 import os
 import random
 import sys
-from argparse import ArgumentParser
 from collections import defaultdict
-from pathlib import Path
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import cv2
 import numpy as np
 import torch
-from arguments import ModelParams, PipelineParams
+from arguments import ModelParams
 from gaussian_renderer import render
 from PIL import Image
 from plyfile import PlyData, PlyElement
@@ -36,26 +33,27 @@ from scene.gaussian_model import BasicPointCloud, GaussianModel
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
 from utils.render_utils import camera_forward
 from utils.sh_utils import SH2RGB
+from arguments.multiviews_indices import MULTIVIEW_INDICES
 
-
+FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
 class PinholeMask(NamedTuple):
     bbox: list
-    mask: np.ndarray 
+    mask: np.ndarray
     path: str
     
 class CameraInfo(NamedTuple):
     uid: int
     R: np.ndarray
     T: np.ndarray
-    FovY: np.ndarray
-    FovX: np.ndarray
-    image: np.ndarray
+    FovY: float
+    FovX: float
+    image: Image.Image
     image_path: str
     image_name: str
     width: int
     height: int
     mask_name: str
-    mask: np.ndarray
+    mask: Optional[np.ndarray]
 
 class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
@@ -64,6 +62,57 @@ class SceneInfo(NamedTuple):
     full_test_cameras: List[CameraInfo]
     nerf_normalization: Dict[str, np.ndarray]
     ply_path: str
+
+def _find_subset_recursive(dist_matrix_sq: np.ndarray, k: int, min_dist_sq: float, start_idx: int, current_subset: List[int]) -> Optional[List[int]]:
+    if len(current_subset) == k:
+        return current_subset
+    
+    remaining_needed = k - len(current_subset)
+    remaining_available = dist_matrix_sq.shape[0] - start_idx
+    if remaining_needed > remaining_available:
+        return None
+    
+    for i in range(start_idx, dist_matrix_sq.shape[0]):
+        is_compatible = True
+        for p_idx in current_subset:
+            if dist_matrix_sq[i, p_idx] < min_dist_sq:
+                is_compatible = False
+                break
+        
+        if is_compatible:
+            result = _find_subset_recursive(dist_matrix_sq, k, min_dist_sq, i + 1, current_subset + [i])
+            if result is not None:
+                return result
+
+    return None
+
+def find_max_min_dispersion_subset(dataset_name: str, points: np.ndarray, k: int) -> np.ndarray:
+    if k < 1:
+        return np.arange(k)
+    if k >= len(points):
+        return np.arange(len(points))
+    
+    points_sq_sum = np.sum(points**2, axis=1)
+    dist_matrix_sq = -2 * np.dot(points, points.T) + points_sq_sum + points_sq_sum[:, np.newaxis]
+    dist_matrix_sq = np.maximum(0, dist_matrix_sq)
+
+    unique_dists_sq = np.unique(dist_matrix_sq.flatten())
+    best_subset = None
+    low, high = 0, len(unique_dists_sq) - 1
+
+    while low <= high:
+        mid_idx = (low + high) // 2
+        min_dist_sq_candidate = unique_dists_sq[mid_idx]
+        found_subset = _find_subset_recursive(dist_matrix_sq, k, min_dist_sq_candidate, 0, [])
+
+        if found_subset is not None:
+            best_subset = found_subset
+            low = mid_idx + 1
+        else:
+            high = mid_idx - 1
+    
+    return np.array(best_subset) if best_subset is not None else np.arange(k)
+
 
 def getNerfppNorm(cam_info: List[CameraInfo]):
     def get_center_and_diag(cam_centers):
@@ -369,15 +418,9 @@ def read_cameras_from_transforms(path: str, train_transforms_file: str, test_tra
             index = int(parts[1])
             if index not in view_index: continue
 
-            subimage = parts[2] if len(parts) > 2 else None        # either subimage or no subimage
             image_filepath = os.path.join(path, frame["file_path"] + extension)
-            uid_for_image = subimage if subimage else index
-            train_cameras_info[index].append(read_camera(image_filepath, image_name, frame["transform_matrix"], 
-                                                         white_background, uid_for_image, fov_x))
-                        
-    for k, cam in train_cameras_info.items():
-        if use_multiplexing: assert len(cam) == n_multiplexed_images, f"Expected {n_multiplexed_images} images for view {k}, but got {len(cam)}"
-        # if this is triggered can sort by ascending order of uid and take the first n_multiplexed_images
+            train_cameras_info[index].append(read_camera(image_filepath, image_name, frame["transform_matrix"],
+                                                         white_background, index, fov_x))
 
     adjacent_views = []
     for view in view_index:
@@ -405,11 +448,12 @@ def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool,
                           extension: str = ".png", 
                           views_index: Optional[List[int]] = None,
                           use_multiplexing: bool = False,
-                          n_multiplexed_images: int = 16) -> SceneInfo:
+                          n_multiplexed_images: int = 16,
+                          n_train_images: int = -1) -> SceneInfo:
     print(f"Reading Nerf synthetic scene from {path}")
     print(f"Train view indices: {views_index}, use multiplexing: {use_multiplexing}")
 
-    train_transforms_file = "transforms_train_gaussian_splatting_multiviews.json" if use_multiplexing else "transforms_train.json"
+    train_transforms_file = "transforms_train.json"
     test_transforms_file = "transforms_test.json"
 
     train_cameras_info, test_cameras_info, full_test_cameras_info = read_cameras_from_transforms(path, 
@@ -490,5 +534,44 @@ def apply_offset(args: ModelParams, gs: GaussianModel, scene_info: SceneInfo) ->
 
     return scene_info._replace(train_cameras=new_train_cameras)
 
-def create_multiplexed_views(args: ModelParams, scene_info: SceneInfo) -> SceneInfo:
-    return
+def create_multiplexed_views(scene_info: SceneInfo, 
+                             n_multiplexed_images: int = 16) -> SceneInfo:
+    new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
+    x_linspace = np.linspace(start=-0.5, stop=0.5, num=int(np.sqrt(n_multiplexed_images)))
+
+    for view_idx, cam_info_list in scene_info.train_cameras.items():
+        for cam_info in cam_info_list:
+            c2w = np.linalg.inv(getWorld2View2(cam_info.R, cam_info.T))
+
+            sub_image_idx: int = 0
+            for x in x_linspace:
+                for y in x_linspace:
+                    new_c2w = c2w.copy()
+                    camera_offset = np.array([x, y, 0])
+                    world_offset = new_c2w[:3, :3] @ camera_offset
+                    new_c2w[:3, 3] += world_offset
+                    
+                    new_w2c = np.linalg.inv(new_c2w)
+                    new_R = np.transpose(new_w2c[:3, :3])
+                    new_T = new_w2c[:3, 3]
+
+                    uid = sub_image_idx
+                    image_name = f"r_{view_idx}_{uid}"
+
+                    new_cam_info = CameraInfo(
+                        uid=uid,
+                        R=new_R,
+                        T=new_T,
+                        FovX=cam_info.FovX,
+                        FovY=cam_info.FovY,
+                        image=cam_info.image,
+                        image_path=cam_info.image_path,
+                        image_name=image_name,
+                        width=cam_info.width,
+                        height=cam_info.height,
+                        mask_name=cam_info.mask_name,
+                        mask=cam_info.mask
+                    )
+                    new_train_cameras[view_idx].append(new_cam_info)
+                    sub_image_idx += 1
+    return scene_info._replace(train_cameras=new_train_cameras)

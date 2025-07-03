@@ -13,6 +13,7 @@ from arguments import PipelineParams
 from gaussian_renderer import render
 from PIL import Image
 from scene.cameras import Camera
+from utils.general_utils import get_dataset_name
 from scene.gaussian_model import GaussianModel
 
 if TYPE_CHECKING:
@@ -26,15 +27,14 @@ def load_pretrained_ply(args: ModelParams) -> Optional[GaussianModel]:
     if args.pretrained_ply and os.path.exists(args.pretrained_ply):
         ply_path = args.pretrained_ply
     else:
-        dataset_name = os.path.basename(args.source_path).replace("lego_gen12", "lego")
-        ply_path = PLYS_ROOT / f"{dataset_name}.ply"
+        ply_path = PLYS_ROOT / f"{get_dataset_name(args)}.ply"
     
     if not os.path.exists(ply_path):
-        warnings.warn(f"Pretrained PLY file not found at {ply_path}.")
+        warnings.warn(f"Pretrained ply file not found at {ply_path}.")
         return None
     gs = GaussianModel(sh_degree=args.sh_degree)
     gs.load_ply(ply_path)
-    print(f"Loaded PLY: {ply_path}")
+    print(f"Loaded pretrained ply: {ply_path}")
     return gs
 
 def render_ply(args: ModelParams, gs: GaussianModel, scene_info: SceneInfo) -> SceneInfo:
