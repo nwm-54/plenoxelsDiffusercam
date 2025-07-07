@@ -27,7 +27,7 @@ def load_pretrained_ply(args: ModelParams) -> Optional[GaussianModel]:
     if args.pretrained_ply and os.path.exists(args.pretrained_ply):
         ply_path = args.pretrained_ply
     else:
-        ply_path = PLYS_ROOT / f"{get_dataset_name(args)}.ply"
+        ply_path = PLYS_ROOT / f"{get_dataset_name(args.source_path)}.ply"
     
     if not os.path.exists(ply_path):
         warnings.warn(f"Pretrained ply file not found at {ply_path}.")

@@ -1,14 +1,9 @@
-#
-# For simulation images - multi-view
-#
-
 import os
 import random
 import sys
 import uuid
 from argparse import ArgumentParser, Namespace
 from random import randint
-from utils.general_utils import get_dataset_name
 from typing import Dict, List, Literal, Optional, Tuple
 
 import numpy as np
@@ -22,7 +17,7 @@ from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
 from tqdm import tqdm
-from utils.general_utils import safe_state
+from utils.general_utils import get_dataset_name, safe_state
 from utils.image_utils import heteroscedastic_noise, psnr, quantize_14bit
 from utils.loss_utils import l1_loss, ssim
 
@@ -46,17 +41,14 @@ def training(dataset: ModelParams,
              checkpoint_iterations: List[int], 
              checkpoint: int, 
              debug_from: int, 
-             source_path: str, 
              resolution: int, 
              dls: float, 
-             num_views: Literal[1, 3, 5],
              size_threshold_arg: int,
              extent_multiplier: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
-    views_index = MULTIVIEW_INDICES[int(num_views)][get_dataset_name(dataset)]
     
     gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians, views_index=views_index)
+    scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
 
     print("Tv weight ", opt.tv_weight)
@@ -64,15 +56,12 @@ def training(dataset: ModelParams,
     print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
     print("Adjacent test cameras:", len(scene.getTestCameras()))
     print("Full test cameras:", len(scene.getFullTestCameras()))
-    print("Main training views indices:", views_index)
 
     if dataset.use_multiplexing:
         print(f"Using multiplexing with {scene.n_multiplexed_images} sub-images")
         H = W = 800 // resolution
         scene.init_multiplexing(dls, H, W)
     multiplexed_gt = scene.multiplexed_gt
-    # print(f"Indices in multiplexed_gt: {multiplexed_gt.keys()}")
-
     
     background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], 
                               dtype=torch.float32, device=device)
@@ -86,10 +75,9 @@ def training(dataset: ModelParams,
 
         # Every 1000 its we increase the levels of SH up to a maximum degree
         # TODO make this more frequent because we are only using 3000 iterations
-        if iteration % 1000 == 0:
+        if iteration % 500 == 0:
             gaussians.oneupSHdegree()
             
-        # Render
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
@@ -353,7 +341,6 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[4000, 6000, 8000, 10000, 20000, 30000])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--dls", type=int, default = 20)
-    parser.add_argument('--num_views', type=int, choices=[1, 3, 5], default=5)
     parser.add_argument("--size_threshold", type=int, default = 150)
     parser.add_argument("--extent_multiplier", type=float, default = 1.)
     args = parser.parse_args(sys.argv[1:])
@@ -370,7 +357,7 @@ if __name__ == "__main__":
     if opt.iterations not in args.save_iterations: args.save_iterations.append(opt.iterations)
 
     multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
-    run_name = f"{get_dataset_name(dataset)}_{args.num_views}views_{multiplexing_str}_dls{args.dls}"
+    run_name = f"{get_dataset_name(dataset.source_path)}_{dataset.n_train_images}views_{multiplexing_str}_dls{args.dls}"
     if opt.tv_weight > 0:
         run_name += f"_tv{opt.tv_weight}"
     if opt.tv_unseen_weight > 0:
@@ -390,10 +377,8 @@ if __name__ == "__main__":
              checkpoint_iterations=args.checkpoint_iterations, 
              checkpoint=args.start_checkpoint, 
              debug_from=args.debug_from, 
-             source_path=args.source_path, 
              resolution=args.resolution, 
              dls=args.dls, 
-             num_views=args.num_views,
              size_threshold_arg=args.size_threshold,
              extent_multiplier=args.extent_multiplier)
 

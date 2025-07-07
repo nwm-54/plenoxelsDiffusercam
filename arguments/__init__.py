@@ -83,7 +83,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.use_multiplexing = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
-        self.n_train_images = -1
+        self.n_train_images = 1
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":

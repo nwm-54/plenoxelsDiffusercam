@@ -6,6 +6,8 @@ import imageio as imageio
 import numpy as np
 import torch
 import torch.nn.functional as F
+from utils.graphics_utils import getWorld2View2
+from scene.dataset_readers_multiviews import CameraInfo
 
 SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -145,19 +147,19 @@ def get_rays_per_pixel(H, W, comap_yx, max_per_pixel, num_lens):
                     
     return per_pixel, mask, cnt_mpp
 
-def get_adjacent_views(index, path):
-    img90 = None
-    with open(f'{path}/transforms_train.json') as f:
-        org_json = json.load(f)
-        img90 = np.array(org_json['frames'][index]['transform_matrix']).astype(float)
-    allDiff = []
-    with open(f'{path}/transforms_test.json') as f:
-        org_json = json.load(f)
-        for i,frames in enumerate(org_json['frames']):
-            img = np.array(frames['transform_matrix']).astype(float)
-            diff = np.mean(np.square(img90[:,-1]-img[:,-1]))
-            allDiff.append([i, diff])
-    allDiff.sort(key=lambda x:x[1])
-    allDiff_index = [d[0] for d in allDiff]
-    return allDiff_index[:6]
+def get_adjacent_views(train_cam: CameraInfo, all_test_cams: List[CameraInfo]) -> List[int]:
+    train_w2c = getWorld2View2(train_cam.R, train_cam.T)
+    train_c2w = np.linalg.inv(train_w2c)
+    train_pos = train_c2w[:3, 3]
+    all_diffs = []
+    for test_cam in all_test_cams:
+        test_w2c = getWorld2View2(test_cam.R, test_cam.T)
+        test_c2w = np.linalg.inv(test_w2c)
+        test_pos = test_c2w[:3, 3]
 
+        dist_sq = np.sum(np.square(train_pos - test_pos))
+        all_diffs.append((test_cam.uid, dist_sq))
+    
+    all_diffs.sort(key=lambda x: x[1])
+    closest_uids = [uid for uid, dist in all_diffs]
+    return closest_uids[:6]  # Return the closest 6 views

@@ -16,6 +16,7 @@ from typing import Dict, List, Optional
 import torch
 from arguments import ModelParams
 from scene import multiplexing
+import imageio.v3 as iio
 from scene.cameras import Camera
 from scene.dataset_readers_multiviews import (CameraInfo, apply_offset,
                                               create_multiplexed_views,
@@ -30,7 +31,7 @@ class Scene:
     gaussians: GaussianModel
 
     def __init__(self, args: ModelParams, gaussians: GaussianModel, load_iteration: Optional[int] = None, 
-                 resolution_scales: List[float] = [1.0], views_index: List[int] = []):
+                 resolution_scales: List[float] = [1.0]):
         """
         :param path: Path to colmap scene main folder.
         """
@@ -52,9 +53,7 @@ class Scene:
         elif is_blender_type:  # Blender
             self.n_multiplexed_images = 16
             print("Found transforms_*.json file, assuming Blender dataset")
-            scene_info = readNerfSyntheticInfo(args.source_path, args.white_background, args.eval, 
-                                               views_index=views_index, use_multiplexing=args.use_multiplexing,
-                                               n_multiplexed_images=self.n_multiplexed_images,
+            scene_info = readNerfSyntheticInfo(args.source_path, args.white_background, args.eval,
                                                n_train_images=args.n_train_images)
             
             # re-rendering new views based on pretrained ply
@@ -76,8 +75,8 @@ class Scene:
         if scene_info.train_cameras:
             for cam_list in scene_info.train_cameras.values():
                 camlist_for_json.extend(cam_list)
-        if scene_info.test_cameras: camlist_for_json.extend(scene_info.test_cameras)
-        if scene_info.full_test_cameras: camlist_for_json.extend(scene_info.full_test_cameras)        
+        # if scene_info.test_cameras: camlist_for_json.extend(scene_info.test_cameras)
+        # if scene_info.full_test_cameras: camlist_for_json.extend(scene_info.full_test_cameras)        
         for id, cam in enumerate(camlist_for_json):
             json_cams.append(camera_to_JSON(id, cam))
         with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
@@ -131,6 +130,7 @@ class Scene:
             imgs = [cam.original_image.to(cam.data_device) for cam in cam_list]
             gt[view_idx] = multiplexing.generate(imgs, self.comap_yx, self.dim_lens_lf_yx, 
                                                  self.n_multiplexed_images, H, W, self.max_overlap)
+            iio.imwrite(os.path.join(self.model_path, f"gt_view_{view_idx}.png"), (gt[view_idx].permute(1, 2, 0).cpu().numpy() * 255).astype('uint8'))
         return gt
 
     def _write_camera_json(self):
