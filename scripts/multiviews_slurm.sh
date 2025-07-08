@@ -7,10 +7,10 @@
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
 #SBATCH -n 16
-#SBATCH -t 24:00:00                          
+#SBATCH -t 12:00:00                          
 #SBATCH --mem 32gb
 
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/s3gxzr3i
+wandb agent shamus-team/multiplexed-pixels/vaoshme8

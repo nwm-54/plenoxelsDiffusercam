@@ -456,7 +456,7 @@ def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool,
     adjacent_views = list(set(adjacent_views))
 
     test_cameras_info = [cam for cam in full_test_cameras_info if cam.uid in adjacent_views]
-    nerf_normalization = getNerfppNorm([cam for cam_list in train_cameras_dict.values() for cam in cam_list])
+    nerf_normalization = getNerfppNorm(all_train_cameras_list)
 
     pcd, ply_path = generate_random_pcd(path, num_pts=100_000)
     return SceneInfo(point_cloud=pcd,
