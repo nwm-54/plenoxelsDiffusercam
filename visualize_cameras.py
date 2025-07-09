@@ -78,11 +78,7 @@ def _create_animated_plot(fig: go.Figure, n_range: range, c2w_matrices: List, ca
         sliders=[{'active': 0, 'steps': slider_steps, 'currentvalue': {'prefix': 'Number of Views: '}, 'pad': {'t': 50}}]
     )
 
-def visualize_cameras(source_path: str, n_train_images: int = -1) -> None:
-    json_path = os.path.join(source_path, 'transforms_train.json')
-    if not os.path.exists(json_path):
-        print(f"Error: 'transforms_train.json' not found in {source_path}"); return
-
+def visualize_cameras(json_path: str, n_train_images: int = -1) -> None:
     print(f"📸 Loading cameras from {json_path}...")
     with open(json_path, 'r') as f: data = json.load(f)
 
@@ -111,7 +107,7 @@ def visualize_cameras(source_path: str, n_train_images: int = -1) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Visualize camera frustums.")
-    parser.add_argument('--source_path', type=str, required=True, help='Path to the source directory containing transforms_train.json')
+    parser.add_argument('--source_path', type=str, required=True, help='Path to transforms_train.json')
     parser.add_argument('--n_train_images', type=int, nargs='+', default=[-1])
     args = parser.parse_args()
 

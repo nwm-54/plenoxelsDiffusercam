@@ -4,9 +4,9 @@ import re
 import pandas as pd
 from typing import Any, Optional, Dict, List
 
-PSNR_KEY: str = "psnr/full test camera"
+PSNR_KEY: str = "psnr/adjacent test camera"
 SCENE_REMAP: Dict[str, str] = {"lego_gen12": "lego"}
-SCENES: List[str] = ["chair", "drums", "ficus", "hotdog", "lego", "materials", "mic", "ship"]
+SCENES: List[str] = ["chair", "mic", "ship", "ficus", "materials", "drums", "hotdog", "lego"]
 
 NAME_RGX = re.compile(
     r"^(?P<scene>[^_]+)_"
