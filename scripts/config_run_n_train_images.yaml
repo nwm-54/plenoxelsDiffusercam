@@ -14,7 +14,7 @@ parameters:
   source_path:
     values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"]
   n_train_images:
-    values: [1, 3, 5, 10, 15, 20, 30, 40, 50]
+    values: [1, 2, 3, 5, 10, 15, 20, 30, 40, 50]
   use_multiplexing:
     values:
       - true
@@ -24,5 +24,7 @@ command:
   - ${program}
   - --iterations
   - 3000
+  - --output-id
+  - 3
   - ${args_no_boolean_flags}
   

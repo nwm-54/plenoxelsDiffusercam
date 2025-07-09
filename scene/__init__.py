@@ -54,7 +54,8 @@ class Scene:
             self.n_multiplexed_images = 16
             print("Found transforms_*.json file, assuming Blender dataset")
             scene_info = readNerfSyntheticInfo(args.source_path, args.white_background, args.eval,
-                                               n_train_images=args.n_train_images)
+                                               n_train_images=args.n_train_images, 
+                                               use_orbital_trajectory=args.use_orbital_trajectory)
             
             # re-rendering new views based on pretrained ply
             gs = load_pretrained_ply(args)

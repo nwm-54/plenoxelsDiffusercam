@@ -26,27 +26,27 @@ try:
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
-    
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.cuda.set_device(0)
 print(f"Using device: {device}")
 print(f"GPU Name: {torch.cuda.get_device_name(device)}")
 wandb.login()
 
-def training(dataset: ModelParams, 
-             opt: OptimizationParams, 
-             pipe: PipelineParams, 
-             testing_iterations: List[int], 
-             saving_iterations: List[int], 
-             checkpoint_iterations: List[int], 
-             checkpoint: int, 
-             debug_from: int, 
-             resolution: int, 
-             dls: float, 
+def training(dataset: ModelParams,
+             opt: OptimizationParams,
+             pipe: PipelineParams,
+             testing_iterations: List[int],
+             saving_iterations: List[int],
+             checkpoint_iterations: List[int],
+             checkpoint: int,
+             debug_from: int,
+             resolution: int,
+             dls: float,
              size_threshold_arg: int,
              extent_multiplier: float):
     tb_writer, model_path = prepare_output_and_logger(dataset)
-    
+
     gaussians = GaussianModel(dataset.sh_degree)
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
@@ -62,14 +62,18 @@ def training(dataset: ModelParams,
         H = W = 800 // resolution
         scene.init_multiplexing(dls, H, W)
     multiplexed_gt = scene.multiplexed_gt
-    
-    background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], 
+
+    background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0],
                               dtype=torch.float32, device=device)
     iter_start, iter_end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
 
-    for iteration in range(1, opt.iterations + 1):        
+    all_train_cameras = scene.getTrainCameras()
+    view_indices = list(all_train_cameras.keys())
+    available_view_indices: List[int] = []
+
+    for iteration in range(1, opt.iterations + 1):
         iter_start.record()
         gaussians.update_learning_rate(iteration)
 
@@ -77,18 +81,35 @@ def training(dataset: ModelParams,
         # TODO make this more frequent because we are only using 3000 iterations
         if iteration % 500 == 0:
             gaussians.oneupSHdegree()
-            
+
         if (iteration - 1) == debug_from:
             pipe.debug = True
 
-        all_train_cameras = scene.getTrainCameras()
         bg = torch.rand((3), device=device) if opt.random_background else background
-        
+
         total_train_loss = 0.
         mean_train_tv_loss = 0.
         all_render_pkgs: List[Dict[str, torch.Tensor]] = []
 
-        for _, viewpoint_cam in all_train_cameras.items():
+        cameras_to_train: Dict[int, List[Camera]]
+        num_cameras_to_sample = 10 if dataset.use_multiplexing else 160
+        if len(view_indices) > num_cameras_to_sample:
+            if not available_view_indices:
+                available_view_indices = view_indices.copy()
+                random.shuffle(available_view_indices)
+            
+            num_to_sample = min(num_cameras_to_sample, len(available_view_indices))
+            sampled_indices = [available_view_indices.pop() for _ in range(num_to_sample)]
+
+            if not available_view_indices:
+                available_view_indices = view_indices.copy()
+                random.shuffle(available_view_indices)
+            
+            cameras_to_train = {idx: all_train_cameras[idx] for idx in sampled_indices}
+        else:
+            cameras_to_train = all_train_cameras
+      
+        for _, viewpoint_cam in cameras_to_train.items():
             tv_train_loss = 0.
             gt_image = None
             rendered_image = None
@@ -156,14 +177,14 @@ def training(dataset: ModelParams,
                 progress_bar.close()
 
             # Log and save
-            training_report(tb_writer, 
-                            iteration, 
-                            loss, 
-                            iter_start.elapsed_time(iter_end), 
-                            testing_iterations, 
-                            scene, 
-                            (pipe, background), 
-                            unseen_tv, 
+            training_report(tb_writer,
+                            iteration,
+                            loss,
+                            iter_start.elapsed_time(iter_end),
+                            testing_iterations,
+                            scene,
+                            (pipe, background),
+                            unseen_tv,
                             model_path,
                             total_train_loss,
                             mean_train_tv_loss,
@@ -202,7 +223,7 @@ def training(dataset: ModelParams,
 def tv_2d(image: torch.Tensor) -> torch.Tensor:
     return torch.square(image[:,1:,:] - image[:,:-1,:]).mean() + torch.square(image[:,:,1:] - image[:,:,:-1]).mean()
 
-def prepare_output_and_logger(args):    
+def prepare_output_and_logger(args):
     if not args.model_path:
         if os.getenv('OAR_JOB_ID'):
             unique_str=os.getenv('OAR_JOB_ID')
@@ -224,14 +245,14 @@ def prepare_output_and_logger(args):
         print("Tensorboard not available: not logging progress")
     return tb_writer, args.model_path
 
-def training_report(tb_writer: SummaryWriter, 
+def training_report(tb_writer: SummaryWriter,
                     iteration: int,
-                    loss: torch.Tensor, 
-                    elapsed: float, 
-                    testing_iterations: List[int], 
-                    scene: Scene, 
-                    renderArgs: Tuple[PipelineParams, torch.Tensor], 
-                    unseen_tv_loss: torch.Tensor, 
+                    loss: torch.Tensor,
+                    elapsed: float,
+                    testing_iterations: List[int],
+                    scene: Scene,
+                    renderArgs: Tuple[PipelineParams, torch.Tensor],
+                    unseen_tv_loss: torch.Tensor,
                     model_path: str,
                     train_loss: torch.Tensor,
                     mean_train_tv_loss: float,
@@ -267,8 +288,8 @@ def training_report(tb_writer: SummaryWriter,
         img_dict = {}
 
         validation_configs = (
-            {'name': 'adjacent test camera', 'cameras' : scene.getTestCameras()}, 
-            {'name': 'full test camera',     'cameras' : scene.getFullTestCameras()}, 
+            {'name': 'adjacent test camera', 'cameras' : scene.getTestCameras()},
+            {'name': 'full test camera',     'cameras' : scene.getFullTestCameras()},
             {'name': 'train camera',         'cameras' : [cam for cam_list in scene.getTrainCameras().values() for cam in cam_list]})
 
         for config in validation_configs:
@@ -343,6 +364,7 @@ if __name__ == "__main__":
     parser.add_argument("--dls", type=int, default = 20)
     parser.add_argument("--size_threshold", type=int, default = 150)
     parser.add_argument("--extent_multiplier", type=float, default = 1.)
+    parser.add_argument("--output-id", type=str, default="3")
     args = parser.parse_args(sys.argv[1:])
     args.save_iterations.append(args.iterations)
     
@@ -366,19 +388,19 @@ if __name__ == "__main__":
         run_name += f"_offset{dataset.camera_offset}"
 
     if not dataset.model_path:
-        dataset.model_path = "/share/monakhova/shamus_data/multiplexed_pixels/output10/" + run_name
+        dataset.model_path = f"/share/monakhova/shamus_data/multiplexed_pixels/output{args.output_id}/" + run_name
     wandb.init(name=run_name)
     
     training(dataset=dataset,
-             opt=opt, 
+             opt=opt,
              pipe=pipe,
-             testing_iterations=args.test_iterations, 
-             saving_iterations=args.save_iterations, 
-             checkpoint_iterations=args.checkpoint_iterations, 
-             checkpoint=args.start_checkpoint, 
-             debug_from=args.debug_from, 
-             resolution=args.resolution, 
-             dls=args.dls, 
+             testing_iterations=args.test_iterations,
+             saving_iterations=args.save_iterations,
+             checkpoint_iterations=args.checkpoint_iterations,
+             checkpoint=args.start_checkpoint,
+             debug_from=args.debug_from,
+             resolution=args.resolution,
+             dls=args.dls,
              size_threshold_arg=args.size_threshold,
              extent_multiplier=args.extent_multiplier)
 

@@ -112,7 +112,7 @@ def visualize_cameras(source_path: str, n_train_images: int = -1) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Visualize camera frustums.")
     parser.add_argument('--source_path', type=str, required=True, help='Path to the source directory containing transforms_train.json')
-    parser.add_argument('--n_train_images', type=int, nargs='+', default=-1)
+    parser.add_argument('--n_train_images', type=int, nargs='+', default=[-1])
     args = parser.parse_args()
 
     if not (1 <= len(args.n_train_images) <= 3):

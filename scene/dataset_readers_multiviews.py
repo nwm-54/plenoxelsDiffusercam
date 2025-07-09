@@ -56,6 +56,8 @@ class SceneInfo(NamedTuple):
 
 def find_max_min_dispersion_subset(points: np.ndarray, k: int) -> np.ndarray:
     """Finds a near-optimal subset of k points that maximizes the minimum distance."""
+    if k < 1:
+        return np.array([])
     n_points = len(points)
     if k >= n_points:
         return np.arange(n_points)
@@ -425,9 +427,10 @@ def read_cameras_from_transforms(path: str, train_transforms_file: str, test_tra
 
 def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool, 
                           extension: str = ".png", 
-                          n_train_images: int = 1) -> SceneInfo:
+                          n_train_images: int = 1, 
+                          use_orbital_trajectory: bool = False) -> SceneInfo:
     print(f"Reading Nerf synthetic scene from {path}")
-    train_transforms_file = "transforms_train.json"
+    train_transforms_file = "transforms_train.json" if not use_orbital_trajectory else "orbital_trajectory.json"
     test_transforms_file = "transforms_test.json"
 
     train_cameras_info, full_test_cameras_info = read_cameras_from_transforms(
