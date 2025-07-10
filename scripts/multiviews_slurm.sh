@@ -13,4 +13,4 @@
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/3yb2uo6m
+wandb agent shamus-team/multiplexed-pixels/quj78i4v
