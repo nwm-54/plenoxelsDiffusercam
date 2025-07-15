@@ -59,6 +59,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     data_device: str
     eval: bool
     use_multiplexing: bool
+    use_stereo: bool
     source_path: str
     model_path: str
     images: str
@@ -82,6 +83,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.data_device = "cuda"
         self.eval = False
         self.use_multiplexing = False
+        self.use_stereo = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
         self.n_train_images = 1

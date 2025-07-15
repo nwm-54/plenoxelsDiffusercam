@@ -54,7 +54,7 @@ class SceneInfo(NamedTuple):
     nerf_normalization: Dict[str, np.ndarray]
     ply_path: str
 
-def find_max_min_dispersion_subset(points: np.ndarray, k: int) -> np.ndarray:
+def find_max_min_dispersion_subset(points: np.ndarray, k: int, initial_point_index: Optional[int]) -> np.ndarray:
     """Finds a near-optimal subset of k points that maximizes the minimum distance."""
     if k < 1:
         return np.array([])
@@ -65,7 +65,8 @@ def find_max_min_dispersion_subset(points: np.ndarray, k: int) -> np.ndarray:
     # Get a good initial solution using Farthest Point Sampling
     selected_indices = np.zeros(k, dtype=int)
     rng = np.random.default_rng(seed=42)
-    selected_indices[0] = rng.integers(n_points)
+    selected_indices[0] = initial_point_index if initial_point_index is not None else rng.integers(n_points)
+    
     dists = np.linalg.norm(points - points[selected_indices[0]], axis=1)
     for i in range(1, k):
         farthest_idx = np.argmax(dists)
@@ -437,18 +438,25 @@ def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool,
         path, train_transforms_file, test_transforms_file, white_background, extension)
     
     all_train_cameras_list = sorted([cam for cam_list in train_cameras_info.values() for cam in cam_list], key=lambda c: c.uid)
+    dataset_name = get_dataset_name(path)
+    first_view_uid = FIRST_VIEW.get(dataset_name, [all_train_cameras_list[0].uid])[0]
+    
     selected_view_indices: List[int] = []
-    if n_train_images == 1:
-        dataset_name = get_dataset_name(path)
-        selected_view_indices = FIRST_VIEW.get(dataset_name, [all_train_cameras_list[0].uid])
-    elif n_train_images > 1 and n_train_images < len(all_train_cameras_list):
+    if n_train_images >= len(all_train_cameras_list):
+        selected_view_indices = [cam.uid for cam in all_train_cameras_list]
+    elif n_train_images > 1:
         print(f"Selecting {n_train_images} training views using max-min dispersion.")
         cam_positions = np.array([np.linalg.inv(getWorld2View2(cam.R, cam.T))[:3, 3] for cam in all_train_cameras_list])
-        selected_indices_in_list = find_max_min_dispersion_subset(cam_positions, n_train_images)
+        cam_positions = np.array([np.linalg.inv(getWorld2View2(cam.R, cam.T))[:3, 3] for cam in all_train_cameras_list])
+        try:
+            first_view_list_index = [cam.uid for cam in all_train_cameras_list].index(first_view_uid)
+        except ValueError:
+            first_view_list_index = None
+        selected_indices_in_list = find_max_min_dispersion_subset(cam_positions, n_train_images, first_view_list_index)
         selected_cameras = [all_train_cameras_list[i] for i in selected_indices_in_list]
         selected_view_indices = [cam.uid for cam in selected_cameras]
     else:
-        selected_view_indices = [cam.uid for cam in all_train_cameras_list]
+        selected_view_indices = [first_view_uid]
 
     print("Main training views indices:", selected_view_indices)
     train_cameras_dict = {idx: cams for idx, cams in train_cameras_info.items() if idx in selected_view_indices}
@@ -475,7 +483,7 @@ def generate_random_pcd(path: str, num_pts: int = 100_000) -> Tuple[BasicPointCl
     
     # Cuboid
     # We create random points inside the bounds of the synthetic Blender scenes
-    # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
+    xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
     
     # Spherical
     # Generate random radii, uniformly distributed within [0, 1)
@@ -572,4 +580,37 @@ def create_multiplexed_views(scene_info: SceneInfo,
                     )
                     new_train_cameras[view_idx].append(new_cam_info)
                     sub_image_idx += 1
+    return scene_info._replace(train_cameras=new_train_cameras)
+
+def create_stereo_views(scene_info: SceneInfo, baseline: float = 0.3) -> SceneInfo:
+    new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
+    key_offset = (max(list(scene_info.train_cameras.keys())) + 1)
+    for view_idx, cam_info_list in scene_info.train_cameras.items():
+        for cam_info in cam_info_list:
+            c2w = np.linalg.inv(getWorld2View2(cam_info.R, cam_info.T))
+            right_vector = c2w[:3, 0]
+
+            left_c2w = c2w.copy()
+            left_c2w[:3, 3] -= right_vector * (baseline / 2.0)
+            left_w2c = np.linalg.inv(left_c2w)
+            left_cam = cam_info._replace(
+                R=np.transpose(left_w2c[:3, :3]),
+                T=left_w2c[:3, 3],
+                uid=view_idx,
+                image_name=f"{cam_info.image_name}_left"
+            )
+            new_train_cameras[view_idx] = [left_cam]
+
+            right_view_idx = view_idx + key_offset
+            right_c2w = c2w.copy()
+            right_c2w[:3, 3] += right_vector * (baseline / 2.0)
+            right_w2c = np.linalg.inv(right_c2w)
+            right_cam = cam_info._replace(
+                R=np.transpose(right_w2c[:3, :3]),
+                T=right_w2c[:3, 3],
+                uid=right_view_idx,
+                image_name=f"{cam_info.image_name}_right"
+            )
+            new_train_cameras[right_view_idx] = [right_cam]
+
     return scene_info._replace(train_cameras=new_train_cameras)

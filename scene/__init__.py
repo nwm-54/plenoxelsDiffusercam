@@ -13,13 +13,14 @@ import json
 import os
 from typing import Dict, List, Optional
 
+import imageio.v3 as iio
 import torch
 from arguments import ModelParams
 from scene import multiplexing
-import imageio.v3 as iio
 from scene.cameras import Camera
 from scene.dataset_readers_multiviews import (CameraInfo, apply_offset,
                                               create_multiplexed_views,
+                                              create_stereo_views,
                                               readColmapSceneInfo,
                                               readNerfSyntheticInfo)
 from scene.gaussian_model import GaussianModel
@@ -63,6 +64,8 @@ class Scene:
                 scene_info = apply_offset(args, gs, scene_info)
                 if args.use_multiplexing:
                     scene_info = create_multiplexed_views(scene_info, self.n_multiplexed_images)
+                elif args.use_stereo:
+                    scene_info = create_stereo_views(scene_info)
                 scene_info = render_ply(args, gs, scene_info)
         else:
             raise ValueError(f"Could not infer scene type from source path: {args.source_path}")

@@ -31,7 +31,7 @@ def create_frustum_mesh_data(frustum_vertices_list: List[np.ndarray]) -> Tuple[g
 def _create_static_plot(fig: go.Figure, n: int, c2w_matrices: List, cam_positions: np.ndarray, fov_x: float):
     """Configures the Figure for a single, static visualization."""
     print(f"✨ Selecting {n} maximally dispersed cameras...")
-    selected_indices = set(find_max_min_dispersion_subset(cam_positions, n))
+    selected_indices = set(find_max_min_dispersion_subset(cam_positions, n, 59))
 
     frustums_selected, frustums_other = [], []
     for i, c2w in enumerate(c2w_matrices):
@@ -40,7 +40,7 @@ def _create_static_plot(fig: go.Figure, n: int, c2w_matrices: List, cam_position
 
     if frustums_other:
         mesh = create_frustum_mesh_data(frustums_other)
-        fig.add_trace(go.Mesh3d(x=mesh.x, y=mesh.y, z=mesh.z, i=mesh.i, j=mesh.j, k=mesh.k, color='black', opacity=0.2, name='Other Cameras'))
+        fig.add_trace(go.Mesh3d(x=mesh.x, y=mesh.y, z=mesh.z, i=mesh.i, j=mesh.j, k=mesh.k, color='white', opacity=0.2, name='Other Cameras'))
     if frustums_selected:
         mesh = create_frustum_mesh_data(frustums_selected)
         fig.add_trace(go.Mesh3d(x=mesh.x, y=mesh.y, z=mesh.z, i=mesh.i, j=mesh.j, k=mesh.k, color='red', opacity=0.5, name='Selected Cameras'))
@@ -82,9 +82,26 @@ def visualize_cameras(json_path: str, n_train_images: int = -1) -> None:
     print(f"📸 Loading cameras from {json_path}...")
     with open(json_path, 'r') as f: data = json.load(f)
 
-    frames, fov_x = data['frames'], data['camera_angle_x']
-    c2w_matrices = [np.array(frame['transform_matrix']) for frame in frames]
-    cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])
+    if isinstance(data, dict) and 'frames' in data:
+        frames, fov_x = data['frames'], data['camera_angle_x']
+        c2w_matrices = [np.array(frame['transform_matrix']) for frame in frames]
+        cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])
+    elif isinstance(data, list):
+        c2w_matrices = []
+        for frame in data:
+            R = np.array(frame['rotation']).T
+            T = np.array(frame['position'])
+            w2c = np.eye(4)
+            w2c[:3, :3] = R
+            w2c[:3, 3] = T
+            c2w = np.linalg.inv(w2c)
+            c2w[:3, 1:3] *= -1
+            c2w_matrices.append(c2w)
+        
+        cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])
+        W = data[0].get('width')
+        fx = data[0].get('fx')
+        fov_x = 2 * np.arctan(W / (2 * fx))
 
     fig = go.Figure()
     if len(n_train_images) == 1:

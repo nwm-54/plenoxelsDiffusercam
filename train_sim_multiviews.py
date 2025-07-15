@@ -378,7 +378,12 @@ if __name__ == "__main__":
 
     if opt.iterations not in args.save_iterations: args.save_iterations.append(opt.iterations)
 
-    multiplexing_str = "multiplexing" if dataset.use_multiplexing else "singleview"
+    if dataset.use_multiplexing:
+        multiplexing_str = "multiplexing"
+    elif dataset.use_stereo:
+        multiplexing_str = "stereo"
+    else:
+        multiplexing_str = "singleview"
     run_name = f"{get_dataset_name(dataset.source_path)}_{dataset.n_train_images}views_{multiplexing_str}_dls{args.dls}"
     if opt.tv_weight > 0:
         run_name += f"_tv{opt.tv_weight}"

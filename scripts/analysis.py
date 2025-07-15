@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from typing import Any, Optional, Dict, List
 
-PSNR_KEY: str = "psnr/adjacent test camera"
+PSNR_KEY: str = "psnr/full test camera"
 SCENE_REMAP: Dict[str, str] = {"lego_gen12": "lego"}
 SCENES: List[str] = ["chair", "mic", "ship", "ficus", "materials", "drums", "hotdog", "lego"]
 
