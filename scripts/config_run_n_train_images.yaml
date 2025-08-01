@@ -12,7 +12,14 @@ parameters:
   resolution:
     values: [1]
   source_path:
-    values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"]
+    values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/materials",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/mic",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ship",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
+             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
   n_train_images:
     values: [1, 2, 3, 5, 10, 15, 20, 30, 40, 50]
   use_multiplexing:
@@ -25,6 +32,6 @@ command:
   - --iterations
   - 3000
   - --output-id
-  - 3
+  - 7
   - ${args_no_boolean_flags}
   

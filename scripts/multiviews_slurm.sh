@@ -4,6 +4,7 @@
 #SBATCH --error=slurm_logs/%j.err
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
+#SBATCH --exclude=kim-compute-03
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
 #SBATCH -n 2
@@ -13,4 +14,7 @@
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/ybj1ffba
+wandb agent shamus-team/multiplexed-pixels/2769qn27
+wandb agent shamus-team/multiplexed-pixels/2ont5h8e
+wandb agent shamus-team/multiplexed-pixels/lfqmfp02
+wandb agent shamus-team/multiplexed-pixels/nvtka2rv
