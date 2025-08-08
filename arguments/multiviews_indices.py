@@ -23,9 +23,9 @@ MULTIVIEW_INDICES: Dict[Literal[1, 3, 5], Dict[str, List[int]]] = {
     },
     1: { # single view
         'lego': [59],
-        'hotdog': [0],
+        'hotdog': [2],
         'chair': [2],
-        'drums': [38],
+        'drums': [3],
         'ficus': [2],
         'materials': [79],
         'mic': [25],
