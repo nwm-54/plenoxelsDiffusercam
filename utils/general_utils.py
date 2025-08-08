@@ -137,5 +137,5 @@ def safe_state(silent):
     torch.manual_seed(0)
     torch.cuda.set_device(torch.device("cuda:0"))
 
-def get_dataset_name(source_path: str) -> str:
-    return os.path.basename(source_path).replace("lego_gen12", "lego")
+def get_dataset_name(dataset: ModelParams) -> str:
+    return os.path.basename(dataset.source_path).replace("lego_gen12", "lego")

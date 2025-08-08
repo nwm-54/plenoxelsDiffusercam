@@ -59,7 +59,6 @@ class ModelParams(ParamGroup["ModelParams"]):
     data_device: str
     eval: bool
     use_multiplexing: bool
-    use_stereo: bool
     source_path: str
     model_path: str
     images: str
@@ -69,7 +68,6 @@ class ModelParams(ParamGroup["ModelParams"]):
     camera_offset: float
     pretrained_ply: str
     n_train_images: int
-    use_orbital_trajectory: bool
 
     def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
@@ -83,11 +81,9 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.data_device = "cuda"
         self.eval = False
         self.use_multiplexing = False
-        self.use_stereo = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
-        self.n_train_images = 1
-        self.use_orbital_trajectory = False
+        self.n_train_images = -1
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":

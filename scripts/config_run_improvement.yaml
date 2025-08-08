@@ -20,7 +20,7 @@ parameters:
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
-  n_train_images:
+  num_views:
     values: [1, 3]
   use_multiplexing:
     values:
@@ -31,7 +31,5 @@ command:
   - ${program}
   - --iterations
   - 3000
-  - --output-id
-  - 4
   - ${args_no_boolean_flags}
   

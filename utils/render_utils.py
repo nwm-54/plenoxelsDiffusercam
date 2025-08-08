@@ -27,7 +27,7 @@ def load_pretrained_ply(args: ModelParams) -> Optional[GaussianModel]:
     if args.pretrained_ply and os.path.exists(args.pretrained_ply):
         ply_path = args.pretrained_ply
     else:
-        ply_path = PLYS_ROOT / f"{get_dataset_name(args.source_path)}.ply"
+        ply_path = PLYS_ROOT / f"{get_dataset_name(args)}.ply"
     
     if not os.path.exists(ply_path):
         warnings.warn(f"Pretrained ply file not found at {ply_path}.")
@@ -64,7 +64,11 @@ def render_ply(args: ModelParams, gs: GaussianModel, scene_info: SceneInfo) -> S
                 data_device=args.data_device
             )
 
-            new_image = render_ply_from_camera(tmp_camera, gs, pp, bg)
+            with torch.no_grad():
+                rendering = render(tmp_camera, gs, pp, bg)['render']
+            
+            new_image_data = (rendering.permute(1, 2, 0).cpu().numpy() * 255).clip(0, 255)
+            new_image = Image.fromarray(new_image_data.astype(np.uint8), "RGB")
 
             png_name = f"{cam_info.image_name}.png"
             png_path = os.path.join(out_dir, png_name)
@@ -75,13 +79,6 @@ def render_ply(args: ModelParams, gs: GaussianModel, scene_info: SceneInfo) -> S
         new_train_cameras[view_index] = updated_cam_info_list
     
     return scene_info._replace(train_cameras=new_train_cameras)
-
-def render_ply_from_camera(camera: Camera, gs: GaussianModel, pp: PipelineParams, bg: torch.Tensor) -> Image:
-    with torch.no_grad():
-        rendering = render(camera, gs, pp, bg)['render']
-    new_image_data = (rendering.permute(1, 2, 0).cpu().numpy() * 255).clip(0, 255)
-    new_image = Image.fromarray(new_image_data.astype(np.uint8), "RGB")
-    return new_image
 
 def camera_forward(camera: Camera) -> np.ndarray:
         z_cam = np.array([0, 0, 1])

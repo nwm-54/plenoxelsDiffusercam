@@ -1,7 +1,7 @@
 # config.yaml
 program: train_sim_multiviews.py
 method: grid
-name: run_offset_singleview
+name: run_offset
 parameters:
   tv_weight: 
     values: [0.0]
@@ -12,18 +12,14 @@ parameters:
   resolution:
     values: [1]
   source_path:
-    values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/materials",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/mic",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ship",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
-             "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
+    values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"]
+  pretrained_ply:
+    values: ["/home/wl757/multiplexed-pixels/gs7/plys/lego.ply"]
   camera_offset:
-    values: [2, 0, -2, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -75, -100, -125, -150, -175, -200, -250, -500]
-  n_train_images:
-    values: [1]
+    # values: [-20, -10, -5, -2, 0, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 75, 100, 125, 150, 175, 200, 250, 500, 750, 1000]
+    values: [2, 0, -2, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -75, -100, -125, -150, -175, -200, -250, -500, -750, -1000]
+  num_views:
+    values: [3]
   use_multiplexing:
     values:
       - true
@@ -33,7 +29,5 @@ command:
   - ${program}
   - --iterations
   - 3000
-  - --output-id
-  - 8
   - ${args_no_boolean_flags}
   

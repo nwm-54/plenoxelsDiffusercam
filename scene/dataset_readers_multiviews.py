@@ -1,3 +1,13 @@
+#
+# Copyright (C) 2023, Inria
+# GRAPHDECO research group, https://team.inria.fr/graphdeco
+# All rights reserved.
+#
+# This software is free for non-commercial, research and evaluation use 
+# under the terms of the LICENSE.md file.
+#
+# For inquiries contact  george.drettakis@inria.fr
+#
 import copy
 import json
 import os
@@ -24,7 +34,6 @@ from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
 from utils.render_utils import camera_forward
 from utils.sh_utils import SH2RGB
 from arguments.multiviews_indices import MULTIVIEW_INDICES
-from utils.general_utils import get_dataset_name
 
 FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
 class PinholeMask(NamedTuple):
@@ -54,57 +63,55 @@ class SceneInfo(NamedTuple):
     nerf_normalization: Dict[str, np.ndarray]
     ply_path: str
 
-def find_max_min_dispersion_subset(points: np.ndarray, k: int, initial_point_index: Optional[int]) -> np.ndarray:
-    """Finds a near-optimal subset of k points that maximizes the minimum distance."""
-    if k < 1:
-        return np.array([])
-    n_points = len(points)
-    if k >= n_points:
-        return np.arange(n_points)
-
-    # Get a good initial solution using Farthest Point Sampling
-    selected_indices = np.zeros(k, dtype=int)
-    rng = np.random.default_rng(seed=42)
-    selected_indices[0] = initial_point_index if initial_point_index is not None else rng.integers(n_points)
+def _find_subset_recursive(dist_matrix_sq: np.ndarray, k: int, min_dist_sq: float, start_idx: int, current_subset: List[int]) -> Optional[List[int]]:
+    if len(current_subset) == k:
+        return current_subset
     
-    dists = np.linalg.norm(points - points[selected_indices[0]], axis=1)
-    for i in range(1, k):
-        farthest_idx = np.argmax(dists)
-        selected_indices[i] = farthest_idx
-        new_dists = np.linalg.norm(points - points[farthest_idx], axis=1)
-        dists = np.minimum(dists, new_dists)
+    remaining_needed = k - len(current_subset)
+    remaining_available = dist_matrix_sq.shape[0] - start_idx
+    if remaining_needed > remaining_available:
+        return None
     
-    # Iteratively improve the solution with a local search (exchange heuristic)
-    for _ in range(10):
-        current_subset = set(selected_indices)
-        
-        sub_dist_matrix = np.linalg.norm(points[selected_indices, None] - points[None, selected_indices], axis=-1)
-        np.fill_diagonal(sub_dist_matrix, np.inf)
-        min_dist = sub_dist_matrix.min()
-
-        made_swap = False
-        for i in range(k):
-            for p_out_idx in range(n_points):
-                if p_out_idx in current_subset:
-                    continue
-
-                temp_indices = np.copy(selected_indices)
-                temp_indices[i] = p_out_idx
-                new_sub_dist_matrix = np.linalg.norm(points[temp_indices, None] - points[None, temp_indices], axis=-1)
-                np.fill_diagonal(new_sub_dist_matrix, np.inf)
-                new_min_dist = new_sub_dist_matrix.min()
-
-                if new_min_dist > min_dist:
-                    selected_indices = temp_indices
-                    min_dist = new_min_dist
-                    made_swap = True
-                    break 
-            if made_swap:
+    for i in range(start_idx, dist_matrix_sq.shape[0]):
+        is_compatible = True
+        for p_idx in current_subset:
+            if dist_matrix_sq[i, p_idx] < min_dist_sq:
+                is_compatible = False
                 break
-        if not made_swap:
-            break
-            
-    return selected_indices
+        
+        if is_compatible:
+            result = _find_subset_recursive(dist_matrix_sq, k, min_dist_sq, i + 1, current_subset + [i])
+            if result is not None:
+                return result
+
+    return None
+
+def find_max_min_dispersion_subset(dataset_name: str, points: np.ndarray, k: int) -> np.ndarray:
+    if k < 1:
+        return np.arange(k)
+    if k >= len(points):
+        return np.arange(len(points))
+    
+    points_sq_sum = np.sum(points**2, axis=1)
+    dist_matrix_sq = -2 * np.dot(points, points.T) + points_sq_sum + points_sq_sum[:, np.newaxis]
+    dist_matrix_sq = np.maximum(0, dist_matrix_sq)
+
+    unique_dists_sq = np.unique(dist_matrix_sq.flatten())
+    best_subset = None
+    low, high = 0, len(unique_dists_sq) - 1
+
+    while low <= high:
+        mid_idx = (low + high) // 2
+        min_dist_sq_candidate = unique_dists_sq[mid_idx]
+        found_subset = _find_subset_recursive(dist_matrix_sq, k, min_dist_sq_candidate, 0, [])
+
+        if found_subset is not None:
+            best_subset = found_subset
+            low = mid_idx + 1
+        else:
+            high = mid_idx - 1
+    
+    return np.array(best_subset) if best_subset is not None else np.arange(k)
 
 
 def getNerfppNorm(cam_info: List[CameraInfo]):
@@ -393,9 +400,12 @@ def read_camera(image_filepath: str, image_name: str, transform_matrix: np.array
                       image_name=image_name, width=image.size[0], height=image.size[1])
 
 def read_cameras_from_transforms(path: str, train_transforms_file: str, test_transforms_file: str,
-                                 white_background: bool, extension: str
-                                 ) -> Tuple[Dict[int, List[CameraInfo]], List[CameraInfo]]:
-    train_cameras_info, test_cameras_info = defaultdict(list), []
+                                 view_index: List[int], 
+                                 white_background: bool = False, extension: str = ".png", 
+                                 use_multiplexing: bool = False, 
+                                 n_multiplexed_images: int = 16, 
+                                 is_testing: False = False) -> Tuple[Dict[int, List[CameraInfo]], CameraInfo, CameraInfo]:
+    train_cameras_info, test_cameras_info, full_test_cameras_info = defaultdict(list), [], []
 
     with open(os.path.join(path, train_transforms_file)) as json_file:
         contents = json.load(json_file)
@@ -406,10 +416,16 @@ def read_cameras_from_transforms(path: str, train_transforms_file: str, test_tra
             image_name: str = frame['file_path'].split('/')[-1]
             parts = image_name.split('_')
             index = int(parts[1])
+            if index not in view_index: continue
+
             image_filepath = os.path.join(path, frame["file_path"] + extension)
             train_cameras_info[index].append(read_camera(image_filepath, image_name, frame["transform_matrix"],
                                                          white_background, index, fov_x))
 
+    adjacent_views = []
+    for view in view_index:
+        adjacent_views.extend(multiplexing.get_adjacent_views(view, path))
+    adjacent_views = list(set(adjacent_views))
     with open(os.path.join(path, test_transforms_file)) as json_file:
         contents = json.load(json_file)
         fov_x = contents["camera_angle_x"]
@@ -422,56 +438,34 @@ def read_cameras_from_transforms(path: str, train_transforms_file: str, test_tra
             image_filepath = os.path.join(path, frame["file_path"] + extension)
             camera_info = read_camera(image_filepath, image_name, frame["transform_matrix"],
                                       white_background, index, fov_x)
-            test_cameras_info.append(camera_info)
+            if index in adjacent_views:
+                test_cameras_info.append(camera_info)
+            full_test_cameras_info.append(camera_info)
 
-    return train_cameras_info, test_cameras_info
+    return train_cameras_info, test_cameras_info, full_test_cameras_info
 
 def readNerfSyntheticInfo(path: str, white_background: bool, eval: bool, 
                           extension: str = ".png", 
-                          n_train_images: int = 1, 
-                          use_orbital_trajectory: bool = False) -> SceneInfo:
+                          views_index: Optional[List[int]] = None,
+                          use_multiplexing: bool = False,
+                          n_multiplexed_images: int = 16,
+                          n_train_images: int = -1) -> SceneInfo:
     print(f"Reading Nerf synthetic scene from {path}")
-    train_transforms_file = "transforms_train.json" if not use_orbital_trajectory else "orbital_trajectory.json"
+    print(f"Train view indices: {views_index}, use multiplexing: {use_multiplexing}")
+
+    train_transforms_file = "transforms_train.json"
     test_transforms_file = "transforms_test.json"
 
-    train_cameras_info, full_test_cameras_info = read_cameras_from_transforms(
-        path, train_transforms_file, test_transforms_file, white_background, extension)
+    train_cameras_info, test_cameras_info, full_test_cameras_info = read_cameras_from_transforms(path, 
+                                                              train_transforms_file, test_transforms_file, 
+                                                              views_index, white_background, extension, 
+                                                              use_multiplexing, n_multiplexed_images)
     
-    all_train_cameras_list = sorted([cam for cam_list in train_cameras_info.values() for cam in cam_list], key=lambda c: c.uid)
-    dataset_name = get_dataset_name(path)
-    first_view_uid = FIRST_VIEW.get(dataset_name, [all_train_cameras_list[0].uid])[0]
-    
-    selected_view_indices: List[int] = []
-    if n_train_images >= len(all_train_cameras_list):
-        selected_view_indices = [cam.uid for cam in all_train_cameras_list]
-    elif n_train_images > 1:
-        print(f"Selecting {n_train_images} training views using max-min dispersion.")
-        cam_positions = np.array([np.linalg.inv(getWorld2View2(cam.R, cam.T))[:3, 3] for cam in all_train_cameras_list])
-        cam_positions = np.array([np.linalg.inv(getWorld2View2(cam.R, cam.T))[:3, 3] for cam in all_train_cameras_list])
-        try:
-            first_view_list_index = [cam.uid for cam in all_train_cameras_list].index(first_view_uid)
-        except ValueError:
-            first_view_list_index = None
-        selected_indices_in_list = find_max_min_dispersion_subset(cam_positions, n_train_images, first_view_list_index)
-        selected_cameras = [all_train_cameras_list[i] for i in selected_indices_in_list]
-        selected_view_indices = [cam.uid for cam in selected_cameras]
-    else:
-        selected_view_indices = [first_view_uid]
-
-    print("Main training views indices:", selected_view_indices)
-    train_cameras_dict = {idx: cams for idx, cams in train_cameras_info.items() if idx in selected_view_indices}
-    
-    adjacent_views = []
-    for view in selected_view_indices:
-        adjacent_views.extend(multiplexing.get_adjacent_views(train_cameras_dict[view][0], full_test_cameras_info))
-    adjacent_views = list(set(adjacent_views))
-
-    test_cameras_info = [cam for cam in full_test_cameras_info if cam.uid in adjacent_views]
-    nerf_normalization = getNerfppNorm(all_train_cameras_list)
+    nerf_normalization = getNerfppNorm([cam for cam_list in train_cameras_info.values() for cam in cam_list])
 
     pcd, ply_path = generate_random_pcd(path, num_pts=100_000)
     return SceneInfo(point_cloud=pcd,
-                     train_cameras=train_cameras_dict,
+                     train_cameras=train_cameras_info,
                      test_cameras=test_cameras_info,
                      nerf_normalization=nerf_normalization,
                      ply_path=ply_path, 
@@ -483,7 +477,7 @@ def generate_random_pcd(path: str, num_pts: int = 100_000) -> Tuple[BasicPointCl
     
     # Cuboid
     # We create random points inside the bounds of the synthetic Blender scenes
-    xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
+    # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
     
     # Spherical
     # Generate random radii, uniformly distributed within [0, 1)
@@ -580,37 +574,4 @@ def create_multiplexed_views(scene_info: SceneInfo,
                     )
                     new_train_cameras[view_idx].append(new_cam_info)
                     sub_image_idx += 1
-    return scene_info._replace(train_cameras=new_train_cameras)
-
-def create_stereo_views(scene_info: SceneInfo, baseline: float = 0.3) -> SceneInfo:
-    new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
-    key_offset = (max(list(scene_info.train_cameras.keys())) + 1)
-    for view_idx, cam_info_list in scene_info.train_cameras.items():
-        for cam_info in cam_info_list:
-            c2w = np.linalg.inv(getWorld2View2(cam_info.R, cam_info.T))
-            right_vector = c2w[:3, 0]
-
-            left_c2w = c2w.copy()
-            left_c2w[:3, 3] -= right_vector * (baseline / 2.0)
-            left_w2c = np.linalg.inv(left_c2w)
-            left_cam = cam_info._replace(
-                R=np.transpose(left_w2c[:3, :3]),
-                T=left_w2c[:3, 3],
-                uid=view_idx,
-                image_name=f"{cam_info.image_name}_left"
-            )
-            new_train_cameras[view_idx] = [left_cam]
-
-            right_view_idx = view_idx + key_offset
-            right_c2w = c2w.copy()
-            right_c2w[:3, 3] += right_vector * (baseline / 2.0)
-            right_w2c = np.linalg.inv(right_c2w)
-            right_cam = cam_info._replace(
-                R=np.transpose(right_w2c[:3, :3]),
-                T=right_w2c[:3, 3],
-                uid=right_view_idx,
-                image_name=f"{cam_info.image_name}_right"
-            )
-            new_train_cameras[right_view_idx] = [right_cam]
-
     return scene_info._replace(train_cameras=new_train_cameras)
