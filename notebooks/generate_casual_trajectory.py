@@ -7,6 +7,7 @@ import numpy as np
 
 sys.path.append("../")
 
+
 def generate_orbital_trajectory(
     input_path: str,
     output_path: str,
@@ -17,7 +18,7 @@ def generate_orbital_trajectory(
     """
     Generates a smooth orbital camera trajectory from a specified view in a JSON file.
     """
-    with open(input_path, 'r') as f:
+    with open(input_path, "r") as f:
         data: Dict[str, Any] = json.load(f)
 
     start_frame: Dict[str, Any] | None = None
@@ -26,10 +27,10 @@ def generate_orbital_trajectory(
             start_frame = frame
             break
 
-    if not start_frame: 
+    if not start_frame:
         raise Exception(f"View '{view_name}' not found in '{input_path}'.")
 
-    c2w_matrices = [np.array(frame['transform_matrix']) for frame in data["frames"]]
+    c2w_matrices = [np.array(frame["transform_matrix"]) for frame in data["frames"]]
     cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])
     center = lego_cog
 
@@ -42,14 +43,16 @@ def generate_orbital_trajectory(
     new_frames: List[Dict[str, Any]] = []
     for i in range(num_frames):
         angle = i * (2 * np.pi / num_frames) * speed
-        
+
         # Rotates the starting camera position around the center.
-        new_pos = np.array([
-            center[0] + radius * np.cos(angle),
-            center[2] + radius * np.sin(angle),
-            height,
-        ])
-        
+        new_pos = np.array(
+            [
+                center[0] + radius * np.cos(angle),
+                center[2] + radius * np.sin(angle),
+                height,
+            ]
+        )
+
         # Creates a view matrix that looks at the center.
         forward = center - new_pos
         forward /= np.linalg.norm(forward)
@@ -62,7 +65,7 @@ def generate_orbital_trajectory(
         new_c2w[:3, 1] = new_up
         new_c2w[:3, 2] = -forward
         new_c2w[:3, 3] = new_pos
-        
+
         new_frame = copy.deepcopy(start_frame)
         new_frame["transform_matrix"] = new_c2w.tolist()
         new_frame["file_path"] = f"./train/r_{i}"
@@ -73,11 +76,12 @@ def generate_orbital_trajectory(
         "frames": new_frames,
     }
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(output_data, f, indent=4)
-        
+
     print(f"Successfully generated a {num_frames}-frame orbital trajectory.")
     print(f"Output saved to '{output_path}'.")
+
 
 if __name__ == "__main__":
     lego_cog = [0.0323316864669323, -0.056738946586847305, 0.19368238747119904]
@@ -86,5 +90,5 @@ if __name__ == "__main__":
         output_path="/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12/orbital_trajectory.json",
         view_name="r_50",
         num_frames=90,
-        speed=0.3
+        speed=0.3,
     )

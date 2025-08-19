@@ -3,7 +3,7 @@
 # GRAPHDECO research group, https://team.inria.fr/graphdeco
 # All rights reserved.
 #
-# This software is free for non-commercial, research and evaluation use 
+# This software is free for non-commercial, research and evaluation use
 # under the terms of the LICENSE.md file.
 #
 # For inquiries contact  george.drettakis@inria.fr
@@ -14,13 +14,15 @@ import sys
 import os
 from typing import Generic, TypeVar, cast
 
-T = TypeVar('T', bound="ParamGroup")
+T = TypeVar("T", bound="ParamGroup")
+
 
 class GroupParams:
     pass
 
+
 class ParamGroup(Generic[T]):
-    def __init__(self, parser: ArgumentParser, name : str, fill_none = False) -> None:
+    def __init__(self, parser: ArgumentParser, name: str, fill_none=False) -> None:
         group = parser.add_argument_group(name)
         for key, value in vars(self).items():
             shorthand = False
@@ -28,12 +30,16 @@ class ParamGroup(Generic[T]):
                 shorthand = True
                 key = key[1:]
             t = type(value)
-            value = value if not fill_none else None 
+            value = value if not fill_none else None
             if shorthand:
                 if t == bool:
-                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, action="store_true")
+                    group.add_argument(
+                        "--" + key, ("-" + key[0:1]), default=value, action="store_true"
+                    )
                 else:
-                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, type=t)
+                    group.add_argument(
+                        "--" + key, ("-" + key[0:1]), default=value, type=t
+                    )
             else:
                 if t == bool:
                     group.add_argument("--" + key, default=value, action="store_true")
@@ -47,7 +53,8 @@ class ParamGroup(Generic[T]):
                 setattr(group, k, v)
         return cast(T, group)
 
-class ModelParams(ParamGroup["ModelParams"]): 
+
+class ModelParams(ParamGroup["ModelParams"]):
     sh_degree: int
     _source_path: str
     _model_path: str
@@ -95,6 +102,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         g.source_path = os.path.abspath(g.source_path)
         return g
 
+
 class PipelineParams(ParamGroup["PipelineParams"]):
     convert_SHs_python: bool
     compute_cov3D_python: bool
@@ -107,6 +115,7 @@ class PipelineParams(ParamGroup["PipelineParams"]):
         self.debug = False
         self.antialiasing = False
         super().__init__(parser, "Pipeline Parameters")
+
 
 class OptimizationParams(ParamGroup["OptimizationParams"]):
     iterations: int
@@ -169,6 +178,7 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.lambda_read = 0.01
         self.lambda_shot = 0.01
         super().__init__(parser, "Optimization Parameters")
+
 
 def get_combined_args(parser: ArgumentParser) -> Namespace:
     cmdlne_string = sys.argv[1:]
