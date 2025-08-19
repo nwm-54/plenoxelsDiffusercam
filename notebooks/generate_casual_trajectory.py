@@ -31,7 +31,7 @@ def generate_orbital_trajectory(
         raise Exception(f"View '{view_name}' not found in '{input_path}'.")
 
     c2w_matrices = [np.array(frame["transform_matrix"]) for frame in data["frames"]]
-    cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])
+    cam_positions = np.array([c2w[:3, 3] for c2w in c2w_matrices])  # noqa: F841
     center = lego_cog
 
     start_c2w = np.array(start_frame["transform_matrix"])

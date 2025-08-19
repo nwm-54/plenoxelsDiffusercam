@@ -9,9 +9,9 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-from argparse import ArgumentParser, Namespace
-import sys
 import os
+import sys
+from argparse import ArgumentParser, Namespace
 from typing import Generic, TypeVar, cast
 
 T = TypeVar("T", bound="ParamGroup")
@@ -32,7 +32,7 @@ class ParamGroup(Generic[T]):
             t = type(value)
             value = value if not fill_none else None
             if shorthand:
-                if t == bool:
+                if t is bool:
                     group.add_argument(
                         "--" + key, ("-" + key[0:1]), default=value, action="store_true"
                     )
@@ -41,7 +41,7 @@ class ParamGroup(Generic[T]):
                         "--" + key, ("-" + key[0:1]), default=value, type=t
                     )
             else:
-                if t == bool:
+                if t is bool:
                     group.add_argument("--" + key, default=value, action="store_true")
                 else:
                     group.add_argument("--" + key, default=value, type=t)

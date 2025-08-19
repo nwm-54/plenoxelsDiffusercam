@@ -10,7 +10,6 @@
 #
 import json
 import os
-import random
 import sys
 from pathlib import Path
 from typing import NamedTuple
@@ -19,6 +18,8 @@ import cv2
 import numpy as np
 from PIL import Image
 from plyfile import PlyData, PlyElement
+from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
+from utils.sh_utils import SH2RGB
 
 from scene import multiplexing
 from scene.colmap_loader import (
@@ -29,8 +30,6 @@ from scene.colmap_loader import (
     read_intrinsics_text,
 )
 from scene.gaussian_model import BasicPointCloud
-from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.sh_utils import SH2RGB
 
 
 class PinholeMask(NamedTuple):
@@ -137,7 +136,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
     test_scene = []
     # print("before ", list(cam_extrinsics.keys()))
-    cam_extrinsics_keys = random.choices(list(cam_extrinsics.keys()), k=3)
+    # cam_extrinsics_keys = random.choices(list(cam_extrinsics.keys()), k=3)
     # The line `cam_extrinsics_keys = [4,10,26,33]` is creating a list of specific keys that will be
     # used to filter out certain camera extrinsics during the processing of reading Colmap cameras.
     # Only the camera extrinsics with keys matching the values in the list `[4, 10, 26, 33]` will be
@@ -251,7 +250,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
             # threshold = 20
             # mask = mask.point(lambda p: 1 if p > threshold else 0)
 
-            image_path = mask_path = (
+            image_path = (
                 f"/home/vitran/gs6/2024_04_06/masks/{image_mask_combo[extr.name]}"
             )
             bbox, contour = get_bounding_box(image_path)
@@ -326,7 +325,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
         cam_extrinsics = read_extrinsics_binary(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_binary(cameras_intrinsic_file)
-    except:
+    except Exception:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.txt")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
@@ -353,8 +352,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
-    bin_path = os.path.join(path, "sparse/0/points3D.bin")
-    txt_path = os.path.join(path, "sparse/0/points3D.txt")
+    # bin_path = os.path.join(path, "sparse/0/points3D.bin")
+    # txt_path = os.path.join(path, "sparse/0/points3D.txt")
     # random init for real data
     num_pts = 10000
     print(f"Generating random point cloud ({num_pts})...")
@@ -384,7 +383,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     storePly(ply_path, xyz, SH2RGB(shs) * 255)
     try:
         pcd = fetchPly(ply_path)
-    except:
+    except Exception:
         pcd = None
     # uncomment to get colmap init
     # if not os.path.exists(ply_path):
@@ -551,7 +550,7 @@ def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
         storePly(ply_path, xyz, SH2RGB(shs) * 255)
     try:
         pcd = fetchPly(ply_path)
-    except:
+    except Exception:
         pcd = None
 
     scene_info = SceneInfo(

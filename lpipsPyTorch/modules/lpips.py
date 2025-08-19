@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .networks import get_network, LinLayers
+from .networks import LinLayers, get_network
 from .utils import get_state_dict
 
 
@@ -31,6 +31,6 @@ class LPIPS(nn.Module):
         feat_x, feat_y = self.net(x), self.net(y)
 
         diff = [(fx - fy) ** 2 for fx, fy in zip(feat_x, feat_y)]
-        res = [l(d).mean((2, 3), True) for d, l in zip(diff, self.lin)]
+        res = [l(d).mean((2, 3), True) for d, l in zip(diff, self.lin)]  # noqa: E741
 
         return torch.sum(torch.cat(res, 0), 0, True)

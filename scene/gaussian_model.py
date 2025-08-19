@@ -9,17 +9,23 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
-import numpy as np
-from utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
-from torch import nn
 import os
-from utils.system_utils import mkdir_p
+
+import numpy as np
+import torch
 from plyfile import PlyData, PlyElement
-from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
+from torch import nn
+from utils.general_utils import (
+    build_rotation,
+    build_scaling_rotation,
+    get_expon_lr_func,
+    inverse_sigmoid,
+    strip_symmetric,
+)
 from utils.graphics_utils import BasicPointCloud
-from utils.general_utils import strip_symmetric, build_scaling_rotation
+from utils.sh_utils import RGB2SH
+from utils.system_utils import mkdir_p
 
 
 class GaussianModel:
@@ -178,7 +184,7 @@ class GaussianModel:
         self.xyz_gradient_accum = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
         self.denom = torch.zeros((self.get_xyz.shape[0], 1), device="cuda")
 
-        l = [
+        l = [  # noqa: E741
             {
                 "params": [self._xyz],
                 "lr": training_args.position_lr_init * self.spatial_lr_scale,
@@ -228,7 +234,7 @@ class GaussianModel:
                 return lr
 
     def construct_list_of_attributes(self):
-        l = ["x", "y", "z", "nx", "ny", "nz"]
+        l = ["x", "y", "z", "nx", "ny", "nz"]  # noqa: E741
         # All channels except the 3 DC
         for i in range(self._features_dc.shape[1] * self._features_dc.shape[2]):
             l.append("f_dc_{}".format(i))
@@ -581,7 +587,6 @@ class GaussianModel:
                 torch.logical_or(prune_mask, big_points_vs), big_points_ws
             )
         self.prune_points(prune_mask)
-        tmp_radii = self.tmp_radii
         self.tmp_radii = None
 
         torch.cuda.empty_cache()

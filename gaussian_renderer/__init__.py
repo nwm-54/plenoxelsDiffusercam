@@ -44,7 +44,7 @@ def render(
     )
     try:
         screenspace_points.retain_grad()
-    except:
+    except Exception:
         pass
 
     # Set up rasterization configuration

@@ -9,9 +9,10 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import numpy as np
 import collections
 import struct
+
+import numpy as np
 
 CameraModel = collections.namedtuple(
     "CameraModel", ["model_id", "model_name", "num_params"]
@@ -166,14 +167,14 @@ def read_points3D_binary(path_to_model_file):
             xyz = np.array(binary_point_line_properties[1:4])
             rgb = np.array(binary_point_line_properties[4:7])
             error = np.array(binary_point_line_properties[7])
-            track_length = read_next_bytes(fid, num_bytes=8, format_char_sequence="Q")[
-                0
-            ]
-            track_elems = read_next_bytes(
-                fid,
-                num_bytes=8 * track_length,
-                format_char_sequence="ii" * track_length,
-            )
+            # track_length = read_next_bytes(fid, num_bytes=8, format_char_sequence="Q")[
+            #     0
+            # ]
+            # track_elems = read_next_bytes(
+            #     fid,
+            #     num_bytes=8 * track_length,
+            #     format_char_sequence="ii" * track_length,
+            # )
             xyzs[p_id] = xyz
             rgbs[p_id] = rgb
             errors[p_id] = error

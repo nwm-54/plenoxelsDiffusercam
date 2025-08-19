@@ -9,10 +9,11 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
-import traceback
-import socket
 import json
+import socket
+import traceback
+
+import torch
 from scene.cameras import MiniCam
 
 host = "127.0.0.1"
@@ -53,7 +54,7 @@ def read():
 
 def send(message_bytes, verify):
     global conn
-    if message_bytes != None:
+    if message_bytes is not None:
         conn.sendall(message_bytes)
     conn.sendall(len(verify).to_bytes(4, "little"))
     conn.sendall(bytes(verify, "ascii"))

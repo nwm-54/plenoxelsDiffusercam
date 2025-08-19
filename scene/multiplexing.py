@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from utils.graphics_utils import getWorld2View2
+
 from scene.dataset_readers_multiviews import CameraInfo
 
 SUBIMAGES = list(range(16))
@@ -153,15 +154,15 @@ def get_rays_per_pixel(H, W, comap_yx, max_per_pixel, num_lens):
     mask = np.zeros((W, H, max_per_pixel)).astype(int)
     cnt_mpp = np.zeros((W, H)).astype(int)
 
-    for l in range(num_lens):
+    for n in range(num_lens):
         # Use reversed lens index (num_lens - 1 - l) instead of l
-        reversed_l = num_lens - 1 - l
+        reversed_l = num_lens - 1 - n
         # reversed_l = l
 
         for a in range(W):
             for b in range(H):
-                x = comap_yx[l, b, a, 1]
-                y = comap_yx[l, b, a, 0]
+                x = comap_yx[n, b, a, 1]
+                y = comap_yx[n, b, a, 0]
                 if x != -1 and y != -1:
                     per_pixel[a, b, cnt_mpp[a, b]] = np.array([x, y, reversed_l])
                     mask[a, b, cnt_mpp[a, b]] = 1.0

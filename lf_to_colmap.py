@@ -98,7 +98,7 @@ def main():
     )
     args = parser.parse_args()
 
-    images = decode_lfr(args.lfr, args.calib_tar)  # 13x13 grid of images
+    images = decode_lfr(args.lfr, args.calib_tar)  # 13x13 grid of images  # noqa: F841
     # use only inner 11x11 grid, add argument that toggles this
 
 
