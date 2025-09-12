@@ -5,9 +5,9 @@ import imageio as imageio
 import numpy as np
 import torch
 import torch.nn.functional as F
-from utils.graphics_utils import getWorld2View2
 
-from scene.dataset_readers_multiviews import CameraInfo
+from scene.scene_utils import CameraInfo
+from utils.graphics_utils import getWorld2View2
 
 SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

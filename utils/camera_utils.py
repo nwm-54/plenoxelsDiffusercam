@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from scene.cameras import Camera
 from utils.general_utils import PILtoTorch
 from utils.graphics_utils import fov2focal
 
 if TYPE_CHECKING:
-    from scene.dataset_readers_multiviews import CameraInfo
+    from scene.scene_utils import CameraInfo
 
 WARNED = False
 

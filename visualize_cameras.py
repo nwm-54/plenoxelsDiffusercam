@@ -4,7 +4,8 @@ from typing import List, Tuple
 
 import numpy as np
 import plotly.graph_objects as go
-from scene.dataset_readers_multiviews import find_max_min_dispersion_subset
+
+from utils.render_utils import find_max_min_dispersion_subset
 
 
 def get_camera_frustum_vertices(

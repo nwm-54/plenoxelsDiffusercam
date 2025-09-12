@@ -19,10 +19,8 @@ import torch
 from arguments import ModelParams
 from scene import multiplexing
 from scene.cameras import Camera
-from scene.dataset_readers_multiviews import (
-    CameraInfo,
+from scene.dataset_readers import (
     apply_offset,
-    configure_world_to_m,
     create_iphone_views,
     create_multiplexed_views,
     create_stereo_views,
@@ -31,6 +29,7 @@ from scene.dataset_readers_multiviews import (
     readNerfSyntheticInfo,
 )
 from scene.gaussian_model import GaussianModel
+from scene.scene_utils import CameraInfo, configure_world_to_m
 from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
 from utils.render_utils import load_pretrained_ply, render_ply
 

@@ -10,16 +10,18 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 import torch
 from PIL import Image
+from plyfile import PlyData, PlyElement
 
 from arguments import PipelineParams
 from gaussian_renderer import render
 from scene.cameras import Camera
-from scene.gaussian_model import GaussianModel
+from scene.gaussian_model import BasicPointCloud, GaussianModel
+from scene.scene_utils import CameraInfo
 from utils.general_utils import get_dataset_name
 
 if TYPE_CHECKING:
     from arguments import ModelParams
-    from scene.dataset_readers_multiviews import CameraInfo, SceneInfo
+    from scene.scene_utils import SceneInfo
 
 PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
 
@@ -114,3 +116,101 @@ def camera_center(camera: Camera) -> np.ndarray:
         else camera.T
     )
     return -(R @ T)
+
+
+def find_max_min_dispersion_subset(
+    points: np.ndarray, k: int, initial_point_index: Optional[int]
+) -> np.ndarray:
+    """Finds a near-optimal subset of k points that maximizes the minimum distance."""
+    if k < 1:
+        return np.array([])
+    n_points = len(points)
+    if k >= n_points:
+        return np.arange(n_points)
+
+    # Get a good initial solution using Farthest Point Sampling
+    selected_indices = np.zeros(k, dtype=int)
+    rng = np.random.default_rng(seed=42)
+    selected_indices[0] = (
+        initial_point_index
+        if initial_point_index is not None
+        else rng.integers(n_points)
+    )
+
+    dists = np.linalg.norm(points - points[selected_indices[0]], axis=1)
+    for i in range(1, k):
+        farthest_idx = np.argmax(dists)
+        selected_indices[i] = farthest_idx
+        new_dists = np.linalg.norm(points - points[farthest_idx], axis=1)
+        dists = np.minimum(dists, new_dists)
+
+    # Iteratively improve the solution with a local search (exchange heuristic)
+    for _ in range(10):
+        current_subset = set(selected_indices)
+
+        sub_dist_matrix = np.linalg.norm(
+            points[selected_indices, None] - points[None, selected_indices], axis=-1
+        )
+        np.fill_diagonal(sub_dist_matrix, np.inf)
+        min_dist = sub_dist_matrix.min()
+
+        made_swap = False
+        for i in range(k):
+            for p_out_idx in range(n_points):
+                if p_out_idx in current_subset:
+                    continue
+
+                temp_indices = np.copy(selected_indices)
+                temp_indices[i] = p_out_idx
+                new_sub_dist_matrix = np.linalg.norm(
+                    points[temp_indices, None] - points[None, temp_indices], axis=-1
+                )
+                np.fill_diagonal(new_sub_dist_matrix, np.inf)
+                new_min_dist = new_sub_dist_matrix.min()
+
+                if new_min_dist > min_dist:
+                    selected_indices = temp_indices
+                    min_dist = new_min_dist
+                    made_swap = True
+                    break
+            if made_swap:
+                break
+        if not made_swap:
+            break
+
+    return selected_indices
+
+
+def fetchPly(path) -> BasicPointCloud:
+    plydata = PlyData.read(path)
+    vertices = plydata["vertex"]
+    positions = np.vstack([vertices["x"], vertices["y"], vertices["z"]]).T
+    colors = np.vstack([vertices["red"], vertices["green"], vertices["blue"]]).T / 255.0
+    normals = np.vstack([vertices["nx"], vertices["ny"], vertices["nz"]]).T
+    return BasicPointCloud(points=positions, colors=colors, normals=normals)
+
+
+def storePly(path, xyz, rgb):
+    # Define the dtype for the structured array
+    dtype = [
+        ("x", "f4"),
+        ("y", "f4"),
+        ("z", "f4"),
+        ("nx", "f4"),
+        ("ny", "f4"),
+        ("nz", "f4"),
+        ("red", "u1"),
+        ("green", "u1"),
+        ("blue", "u1"),
+    ]
+
+    normals = np.zeros_like(xyz)
+
+    elements = np.empty(xyz.shape[0], dtype=dtype)
+    attributes = np.concatenate((xyz, normals, rgb), axis=1)
+    elements[:] = list(map(tuple, attributes))
+
+    # Create the PlyData object and write to file
+    vertex_element = PlyElement.describe(elements, "vertex")
+    ply_data = PlyData([vertex_element])
+    ply_data.write(path)
