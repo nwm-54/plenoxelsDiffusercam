@@ -67,6 +67,8 @@ class ModelParams(ParamGroup["ModelParams"]):
     eval: bool
     use_multiplexing: bool
     use_stereo: bool
+    use_iphone: bool
+    iphone_same_focal_length: bool
     source_path: str
     model_path: str
     images: str
@@ -77,6 +79,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     pretrained_ply: str
     n_train_images: int
     use_orbital_trajectory: bool
+    world_to_m: float
 
     def __init__(self, parser: ArgumentParser, sentinel=False):
         self.sh_degree = 3
@@ -91,10 +94,13 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.eval = False
         self.use_multiplexing = False
         self.use_stereo = False
+        self.use_iphone = False
+        self.iphone_same_focal_length = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
         self.n_train_images = 1
         self.use_orbital_trajectory = False
+        self.world_to_m = 99.04 / 1000
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args: Namespace) -> "ModelParams":

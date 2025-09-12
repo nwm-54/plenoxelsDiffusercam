@@ -9,12 +9,13 @@ from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import torch
+from PIL import Image
+
 from arguments import PipelineParams
 from gaussian_renderer import render
-from PIL import Image
 from scene.cameras import Camera
-from utils.general_utils import get_dataset_name
 from scene.gaussian_model import GaussianModel
+from utils.general_utils import get_dataset_name
 
 if TYPE_CHECKING:
     from arguments import ModelParams
@@ -99,3 +100,17 @@ def camera_forward(camera: Camera) -> np.ndarray:
     z_cam = np.array([0, 0, 1])
     forward = camera.R @ z_cam
     return forward / np.linalg.norm(forward)
+
+
+def camera_center(camera: Camera) -> np.ndarray:
+    R = (
+        camera.R.detach().cpu().numpy()
+        if isinstance(camera.R, torch.Tensor)
+        else camera.R
+    )
+    T = (
+        camera.T.detach().cpu().numpy()
+        if isinstance(camera.T, torch.Tensor)
+        else camera.T
+    )
+    return -(R @ T)

@@ -7,15 +7,11 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import cv2
 import numpy as np
-from arguments import ModelParams
-from arguments.multiviews_indices import MULTIVIEW_INDICES
 from PIL import Image
 from plyfile import PlyData, PlyElement
-from utils.general_utils import get_dataset_name
-from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.render_utils import camera_forward
-from utils.sh_utils import SH2RGB
 
+from arguments import ModelParams
+from arguments.multiviews_indices import MULTIVIEW_INDICES
 from scene import multiplexing
 from scene.colmap_loader import (
     qvec2rotmat,
@@ -25,8 +21,38 @@ from scene.colmap_loader import (
     read_intrinsics_text,
 )
 from scene.gaussian_model import BasicPointCloud, GaussianModel
+from utils.general_utils import get_dataset_name
+from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
+from utils.render_utils import camera_forward
+from utils.sh_utils import SH2RGB
 
 FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
+WORLD_TO_M: float = 0.09904
+PIXEL_SIZE_MM = 0.00244
+
+
+def configure_world_to_m(scale_m_per_world: float) -> None:
+    """This is set from `Scene.world_to_m` once the Scene is constructed."""
+    global WORLD_TO_M
+    WORLD_TO_M = float(scale_m_per_world)
+
+
+def world_to_m(world_value: float) -> float:
+    return float(world_value) * WORLD_TO_M
+
+
+def m_to_world(meters: float) -> float:
+    return float(meters) / WORLD_TO_M
+
+
+def mm_to_world(mm: float) -> float:
+    """Convert millimeters to world units using the configured scale."""
+    return m_to_world(float(mm) / 1000.0)
+
+
+def world_to_mm(world_value: float) -> float:
+    """Convert world units to millimeters using the configured scale."""
+    return world_to_m(float(world_value)) * 1000.0
 
 
 class PinholeMask(NamedTuple):
@@ -37,6 +63,7 @@ class PinholeMask(NamedTuple):
 
 class CameraInfo(NamedTuple):
     uid: int
+    groupid: int
     R: np.ndarray
     T: np.ndarray
     FovY: float
@@ -57,6 +84,37 @@ class SceneInfo(NamedTuple):
     full_test_cameras: List[CameraInfo]
     nerf_normalization: Dict[str, np.ndarray]
     ply_path: str
+
+
+def _offset_camera(cam: CameraInfo, offset_xyz: np.ndarray) -> CameraInfo:
+    """Applies a translation offset to the camera position."""
+    c2w = np.linalg.inv(getWorld2View2(cam.R, cam.T))
+    new_c2w = c2w.copy()
+    world_offset = new_c2w[:3, :3] @ np.asarray(offset_xyz, dtype=np.float32)
+    new_c2w[:3, 3] += world_offset
+    new_w2c = np.linalg.inv(new_c2w)
+    new_R = np.transpose(new_w2c[:3, :3])
+    new_T = new_w2c[:3, 3]
+    return cam._replace(R=new_R, T=new_T)
+
+
+def _scale_camera_fov(cam: CameraInfo, scale: float) -> CameraInfo:
+    fx = fov2focal(cam.FovX, cam.width)
+    fy = fov2focal(cam.FovY, cam.height)
+    new_fx = fx * float(scale)
+    new_fy = fy * float(scale)
+    new_FovX = focal2fov(new_fx, cam.width)
+    new_FovY = focal2fov(new_fy, cam.height)
+    return cam._replace(FovX=new_FovX, FovY=new_FovY)
+
+
+def _make_shifted_scaled_cam(
+    cam: CameraInfo, offset_xyz: np.ndarray, scale: float, uid: int, image_name: str
+) -> CameraInfo:
+    cam = _offset_camera(cam, offset_xyz)
+    if abs(scale - 1.0) > 1e-8:
+        cam = _scale_camera_fov(cam, scale)
+    return cam._replace(uid=uid, image_name=image_name)
 
 
 def find_max_min_dispersion_subset(
@@ -177,6 +235,39 @@ def storePly(path, xyz, rgb):
     vertex_element = PlyElement.describe(elements, "vertex")
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
+
+
+def print_camera_metrics(scene_info: SceneInfo, obj_center: np.ndarray) -> None:
+    pixel_size_mm = PIXEL_SIZE_MM
+
+    printed = 0
+    for view_idx, cam_list in scene_info.train_cameras.items():
+        if not cam_list:
+            continue
+        cam = cam_list[0]
+
+        fx_px = fov2focal(cam.FovX, cam.width)
+        fy_px = fov2focal(cam.FovY, cam.height)
+        fx_mm = fy_mm = None
+        fx_mm = fx_px * pixel_size_mm
+        fy_mm = fy_px * pixel_size_mm
+
+        cam_center_world = -cam.R @ cam.T
+        if obj_center is None:
+            dist_world = np.linalg.norm(cam_center_world)
+        else:
+            dist_world = np.linalg.norm(cam_center_world - obj_center)
+        dist_m = world_to_m(dist_world)
+
+        print(
+            f"View {view_idx} ({cam.image_name}): fx={fx_mm:.3f} mm (px={fx_px:.1f}), "
+            f"fy={fy_mm:.3f} mm (px={fy_px:.1f}); distance={dist_m:.3f} m"
+        )
+
+        printed += 1
+        if printed >= 10:
+            # Avoid flooding logs; show up to 10 views
+            break
 
 
 def get_bounding_box(image_path):
@@ -321,6 +412,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
 
         cam_info = CameraInfo(
             uid=uid,
+            groupid=uid,
             R=R,
             T=T,
             FovY=FovY,
@@ -462,6 +554,7 @@ def read_camera(
 
     return CameraInfo(
         uid=uid_for_image,
+        groupid=uid_for_image,
         R=R,
         T=T,
         FovY=fov_y,
@@ -609,7 +702,7 @@ def readNerfSyntheticInfo(
     nerf_normalization = getNerfppNorm(all_train_cameras_list)
 
     pcd, ply_path = generate_random_pcd(path, num_pts=100_000)
-    return SceneInfo(
+    scene_info = SceneInfo(
         point_cloud=pcd,
         train_cameras=train_cameras_dict,
         test_cameras=test_cameras_info,
@@ -617,6 +710,7 @@ def readNerfSyntheticInfo(
         ply_path=ply_path,
         full_test_cameras=full_test_cameras_info,
     )
+    return scene_info
 
 
 def generate_random_pcd(
@@ -652,7 +746,7 @@ def generate_random_pcd(
 def apply_offset(
     args: ModelParams, gs: GaussianModel, scene_info: SceneInfo
 ) -> SceneInfo:
-    print(f"Applying camera offset: {args.camera_offset}")
+    print(f"Applying camera offset (mm): {args.camera_offset}")
 
     new_train_cameras = copy.deepcopy(scene_info.train_cameras)
     gs_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
@@ -663,7 +757,9 @@ def apply_offset(
             world_center = -cam_info.R @ cam_info.T
             initial_distance = np.linalg.norm(world_center - gs_center)
 
-            delta = camera_forward(cam_info) * float(args.camera_offset)
+            # Treat args.camera_offset as millimeters; convert to world units
+            offset_world = mm_to_world(float(args.camera_offset))
+            delta = camera_forward(cam_info) * offset_world
             new_world_center = world_center + delta
             new_T = -cam_info.R.T @ new_world_center
 
@@ -715,6 +811,7 @@ def create_multiplexed_views(
 
                     new_cam_info = CameraInfo(
                         uid=uid,
+                        groupid=view_idx,
                         R=new_R,
                         T=new_T,
                         FovX=cam_info.FovX,
@@ -735,32 +832,98 @@ def create_multiplexed_views(
 def create_stereo_views(scene_info: SceneInfo, baseline: float = 0.3) -> SceneInfo:
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
     key_offset = max(list(scene_info.train_cameras.keys())) + 1
+    print(world_to_m(baseline), "m baseline")
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            c2w = np.linalg.inv(getWorld2View2(cam_info.R, cam_info.T))
-            right_vector = c2w[:3, 0]
-
-            left_c2w = c2w.copy()
-            left_c2w[:3, 3] -= right_vector * (baseline / 2.0)
-            left_w2c = np.linalg.inv(left_c2w)
-            left_cam = cam_info._replace(
-                R=np.transpose(left_w2c[:3, :3]),
-                T=left_w2c[:3, 3],
+            left_cam = _make_shifted_scaled_cam(
+                cam_info,
+                offset_xyz=[-baseline / 2, 0, 0],
+                scale=1.0,
                 uid=view_idx,
                 image_name=f"{cam_info.image_name}_left",
             )
+            left_cam = left_cam._replace(groupid=view_idx)
             new_train_cameras[view_idx] = [left_cam]
 
             right_view_idx = view_idx + key_offset
-            right_c2w = c2w.copy()
-            right_c2w[:3, 3] += right_vector * (baseline / 2.0)
-            right_w2c = np.linalg.inv(right_c2w)
-            right_cam = cam_info._replace(
-                R=np.transpose(right_w2c[:3, :3]),
-                T=right_w2c[:3, 3],
+            right_cam = _make_shifted_scaled_cam(
+                cam_info,
+                offset_xyz=[baseline / 2, 0, 0],
+                scale=1.0,
                 uid=right_view_idx,
                 image_name=f"{cam_info.image_name}_right",
             )
+            right_cam = right_cam._replace(groupid=view_idx)
             new_train_cameras[right_view_idx] = [right_cam]
+
+    return scene_info._replace(train_cameras=new_train_cameras)
+
+
+def create_iphone_views(
+    scene_info: SceneInfo,
+    same_focal_lengths: bool = False,
+    baseline_x: float = 9.5,
+    baseline_y: float = 9.5,
+) -> SceneInfo:
+    """Create iPhone-like triple-camera views with metric baselines and focal lengths.
+
+    Notes:
+    - `baseline_x`, `baseline_y` are interpreted as millimeters and converted to world units.
+    - If `same_focal_lengths` is False and `PIXEL_SIZE_MM > 0`, focal length is enforced
+      in absolute millimeters (13mm ultrawide, 24mm wide, 77mm tele) by scaling intrinsics.
+      Otherwise, falls back to ratios (13/24 and 77/24) relative to the source view.
+    """
+    # Convert millimeter baselines to world units
+    bx_world, by_world = mm_to_world(baseline_x), mm_to_world(baseline_y)
+
+    new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
+    key_offset = max(list(scene_info.train_cameras.keys())) + 1
+    second_offset = key_offset * 2
+    for view_idx, cam_info_list in scene_info.train_cameras.items():
+        for cam_info in cam_info_list:
+            if same_focal_lengths:
+                uw_scale = wide_scale = tele_scale = 1.0
+            else:
+                fx_px = fov2focal(cam_info.FovX, cam_info.width)
+                fx_uw_px = 13.0 / PIXEL_SIZE_MM
+                fx_wide_px = 24.0 / PIXEL_SIZE_MM
+                fx_tele_px = 77.0 / PIXEL_SIZE_MM
+
+                uw_scale = fx_uw_px / fx_px
+                wide_scale = fx_wide_px / fx_px
+                tele_scale = fx_tele_px / fx_px
+
+            lu_idx = view_idx
+            left_upper = _make_shifted_scaled_cam(
+                cam_info,
+                offset_xyz=[-bx_world, -by_world, 0],
+                scale=uw_scale,
+                uid=lu_idx,
+                image_name=f"{cam_info.image_name}_uw",
+            )
+            left_upper = left_upper._replace(groupid=view_idx)
+            new_train_cameras[view_idx] = [left_upper]
+
+            ll_idx = view_idx + key_offset
+            left_lower = _make_shifted_scaled_cam(
+                cam_info,
+                offset_xyz=[-bx_world, by_world, 0],
+                scale=wide_scale,
+                uid=ll_idx,
+                image_name=f"{cam_info.image_name}_wide",
+            )
+            left_lower = left_lower._replace(groupid=view_idx)
+            new_train_cameras[ll_idx] = [left_lower]
+
+            r_idx = view_idx + second_offset
+            right = _make_shifted_scaled_cam(
+                cam_info,
+                offset_xyz=[bx_world, 0, 0],
+                scale=tele_scale,
+                uid=r_idx,
+                image_name=f"{cam_info.image_name}_tele",
+            )
+            right = right._replace(groupid=view_idx)
+            new_train_cameras[r_idx] = [right]
 
     return scene_info._replace(train_cameras=new_train_cameras)

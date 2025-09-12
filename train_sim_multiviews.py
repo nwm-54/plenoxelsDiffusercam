@@ -6,13 +6,14 @@ from argparse import ArgumentParser, Namespace
 from typing import Dict, List, Optional, Tuple
 
 import torch
+from tqdm import tqdm
+
 import wandb
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
-from tqdm import tqdm
 from utils.general_utils import get_dataset_name, safe_state
 from utils.image_utils import heteroscedastic_noise, psnr, quantize_14bit
 from utils.loss_utils import l1_loss, ssim
@@ -98,7 +99,7 @@ def training(
         all_render_pkgs: List[Dict[str, torch.Tensor]] = []
 
         cameras_to_train: Dict[int, List[Camera]]
-        num_cameras_to_sample = 10 if dataset.use_multiplexing else 160
+        num_cameras_to_sample = 10 if dataset.use_multiplexing else 120
         if len(view_indices) > num_cameras_to_sample:
             if not available_view_indices:
                 available_view_indices = view_indices.copy()
@@ -212,6 +213,7 @@ def training(
                 total_train_loss,
                 mean_train_tv_loss,
                 opt,
+                (dataset.use_multiplexing, dataset.use_stereo, dataset.use_iphone),
                 (
                     scene.comap_yx,
                     scene.dim_lens_lf_yx,
@@ -318,6 +320,7 @@ def training_report(
     train_loss: torch.Tensor,
     mean_train_tv_loss: float,
     opt: OptimizationParams,
+    mode_flags: Tuple[bool, bool, bool],
     multiplexing_args: Optional[
         Tuple[torch.Tensor, List[int], int, int, int, int]
     ] = None,
@@ -332,6 +335,7 @@ def training_report(
         psnr_subset += psnr(out, gt).mean().double()
 
     total_pts = scene.gaussians.get_xyz.shape[0]
+
     log_dict = {
         "total_loss": loss.item(),
         "unseen_tv_loss": unseen_tv_loss.item(),
@@ -497,6 +501,8 @@ if __name__ == "__main__":
         multiplexing_str = "multiplexing"
     elif dataset.use_stereo:
         multiplexing_str = "stereo"
+    elif dataset.use_iphone:
+        multiplexing_str = "iphone"
     else:
         multiplexing_str = "singleview"
     run_name = f"{get_dataset_name(dataset.source_path)}_{dataset.n_train_images}views_{multiplexing_str}_dls{args.dls}"
@@ -506,6 +512,8 @@ if __name__ == "__main__":
         run_name += f"_unseen{opt.tv_unseen_weight}"
     if dataset.camera_offset != 0:
         run_name += f"_offset{dataset.camera_offset}"
+    if dataset.use_iphone and not dataset.iphone_same_focal_length:
+        run_name += "_multifocal"
 
     if not dataset.model_path:
         dataset.model_path = (

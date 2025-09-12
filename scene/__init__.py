@@ -15,14 +15,18 @@ from typing import Dict, List, Optional
 
 import imageio.v3 as iio
 import torch
+
 from arguments import ModelParams
 from scene import multiplexing
 from scene.cameras import Camera
 from scene.dataset_readers_multiviews import (
     CameraInfo,
     apply_offset,
+    configure_world_to_m,
+    create_iphone_views,
     create_multiplexed_views,
     create_stereo_views,
+    print_camera_metrics,
     readColmapSceneInfo,
     readNerfSyntheticInfo,
 )
@@ -35,6 +39,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Scene:
     gaussians: GaussianModel
+    world_to_m: float
 
     def __init__(
         self,
@@ -48,6 +53,9 @@ class Scene:
         """
         self.model_path = args.model_path
         self.gaussians = gaussians
+        self.world_to_m = args.world_to_m
+        # Propagate world<->meters scale to dataset helpers
+        configure_world_to_m(self.world_to_m)
 
         self.train_cameras: Dict[float, Dict[int, List]] = {}
         self.test_cameras: Dict[float, List] = {}
@@ -93,16 +101,19 @@ class Scene:
                     )
                 elif args.use_stereo:
                     scene_info = create_stereo_views(scene_info)
+                elif args.use_iphone:  # NEW
+                    scene_info = create_iphone_views(
+                        scene_info, args.iphone_same_focal_length
+                    )
                 scene_info = render_ply(args, gs, scene_info)
+                self.object_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
+                print_camera_metrics(scene_info, self.object_center)
         else:
             raise ValueError(
                 f"Could not infer scene type from source path: {args.source_path}"
             )
 
-        with (
-            open(scene_info.ply_path, "rb") as src_file,
-            open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file,
-        ):
+        with open(scene_info.ply_path, "rb") as src_file, open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file:  # fmt: skip
             dest_file.write(src_file.read())
 
         json_cams: List[Dict] = []

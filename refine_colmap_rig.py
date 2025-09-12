@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -12,12 +11,7 @@ from typing import List, Optional, Tuple
 
 import imageio.v3 as iio
 import numpy as np
-import plenopticam as pcam
 from plenopticam.cfg import PlenopticamConfig
-from plenopticam.lfp_aligner import LfpAligner
-from plenopticam.lfp_calibrator import CaliFinder, LfpCalibrator
-from plenopticam.lfp_extractor import LfpExtractor
-from skimage.transform import resize
 from skimage.util import img_as_float, img_as_ubyte
 
 
@@ -38,44 +32,6 @@ def ensure_empty(dirpath: Path):
     if dirpath.exists():
         shutil.rmtree(dirpath)
     dirpath.mkdir(parents=True, exist_ok=True)
-
-
-# —————————————————— Plenopticam ————————————————————————————
-def decode_lfr(
-    lfr_path: Path, calib_tar: Path
-) -> Tuple[np.ndarray, Tuple[float, float]]:
-    cfg = PlenopticamConfig()
-    cfg.default_values()
-    cfg.params[cfg.lfp_path] = str(lfr_path.resolve())
-    cfg.params[cfg.cal_path] = str(calib_tar.resolve())
-    cfg.params[cfg.opt_cali] = True
-    cfg.params[cfg.ptc_leng] = 13
-    cfg.params[cfg.cal_meth] = pcam.cfg.constants.CALI_METH[3]
-
-    sta = pcam.misc.PlenopticamStatus()
-    ensure_empty(Path(cfg.exp_path))
-
-    reader = pcam.lfp_reader.LfpReader(cfg, sta)
-    reader.main()
-    finder = CaliFinder(cfg, sta)
-    finder.main()
-    meta_cond = not (
-        os.path.exists(cfg.params[cfg.cal_meta])
-        and cfg.params[cfg.cal_meta].lower().endswith("json")
-    )
-    if meta_cond or cfg.params[cfg.opt_cali]:
-        calibrator = LfpCalibrator(finder.wht_bay, cfg, sta)
-        calibrator.main()
-        cfg = calibrator.cfg
-
-    cfg.load_cal_data()
-    if cfg.cond_lfp_align():
-        aligner = LfpAligner(reader.lfp_img, cfg, sta, finder.wht_bay)
-        aligner.main()
-
-    extractor = LfpExtractor(aligner.lfp_img, cfg, sta)
-    extractor.main()
-    return extractor.vp_img_arr, cfg.calibs[cfg.ptc_mean]
 
 
 def load_viewpoints(lfr_path: Path):
@@ -151,31 +107,23 @@ def save_as_rig(
     images: np.ndarray,
     images_root: Path,
     inner: Optional[int] = None,
-    downscale: float = 1.0,
 ) -> List[RigCamera]:
     V, U, H, W, C = images.shape
     if inner is not None:
         assert inner <= V and inner <= U, "Inner must smaller than the grid size"
         images = images[inner : V - inner, inner : U - inner]
         V, U = V - 2 * inner, U - 2 * inner
-
+    print(images.shape, V, U)
     vc, uc = V // 2, U // 2
-    rig_dir = images_root / "rig"
-    ensure_empty(rig_dir)
+    ensure_empty(images_root)
 
     cams: List[RigCamera] = []
     for v in range(V):
         for u in range(U):
-            cam_folder = rig_dir / f"cam_{v:02d}_{u:02d}"
+            cam_folder = images_root / f"{v + inner:02d}_{u + inner:02d}"
             cam_folder.mkdir(parents=True, exist_ok=True)
 
             img = img_as_float(images[v, u])
-            if downscale != 1.0:
-                img = resize(
-                    img,
-                    (int(img.shape[0] * downscale), int(img.shape[1] * downscale)),
-                    anti_aliasing=True,
-                )
             out_path = cam_folder / "frame.png"
             iio.imwrite(out_path.as_posix(), img_as_ubyte(img))
 
@@ -186,7 +134,7 @@ def save_as_rig(
                 RigCamera(
                     row=v,
                     col=u,
-                    name=f"cam_{v:02d}_{u:02d}",
+                    name=f"{v + inner:02d}_{u + inner:02d}",
                     prefix=Path(prefix_rel),
                     is_ref=(v == vc and u == uc),
                     tx=tx,
@@ -249,7 +197,9 @@ def write_rig_config(
         json.dump(rig_json, f, indent=4)
 
 
-def run_colmap(out_dir: Path, fix_rig: bool, focal_px: float):
+def run_colmap(
+    out_dir: Path, ground_truth: Path, fix_rig: bool, focal_px: float = None
+):
     images = out_dir / "images"
     database = out_dir / "database.db"
     sparse = out_dir / "sparse"
@@ -257,10 +207,10 @@ def run_colmap(out_dir: Path, fix_rig: bool, focal_px: float):
     if database.exists():
         database.unlink()
 
-    sample_img = next(images.rglob(f"*{'.png'}"))
-    sample = iio.imread(sample_img.as_posix())
-    H, W = sample.shape[:2]
-    cx, cy = W / 2.0, H / 2.0
+    # sample_img = next(images.rglob(f"*{'.png'}"))
+    # sample = iio.imread(sample_img.as_posix())
+    # H, W = sample.shape[:2]
+    # cx, cy = W / 2.0, H / 2.0
 
     extract_cmd = [
         "colmap",
@@ -277,8 +227,8 @@ def run_colmap(out_dir: Path, fix_rig: bool, focal_px: float):
         "1",
         "--ImageReader.camera_model",
         "PINHOLE",
-        "--ImageReader.camera_params",
-        f"{focal_px},{focal_px},{cx},{cy}",
+        # "--ImageReader.camera_params",
+        # f"{focal_px},{focal_px},{cx},{cy}",
     ]
     run(extract_cmd)
 
@@ -291,6 +241,8 @@ def run_colmap(out_dir: Path, fix_rig: bool, focal_px: float):
             str(database),
             "--rig_config_path",
             str(rig_cfg),
+            "--input_path",
+            str(ground_truth),
         ]
     )
 
@@ -335,16 +287,10 @@ def run_colmap(out_dir: Path, fix_rig: bool, focal_px: float):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Lytro .lfr -> SAIs -> COLMAP rig reconstruction"
+        description="Refine a COLMAP reconstruction from a VGGT reconstruction"
     )
     parser.add_argument(
         "--lfr", type=Path, required=True, help="Path to Lytro Illum .lfr"
-    )
-    parser.add_argument(
-        "--calib_tar",
-        type=Path,
-        required=True,
-        help="Path to Lytro caldata-XXX.tar (or folder)",
     )
     parser.add_argument(
         "--out_dir",
@@ -353,49 +299,40 @@ def main():
         help="Output directory for COLMAP results",
     )
     parser.add_argument(
+        "--ground_truth",
+        type=Path,
+        required=True,
+        help="Path to the ground truth COLMAP reconstruction",
+    )
+    parser.add_argument(
         "--inner",
         type=int,
         default=1,
         help="Remover outer N images (N must be odd)",
-    )
-    parser.add_argument(
-        "--downscale",
-        type=float,
-        default=1.0,
-        help="Downscale factor for extracted images",
-    )
-    parser.add_argument(
-        "--skip_lfr",
-        action="store_true",
-        default=False,
-        help="Skip lightfield decoding and rigging step",
     )
     args = parser.parse_args()
 
     # ensure_empty(args.out_dir)
     images_path = args.out_dir / "images"
     images_path.mkdir(parents=True, exist_ok=True)
-    if args.skip_lfr:
-        images = load_viewpoints(args.lfr)
-    else:
-        images, pitch = decode_lfr(args.lfr, args.calib_tar)
-        pixel_size_m = 0.000001399999950081109936235848
-        pixel_size_mm = pixel_size_m * 1000
-        focal_mm = 11.4
-        # focal_mm = 37.6
-        focal_px = focal_mm / pixel_size_mm
-        print(pitch)
-        print(focal_px)
+    images = load_viewpoints(args.lfr)
+    # pixel_size_m = 0.000001399999950081109936235848
+    # pixel_size_mm = pixel_size_m * 1000
+    # focal_mm = 11.4
+    # focal_mm = 37.6
+    # focal_px = focal_mm / pixel_size_mm
+    # print(pitch)
+    # print(focal_px)
 
     inner = None if args.inner in (None, 0) else args.inner
     # save_with_inner(images, args.out_dir, inner=inner)
-    cams = save_as_rig(images, images_path, inner=inner, downscale=args.downscale)
+    cams = save_as_rig(images, images_path, inner=inner)
 
     rig_config = args.out_dir / "rig_config.json"
     # write_rig_config(cams, rig_config, spacing=(bx, by))
-    write_rig_config(cams, rig_config, spacing=(pitch[1], pitch[0]))
+    write_rig_config(cams, rig_config)
 
-    run_colmap(args.out_dir, fix_rig=True, focal_px=focal_px)
+    run_colmap(args.out_dir, args.ground_truth, fix_rig=True)
 
 
 if __name__ == "__main__":
