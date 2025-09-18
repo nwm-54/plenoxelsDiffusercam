@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 import plotly.graph_objects as go
 
-from scene.dataset_readers import create_frustum_mesh_data, get_camera_frustum_vertices
+from utils.visualization_utils import create_frustum_mesh_data, get_camera_frustum_vertices
 from utils.render_utils import find_max_min_dispersion_subset
 
 

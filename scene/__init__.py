@@ -28,17 +28,17 @@ from scene.dataset_readers import (
     print_camera_metrics,
     readColmapSceneInfo,
     readNerfSyntheticInfo,
-    save_camera_visualization,
 )
 from scene.gaussian_model import GaussianModel
 from scene.scene_utils import CameraInfo, configure_world_to_m
 from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
 from utils.general_utils import get_dataset_name
 from utils.render_utils import (
-    load_pretrained_ply,
-    render_ply,
-    resolve_pretrained_ply_path,
+    get_pretrained_splat_path,
+    load_pretrained_splat,
+    render_splat,
 )
+from utils.visualization_utils import save_camera_visualization
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -80,7 +80,9 @@ class Scene:
             for f in blender_transform_files
         )
 
-        pretrained_ply_path = resolve_pretrained_ply_path(args)
+        pretrained_ply_path = get_pretrained_splat_path(args)
+
+        gs: Optional[GaussianModel] = None
 
         if os.path.exists(os.path.join(args.source_path, "sparse")):  # COLMAP
             print("Found sparse folder, assuming COLMAP dataset")
@@ -110,11 +112,10 @@ class Scene:
             )
 
             # re-rendering new views based on pretrained ply
-            gs = (
-                load_pretrained_ply(pretrained_ply_path, sh_degree=args.sh_degree)
-                if pretrained_ply_path
-                else None
-            )
+            if pretrained_ply_path:
+                gs = load_pretrained_splat(
+                    pretrained_ply_path, sh_degree=args.sh_degree
+                )
             if gs is not None:
                 scene_info = apply_offset(args, gs, scene_info)
                 if args.use_multiplexing:
@@ -127,7 +128,7 @@ class Scene:
                     scene_info = create_iphone_views(
                         scene_info, args.iphone_same_focal_length
                     )
-                scene_info = render_ply(args, gs, scene_info)
+                scene_info = render_splat(args, gs, scene_info)
                 self.object_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
                 metrics = print_camera_metrics(scene_info, self.object_center)
                 if metrics:
@@ -137,13 +138,16 @@ class Scene:
                 f"Could not infer scene type from source path: {args.source_path}"
             )
 
+        point_cloud_for_vis: Optional[object] = (
+            gs if gs is not None else scene_info.point_cloud
+        )
         save_camera_visualization(
             scene_info,
             args.model_path,
-            filename=f"{dataset_name}_cameras_final.html",
-            title=f"{dataset_name} Cameras (Final)",
+            filename=f"{dataset_name}_cameras.html",
+            title="",
             highlighted_view_indices=list(scene_info.train_cameras.keys()),
-            ply_override_path=pretrained_ply_path,
+            point_cloud=point_cloud_for_vis,
         )
 
         with open(scene_info.ply_path, "rb") as src_file, open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file:  # fmt: skip

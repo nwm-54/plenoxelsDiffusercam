@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
 
 
-def resolve_pretrained_ply_path(args: ModelParams) -> Optional[str]:
+def get_pretrained_splat_path(args: ModelParams) -> Optional[str]:
     if args.pretrained_ply and os.path.exists(args.pretrained_ply):
         return args.pretrained_ply
 
@@ -35,7 +35,7 @@ def resolve_pretrained_ply_path(args: ModelParams) -> Optional[str]:
     return None
 
 
-def load_pretrained_ply(path: str, sh_degree: int = 3) -> GaussianModel:
+def load_pretrained_splat(path: str, sh_degree: int = 3) -> GaussianModel:
     if path is None:
         raise ValueError("Expected a valid pretrained ply path, received None")
     if not os.path.exists(path):
@@ -46,7 +46,7 @@ def load_pretrained_ply(path: str, sh_degree: int = 3) -> GaussianModel:
     return gs
 
 
-def render_ply(
+def render_splat(
     args: ModelParams, gs: GaussianModel, scene_info: SceneInfo
 ) -> SceneInfo:
     dummy_args = ArgumentParser()
@@ -79,7 +79,7 @@ def render_ply(
                 data_device=args.data_device,
             )
 
-            new_image = render_ply_from_camera(tmp_camera, gs, pp, bg)
+            new_image = render_splat_from_camera(tmp_camera, gs, pp, bg)
 
             png_name = f"{cam_info.image_name}.png"
             png_path = os.path.join(out_dir, png_name)
@@ -92,7 +92,7 @@ def render_ply(
     return scene_info._replace(train_cameras=new_train_cameras)
 
 
-def render_ply_from_camera(
+def render_splat_from_camera(
     camera: Camera, gs: GaussianModel, pp: PipelineParams, bg: torch.Tensor
 ) -> Image:
     with torch.no_grad():
