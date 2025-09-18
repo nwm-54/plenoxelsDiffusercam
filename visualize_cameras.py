@@ -1,48 +1,12 @@
 import argparse
 import json
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 import plotly.graph_objects as go
 
+from scene.dataset_readers import create_frustum_mesh_data, get_camera_frustum_vertices
 from utils.render_utils import find_max_min_dispersion_subset
-
-
-def get_camera_frustum_vertices(
-    c2w: np.ndarray, fov_x: float, scale: float = 0.3
-) -> np.ndarray:
-    """Calculates the 5 vertices of a camera frustum pyramid in world space."""
-    half_w = scale * np.tan(fov_x / 2)
-    local_vertices = np.array(
-        [
-            [0, 0, 0],
-            [-half_w, half_w, -scale],
-            [half_w, half_w, -scale],
-            [half_w, -half_w, -scale],
-            [-half_w, -half_w, -scale],
-        ]
-    )
-    local_vertices_hom = np.hstack([local_vertices, np.ones((5, 1))])
-    return (c2w @ local_vertices_hom.T).T[:, :3]
-
-
-def create_frustum_mesh_data(
-    frustum_vertices_list: List[np.ndarray],
-) -> Tuple[go.Mesh3d, ...]:
-    """Converts a list of frustum vertices into Plotly Mesh3D data format."""
-    all_x, all_y, all_z, all_i, all_j, all_k = [], [], [], [], [], []
-    offset = 0
-    for vertices in frustum_vertices_list:
-        all_x.extend(vertices[:, 0])
-        all_y.extend(vertices[:, 1])
-        all_z.extend(vertices[:, 2])
-        faces = [[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 1], [1, 2, 4], [2, 3, 4]]
-        for face in faces:
-            all_i.append(offset + face[0])
-            all_j.append(offset + face[1])
-            all_k.append(offset + face[2])
-        offset += 5
-    return go.Mesh3d(x=all_x, y=all_y, z=all_z, i=all_i, j=all_j, k=all_k)
 
 
 def _create_static_plot(

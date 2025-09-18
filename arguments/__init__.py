@@ -60,7 +60,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     _model_path: str
     _images: str
     _depths: str
-    _resolution: int
+    _resolution: float
     _white_background: bool
     train_test_exp: bool
     data_device: str

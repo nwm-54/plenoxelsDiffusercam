@@ -388,14 +388,14 @@ def main():
         print(focal_px)
 
     inner = None if args.inner in (None, 0) else args.inner
-    # save_with_inner(images, args.out_dir, inner=inner)
-    cams = save_as_rig(images, images_path, inner=inner, downscale=args.downscale)
+    save_with_inner(images, args.out_dir, inner=inner)
+    # cams = save_as_rig(images, images_path, inner=inner, downscale=args.downscale)
 
-    rig_config = args.out_dir / "rig_config.json"
-    # write_rig_config(cams, rig_config, spacing=(bx, by))
-    write_rig_config(cams, rig_config, spacing=(pitch[1], pitch[0]))
+    # rig_config = args.out_dir / "rig_config.json"
+    # # write_rig_config(cams, rig_config, spacing=(bx, by))
+    # write_rig_config(cams, rig_config, spacing=(pitch[1], pitch[0]))
 
-    run_colmap(args.out_dir, fix_rig=True, focal_px=focal_px)
+    # run_colmap(args.out_dir, fix_rig=True, focal_px=focal_px)
 
 
 if __name__ == "__main__":

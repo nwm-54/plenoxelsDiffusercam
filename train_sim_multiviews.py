@@ -52,6 +52,8 @@ def training(
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
 
+    if hasattr(scene, "avg_angle") and scene.avg_angle is not None:
+        wandb.log({"average_angle": scene.avg_angle}, step=0)
     print("Tv weight ", opt.tv_weight)
     print("TV unseen weight ", opt.tv_unseen_weight)
     print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))

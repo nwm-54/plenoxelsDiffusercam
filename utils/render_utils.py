@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import os
-import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
@@ -16,29 +15,34 @@ from arguments import PipelineParams
 from gaussian_renderer import render
 from scene.cameras import Camera
 from scene.gaussian_model import BasicPointCloud, GaussianModel
-from scene.scene_utils import CameraInfo
 from utils.general_utils import get_dataset_name
 
 if TYPE_CHECKING:
     from arguments import ModelParams
-    from scene.scene_utils import SceneInfo
+    from scene.scene_utils import CameraInfo, SceneInfo
 
 PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
 
 
-def load_pretrained_ply(args: ModelParams) -> Optional[GaussianModel]:
-    ply_path: Optional[str] = None
+def resolve_pretrained_ply_path(args: ModelParams) -> Optional[str]:
     if args.pretrained_ply and os.path.exists(args.pretrained_ply):
-        ply_path = args.pretrained_ply
-    else:
-        ply_path = PLYS_ROOT / f"{get_dataset_name(args.source_path)}.ply"
+        return args.pretrained_ply
 
-    if not os.path.exists(ply_path):
-        warnings.warn(f"Pretrained ply file not found at {ply_path}.")
-        return None
-    gs = GaussianModel(sh_degree=args.sh_degree)
-    gs.load_ply(ply_path)
-    print(f"Loaded pretrained ply: {ply_path}")
+    candidate = PLYS_ROOT / f"{get_dataset_name(args.source_path)}.ply"
+    if candidate.exists():
+        return str(candidate)
+
+    return None
+
+
+def load_pretrained_ply(path: str, sh_degree: int = 3) -> GaussianModel:
+    if path is None:
+        raise ValueError("Expected a valid pretrained ply path, received None")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Pretrained ply file not found at {path}")
+    gs = GaussianModel(sh_degree)
+    gs.load_ply(path)
+    print(f"Loaded pretrained ply: {path}")
     return gs
 
 

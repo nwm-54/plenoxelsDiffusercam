@@ -8,6 +8,7 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
+from __future__ import annotations
 
 import json
 import os
@@ -27,11 +28,17 @@ from scene.dataset_readers import (
     print_camera_metrics,
     readColmapSceneInfo,
     readNerfSyntheticInfo,
+    save_camera_visualization,
 )
 from scene.gaussian_model import GaussianModel
 from scene.scene_utils import CameraInfo, configure_world_to_m
 from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
-from utils.render_utils import load_pretrained_ply, render_ply
+from utils.general_utils import get_dataset_name
+from utils.render_utils import (
+    load_pretrained_ply,
+    render_ply,
+    resolve_pretrained_ply_path,
+)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -56,6 +63,10 @@ class Scene:
         # Propagate world<->meters scale to dataset helpers
         configure_world_to_m(self.world_to_m)
 
+        dataset_name = get_dataset_name(args.source_path)
+        self.dataset_name = dataset_name
+        self.avg_angle: Optional[float] = None
+
         self.train_cameras: Dict[float, Dict[int, List]] = {}
         self.test_cameras: Dict[float, List] = {}
         self.full_test_cameras: Dict[float, List] = {}
@@ -69,29 +80,41 @@ class Scene:
             for f in blender_transform_files
         )
 
+        pretrained_ply_path = resolve_pretrained_ply_path(args)
+
         if os.path.exists(os.path.join(args.source_path, "sparse")):  # COLMAP
             print("Found sparse folder, assuming COLMAP dataset")
             self.n_multiplexed_images = 9  # TODO: set the number of multiplexed images
+
             scene_info = readColmapSceneInfo(
                 args.source_path,
                 args.images,
                 args.eval,
                 use_multiplexing=args.use_multiplexing,
                 n_multiplexed_images=self.n_multiplexed_images,
+                visualization_dir=args.model_path,
+                input_ply_path=pretrained_ply_path,
             )
         elif is_blender_type:  # Blender
             self.n_multiplexed_images = 16
             print("Found transforms_*.json file, assuming Blender dataset")
+
             scene_info = readNerfSyntheticInfo(
                 args.source_path,
                 args.white_background,
                 args.eval,
                 n_train_images=args.n_train_images,
                 use_orbital_trajectory=args.use_orbital_trajectory,
+                visualization_dir=args.model_path,
+                input_ply_path=pretrained_ply_path,
             )
 
             # re-rendering new views based on pretrained ply
-            gs = load_pretrained_ply(args)
+            gs = (
+                load_pretrained_ply(pretrained_ply_path, sh_degree=args.sh_degree)
+                if pretrained_ply_path
+                else None
+            )
             if gs is not None:
                 scene_info = apply_offset(args, gs, scene_info)
                 if args.use_multiplexing:
@@ -106,11 +129,22 @@ class Scene:
                     )
                 scene_info = render_ply(args, gs, scene_info)
                 self.object_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
-                print_camera_metrics(scene_info, self.object_center)
+                metrics = print_camera_metrics(scene_info, self.object_center)
+                if metrics:
+                    self.avg_angle = metrics.get("avg_group_angle_deg")
         else:
             raise ValueError(
                 f"Could not infer scene type from source path: {args.source_path}"
             )
+
+        save_camera_visualization(
+            scene_info,
+            args.model_path,
+            filename=f"{dataset_name}_cameras_final.html",
+            title=f"{dataset_name} Cameras (Final)",
+            highlighted_view_indices=list(scene_info.train_cameras.keys()),
+            ply_override_path=pretrained_ply_path,
+        )
 
         with open(scene_info.ply_path, "rb") as src_file, open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file:  # fmt: skip
             dest_file.write(src_file.read())
