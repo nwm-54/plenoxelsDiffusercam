@@ -3,7 +3,8 @@ import json
 import os
 import sys
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from itertools import product
+from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -26,10 +27,13 @@ from scene.scene_utils import (
     SceneInfo,
     _make_shifted_scaled_cam,
     _offset_camera,
+    camera_center_world,
+    camera_with_center,
     generate_random_pcd,
     getNerfppNorm,
     mm_to_world,
     read_camera,
+    solve_offset_for_angle,
     world_to_m,
 )
 from utils.general_utils import get_dataset_name
@@ -41,69 +45,116 @@ FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
 PIXEL_SIZE_MM = 0.00244
 
 
-def print_camera_metrics(scene_info: SceneInfo, obj_center: np.ndarray):
+def _camera_basis_vectors(
+    cam: CameraInfo,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return the camera centre and orthonormal basis vectors (x, y, z)."""
+
+    base_center = camera_center_world(cam)
+    R = np.asarray(cam.R, dtype=np.float64)
+    x_axis = R[:, 0]
+    y_axis = R[:, 1]
+    z_axis = R[:, 2]
+
+    x_unit = x_axis / max(np.linalg.norm(x_axis), 1e-12)
+    y_unit = y_axis / max(np.linalg.norm(y_axis), 1e-12)
+    z_unit = z_axis / max(np.linalg.norm(z_axis), 1e-12)
+
+    return base_center, x_unit, y_unit, z_unit
+
+
+def _camera_with_new_center(
+    cam: CameraInfo, center_world: np.ndarray, uid: int, groupid: int, image_name: str
+) -> CameraInfo:
+    """Create a copy of ``cam`` with an updated centre and identifiers."""
+
+    return camera_with_center(cam, center_world)._replace(
+        uid=uid,
+        groupid=groupid,
+        image_name=image_name,
+    )
+
+
+def _compute_baseline(
+    cam: CameraInfo,
+    obj_center: np.ndarray,
+    angle_deg: float,
+) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Compute stereo extrema for a camera using an analytical offset."""
+
+    base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam)
+    base_vec = base_center - obj_center
+    offset = solve_offset_for_angle(base_vec, x_unit, angle_deg)
+    left_center = base_center - offset * x_unit
+    right_center = base_center + offset * x_unit
+    return offset, base_center, x_unit, y_unit, left_center, right_center
+
+
+def print_camera_metrics(scene_info: SceneInfo, obj_center: Optional[np.ndarray]):
     pixel_size_mm = PIXEL_SIZE_MM
 
-    printed = 0
-    for view_idx, cam_list in scene_info.train_cameras.items():
-        if not cam_list:
-            continue
-        cam = cam_list[0]
-
+    headline_views = [
+        (view_idx, cam_list[0])
+        for view_idx, cam_list in scene_info.train_cameras.items()
+        if cam_list
+    ][:10]
+    for view_idx, cam in headline_views:
         fx_px = fov2focal(cam.FovX, cam.width)
         fy_px = fov2focal(cam.FovY, cam.height)
         fx_mm = fx_px * pixel_size_mm
         fy_mm = fy_px * pixel_size_mm
 
-        cam_center_world = -cam.R @ cam.T
-        if obj_center is None:
-            dist_world = np.linalg.norm(cam_center_world)
-        else:
-            dist_world = np.linalg.norm(cam_center_world - obj_center)
-        dist_m = world_to_m(dist_world)
-
+        center_world = camera_center_world(cam)
+        dist_world = (
+            np.linalg.norm(center_world)
+            if obj_center is None
+            else np.linalg.norm(center_world - obj_center)
+        )
         print(
             f"View {view_idx} ({cam.image_name}): fx={fx_mm:.3f} mm (px={fx_px:.1f}), "
-            f"fy={fy_mm:.3f} mm (px={fy_px:.1f}); distance={dist_m:.3f} m"
+            f"fy={fy_mm:.3f} mm (px={fy_px:.1f}); distance={world_to_m(dist_world):.3f} m"
         )
 
-        printed += 1
-        if printed >= 10:  # show up to 10 views
-            break
+    if obj_center is None:
+        return None
 
     groups: Dict[int, List[Tuple[CameraInfo, np.ndarray]]] = defaultdict(list)
     for cam_list in scene_info.train_cameras.values():
         for cam in cam_list:
-            cam_center_world = -cam.R @ cam.T
-            groups[cam.groupid].append((cam, cam_center_world))
+            groups[cam.groupid].append((cam, camera_center_world(cam)))
 
     if not groups:
-        return
+        return None
 
-    group_angles_deg: Dict[int, float] = {}
-    for gid, entries in sorted(groups.items(), key=lambda kv: kv[0]):
+    group_angles: Dict[int, float] = {}
+    group_distances: Dict[int, float] = {}
+    group_metrics: Dict[int, Dict[str, float]] = {}
+
+    for gid, entries in sorted(groups.items()):
         if len(entries) < 2:
             continue
 
-        ref_cam, _ = entries[0]
-        R_ref = ref_cam.R
-        group_center_world = np.mean([c for (_, c) in entries], axis=0)
+        ref_cam, ref_center = entries[0]
+        ref_x_axis = ref_cam.R[:, 0]
+        ref_x_axis = ref_x_axis / max(np.linalg.norm(ref_x_axis), 1e-12)
 
-        local_entries = []
-        for cam_i, center_i in entries:
-            delta_world = center_i - group_center_world
-            delta_local = R_ref.T @ delta_world  # express in camera-local frame
-            local_entries.append((cam_i, center_i, float(delta_local[0])))
+        projected = [
+            (
+                float(np.dot(center - ref_center, ref_x_axis)),
+                cam,
+                center,
+            )
+            for cam, center in entries
+        ]
 
-        left_cam, left_center, left_x = min(local_entries, key=lambda e: e[2])
-        right_cam, right_center, right_x = max(local_entries, key=lambda e: e[2])
+        left_offset, left_cam, left_center = min(projected, key=lambda item: item[0])
+        right_offset, right_cam, right_center = max(projected, key=lambda item: item[0])
 
-        if np.isclose(left_x, right_x):
+        if np.isclose(left_offset, right_offset):
             continue
 
         v_left = left_center - obj_center
         v_right = right_center - obj_center
-
         n_left = np.linalg.norm(v_left)
         n_right = np.linalg.norm(v_right)
         if n_left < 1e-12 or n_right < 1e-12:
@@ -113,28 +164,34 @@ def print_camera_metrics(scene_info: SceneInfo, obj_center: np.ndarray):
         cos_theta = float(
             np.clip(np.dot(v_left, v_right) / (n_left * n_right), -1.0, 1.0)
         )
-        angle_deg = np.degrees(np.arccos(cos_theta))
-        group_angles_deg[gid] = float(angle_deg)
-
-        # Distance (baseline) between the two extreme cameras
-        baseline_world = float(np.linalg.norm(right_center - left_center))
-        baseline_m = world_to_m(baseline_world)
-
-        print(
-            f"Group {gid}: left={left_cam.image_name} "
-            f"(local x={left_x:.6f}), right={right_cam.image_name} "
-            f"(local x={right_x:.6f}) -> angle={float(angle_deg):.2f} deg, baseline={baseline_m:.3f} m"
+        angle_deg = float(np.degrees(np.arccos(cos_theta)))
+        mean_distance_m = float(
+            world_to_m(
+                np.mean([np.linalg.norm(center - obj_center) for _, center in entries])
+            )
         )
 
-    avg_group_angle = (
-        float(np.mean(list(group_angles_deg.values()))) if group_angles_deg else None
-    )
-    if avg_group_angle is not None:
-        print(f"Average group angle: {avg_group_angle:.2f} deg")
+        group_angles[gid] = angle_deg
+        group_distances[gid] = mean_distance_m
+        group_metrics[gid] = {"angle_deg": angle_deg, "distance_m": mean_distance_m}
+
+        baseline_m = world_to_m(float(np.linalg.norm(right_center - left_center)))
+        print(
+            f"Group {gid}: left={left_cam.image_name} (local x={left_offset:.6f}), "
+            f"right={right_cam.image_name} (local x={right_offset:.6f}) -> "
+            f"angle={angle_deg:.2f} deg, avg_dist={mean_distance_m:.3f} m, "
+            f"baseline={baseline_m:.3f} m"
+        )
+
+    avg_angle = float(np.mean(list(group_angles.values()))) if group_angles else None
+    if avg_angle is not None:
+        print(f"Average group angle: {avg_angle:.2f} deg")
 
     return {
-        "group_angles_deg": group_angles_deg,
-        "avg_group_angle_deg": avg_group_angle,
+        "group_angles_deg": group_angles,
+        "group_distances_m": group_distances,
+        "group_metrics": group_metrics,
+        "avg_group_angle_deg": avg_angle,
     }
 
 
@@ -288,13 +345,13 @@ def apply_offset(
     for view_index, cam_info_list in scene_info.train_cameras.items():
         updated_cam_info_list = []
         for cam_info in cam_info_list:
-            world_center = -cam_info.R @ cam_info.T
+            world_center = camera_center_world(cam_info)
             initial_distance = np.linalg.norm(world_center - gs_center)
 
-            # Offset along camera's local +Z using the reusable helper
+            # Offset along camera's local +Z
             offset_world = mm_to_world(float(args.camera_offset))
             new_cam = _offset_camera(cam_info, np.array([0.0, 0.0, offset_world]))
-            new_world_center = -new_cam.R @ new_cam.T
+            new_world_center = camera_center_world(new_cam)
 
             new_distance = np.linalg.norm(new_world_center - gs_center)
             focal_scaling_factor = new_distance / initial_distance
@@ -316,77 +373,89 @@ def apply_offset(
 
 
 def create_multiplexed_views(
-    scene_info: SceneInfo, n_multiplexed_images: int = 16
+    scene_info: SceneInfo,
+    obj_center: Optional[np.ndarray],
+    angle_deg: float,
+    n_multiplexed_images: int = 16,
 ) -> SceneInfo:
+    if obj_center is None:
+        return scene_info
+
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
-    x_linspace = np.linspace(
-        start=-0.5, stop=0.5, num=int(np.sqrt(n_multiplexed_images))
-    )
+    grid_size = max(int(np.sqrt(n_multiplexed_images)), 1)
+    grid_positions = np.linspace(-1.0, 1.0, grid_size)
 
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            c2w = np.linalg.inv(getWorld2View2(cam_info.R, cam_info.T))
+            (
+                stereo_offset,
+                base_center,
+                x_unit,
+                y_unit,
+                left_center,
+                right_center,
+            ) = _compute_baseline(cam_info, obj_center, angle_deg)
 
-            sub_image_idx: int = 0
-            for x in x_linspace:
-                for y in x_linspace:
-                    new_c2w = c2w.copy()
-                    camera_offset = np.array([x, y, 0])
-                    world_offset = new_c2w[:3, :3] @ camera_offset
-                    new_c2w[:3, 3] += world_offset
+            for uid, (x_pos, y_pos) in enumerate(product(grid_positions, repeat=2)):
+                if np.isclose(x_pos, -1.0):
+                    new_center = left_center
+                elif np.isclose(x_pos, 1.0):
+                    new_center = right_center
+                else:
+                    x_offset_world = x_unit * (stereo_offset * x_pos)
+                    y_offset_world = y_unit * (stereo_offset * y_pos)
+                    new_center = base_center + x_offset_world + y_offset_world
 
-                    new_w2c = np.linalg.inv(new_c2w)
-                    new_R = np.transpose(new_w2c[:3, :3])
-                    new_T = new_w2c[:3, 3]
-
-                    uid = sub_image_idx
-                    image_name = f"r_{view_idx}_{uid}"
-
-                    new_cam_info = CameraInfo(
-                        uid=uid,
-                        groupid=view_idx,
-                        R=new_R,
-                        T=new_T,
-                        FovX=cam_info.FovX,
-                        FovY=cam_info.FovY,
-                        image=cam_info.image,
-                        image_path=cam_info.image_path,
-                        image_name=image_name,
-                        width=cam_info.width,
-                        height=cam_info.height,
-                        mask_name=cam_info.mask_name,
-                        mask=cam_info.mask,
-                    )
-                    new_train_cameras[view_idx].append(new_cam_info)
-                    sub_image_idx += 1
+                new_cam = _camera_with_new_center(
+                    cam_info,
+                    new_center,
+                    uid=uid,
+                    groupid=view_idx,
+                    image_name=f"r_{view_idx}_{uid}",
+                )
+                new_train_cameras[view_idx].append(new_cam)
     return scene_info._replace(train_cameras=new_train_cameras)
 
 
-def create_stereo_views(scene_info: SceneInfo, baseline: float = 0.3) -> SceneInfo:
+def create_stereo_views(
+    scene_info: SceneInfo,
+    obj_center: Optional[np.ndarray],
+    angle_deg: float,
+) -> SceneInfo:
+    if obj_center is None or angle_deg <= 0.0:
+        return scene_info
+
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
     key_offset = max(list(scene_info.train_cameras.keys())) + 1
-    print(world_to_m(baseline), "m baseline")
+
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            left_cam = _make_shifted_scaled_cam(
+            (
+                _,
+                _,
+                _,
+                _,
+                left_center,
+                right_center,
+            ) = _compute_baseline(cam_info, obj_center, angle_deg)
+
+            left_cam = _camera_with_new_center(
                 cam_info,
-                offset_xyz=[-baseline / 2, 0, 0],
-                scale=1.0,
+                left_center,
                 uid=view_idx,
+                groupid=view_idx,
                 image_name=f"{cam_info.image_name}_left",
             )
-            left_cam = left_cam._replace(groupid=view_idx)
             new_train_cameras[view_idx] = [left_cam]
 
             right_view_idx = view_idx + key_offset
-            right_cam = _make_shifted_scaled_cam(
+            right_cam = _camera_with_new_center(
                 cam_info,
-                offset_xyz=[baseline / 2, 0, 0],
-                scale=1.0,
+                right_center,
                 uid=right_view_idx,
+                groupid=view_idx,
                 image_name=f"{cam_info.image_name}_right",
             )
-            right_cam = right_cam._replace(groupid=view_idx)
             new_train_cameras[right_view_idx] = [right_cam]
 
     return scene_info._replace(train_cameras=new_train_cameras)
@@ -394,6 +463,8 @@ def create_stereo_views(scene_info: SceneInfo, baseline: float = 0.3) -> SceneIn
 
 def create_iphone_views(
     scene_info: SceneInfo,
+    obj_center: Optional[np.ndarray] = None,
+    angle_deg: Optional[float] = None,
     same_focal_lengths: bool = False,
     baseline_x: float = 9.5,
     baseline_y: float = 9.5,
@@ -401,35 +472,79 @@ def create_iphone_views(
     """Create iPhone-like triple-camera views with metric baselines and focal lengths.
 
     Notes:
-    - `baseline_x`, `baseline_y` are interpreted as millimeters and converted to world units.
-    - If `same_focal_lengths` is False and `PIXEL_SIZE_MM > 0`, focal length is enforced
-      in absolute millimeters (13mm ultrawide, 24mm wide, 77mm tele) by scaling intrinsics.
-      Otherwise, falls back to ratios (13/24 and 77/24) relative to the source view.
+    - If `angle_deg` is specified and `obj_center` is provided, uses angular positioning
+      to override the metric baseline approach for consistent maximum angles across view creators.
+    - Otherwise, `baseline_x`, `baseline_y` are interpreted as millimeters and converted to world units.
+    - If `same_focal_lengths` is False, the angle-based branch assumes the reference
+      camera already uses a 24mm equivalent focal length and scales ultrawide/tele
+      by the 13/24 and 77/24 ratios respectively. The metric-baseline branch retains
+      the absolute 13mm/24mm/77mm enforcement when `PIXEL_SIZE_MM > 0`.
     """
-    # Convert millimeter baselines to world units
-    bx_world, by_world = mm_to_world(baseline_x), mm_to_world(baseline_y)
+    # Determine positioning method: angle-based vs metric baseline
+    use_angle_positioning = (
+        angle_deg is not None and obj_center is not None and angle_deg > 0.0
+    )
+
+    bx_world = mm_to_world(baseline_x)
+    by_world = mm_to_world(baseline_y)
+    baseline_ratio = (
+        abs(float(baseline_y) / float(baseline_x)) if abs(baseline_x) > 1e-6 else 1.0
+    )
 
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
     key_offset = max(list(scene_info.train_cameras.keys())) + 1
     second_offset = key_offset * 2
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
+            # Calculate focal length scaling
             if same_focal_lengths:
                 uw_scale = wide_scale = tele_scale = 1.0
             else:
-                fx_px = fov2focal(cam_info.FovX, cam_info.width)
-                fx_uw_px = 13.0 / PIXEL_SIZE_MM
-                fx_wide_px = 24.0 / PIXEL_SIZE_MM
-                fx_tele_px = 77.0 / PIXEL_SIZE_MM
+                if use_angle_positioning:
+                    wide_scale = 1.0
+                    uw_scale = 13.0 / 24.0
+                    tele_scale = 77.0 / 24.0
+                else:
+                    fx_px = fov2focal(cam_info.FovX, cam_info.width)
+                    fx_uw_px = 13.0 / PIXEL_SIZE_MM
+                    fx_wide_px = 24.0 / PIXEL_SIZE_MM
+                    fx_tele_px = 77.0 / PIXEL_SIZE_MM
 
-                uw_scale = fx_uw_px / fx_px
-                wide_scale = fx_wide_px / fx_px
-                tele_scale = fx_tele_px / fx_px
+                    uw_scale = fx_uw_px / fx_px
+                    wide_scale = fx_wide_px / fx_px
+                    tele_scale = fx_tele_px / fx_px
 
+            # Calculate camera offsets
+            if use_angle_positioning:
+                base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam_info)
+                base_vec = base_center - obj_center
+                offset_x = solve_offset_for_angle(
+                    base_vec,
+                    x_unit,
+                    float(angle_deg),
+                    orth_axis=y_unit,
+                    orth_ratio=baseline_ratio,
+                )
+                offset_y = baseline_ratio * offset_x
+
+                if not np.isfinite(offset_x) or offset_x <= 0.0:
+                    offset_x = bx_world
+                    offset_y = by_world
+
+                uw_offset = np.array([-offset_x, -offset_y, 0.0])
+                wide_offset = np.array([offset_x, -offset_y, 0.0])
+                tele_offset = np.array([0.0, offset_y, 0.0])
+            else:
+                # Use original metric baseline approach
+                uw_offset = np.array([-bx_world, -by_world, 0.0])
+                wide_offset = np.array([bx_world, -by_world, 0.0])
+                tele_offset = np.array([0.0, by_world, 0.0])
+
+            # Create the three iPhone cameras
             uw_idx = view_idx
             ultrawide = _make_shifted_scaled_cam(
                 cam_info,
-                offset_xyz=[-bx_world, -by_world, 0],
+                offset_xyz=uw_offset,
                 scale=uw_scale,
                 uid=uw_idx,
                 image_name=f"{cam_info.image_name}_uw",
@@ -440,7 +555,7 @@ def create_iphone_views(
             wide_idx = view_idx + key_offset
             wide = _make_shifted_scaled_cam(
                 cam_info,
-                offset_xyz=[bx_world, -by_world, 0],
+                offset_xyz=wide_offset,
                 scale=wide_scale,
                 uid=wide_idx,
                 image_name=f"{cam_info.image_name}_wide",
@@ -451,7 +566,7 @@ def create_iphone_views(
             tele_idx = view_idx + second_offset
             tele = _make_shifted_scaled_cam(
                 cam_info,
-                offset_xyz=[0, by_world, 0],
+                offset_xyz=tele_offset,
                 scale=tele_scale,
                 uid=tele_idx,
                 image_name=f"{cam_info.image_name}_tele",

@@ -67,6 +67,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     eval: bool
     use_multiplexing: bool
     use_stereo: bool
+    angle_deg: float
     use_iphone: bool
     iphone_same_focal_length: bool
     source_path: str
@@ -94,6 +95,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.eval = False
         self.use_multiplexing = False
         self.use_stereo = False
+        self.angle_deg = 10.0
         self.use_iphone = False
         self.iphone_same_focal_length = False
         self.camera_offset = 0.0

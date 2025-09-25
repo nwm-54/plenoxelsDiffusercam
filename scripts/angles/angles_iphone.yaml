@@ -1,16 +1,14 @@
 # config.yaml
 program: train_sim_multiviews.py
 method: grid
-name: run_everything
+name: run_angles_iphone
 parameters:
-  tv_weight: 
-    values: [0.0, 1.0]
+  tv_weight:
+    values: [0.0]
   tv_unseen_weight:
-    values: [0.0, 0.1]
-  dls:
-    values: [14, 22]
+    values: [0.0]
   resolution:
-    values: [1, 2, 4, 8]
+    values: [1]
   source_path:
     values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
@@ -20,16 +18,24 @@ parameters:
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
-  num_views:
+  angle_deg:
+    values: [1, 2, 5, 8, 10, 15, 20, 25, 30, 35, 40]
+  camera_offset:
+    values: [0]
+  n_train_images:
     values: [1, 3]
-  use_multiplexing:
+  use_iphone:
     values:
       - true
-      - false
+  # iphone_same_focal_length:
+  #   values:
+  #     - false
+  #     - true
 command:
   - ${interpreter}
   - ${program}
   - --iterations
-  - 7000
+  - 3000
+  - --output-id
+  - 9
   - ${args_no_boolean_flags}
-  

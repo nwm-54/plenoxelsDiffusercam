@@ -52,8 +52,19 @@ def training(
     scene = Scene(dataset, gaussians)
     gaussians.training_setup(opt)
 
-    if hasattr(scene, "avg_angle") and scene.avg_angle is not None:
-        wandb.log({"average_angle": scene.avg_angle}, step=0)
+    initial_log: Dict[str, float] = {}
+    if getattr(scene, "avg_angle", None) is not None:
+        initial_log["average_angle"] = float(scene.avg_angle)
+    group_metrics = getattr(scene, "group_metrics", {}) or {}
+    for gid, values in group_metrics.items():
+        angle_val = values.get("angle_deg")
+        dist_val = values.get("distance_m")
+        if angle_val is not None:
+            initial_log[f"camera_groups/{gid}/angle_deg"] = float(angle_val)
+        if dist_val is not None:
+            initial_log[f"camera_groups/{gid}/distance_m"] = float(dist_val)
+    if initial_log:
+        wandb.log(initial_log, step=0)
     print("Tv weight ", opt.tv_weight)
     print("TV unseen weight ", opt.tv_unseen_weight)
     print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
@@ -516,6 +527,8 @@ if __name__ == "__main__":
         run_name += f"_offset{dataset.camera_offset}"
     if dataset.use_iphone and not dataset.iphone_same_focal_length:
         run_name += "_multifocal"
+    if dataset.angle_deg:
+        run_name += f"_{dataset.angle_deg}deg"
 
     if not dataset.model_path:
         dataset.model_path = (

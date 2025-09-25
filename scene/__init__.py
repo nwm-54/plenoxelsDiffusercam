@@ -66,6 +66,8 @@ class Scene:
         dataset_name = get_dataset_name(args.source_path)
         self.dataset_name = dataset_name
         self.avg_angle: Optional[float] = None
+        self.group_metrics: Dict[int, Dict[str, float]] = {}
+        self.object_center = None
 
         self.train_cameras: Dict[float, Dict[int, List]] = {}
         self.test_cameras: Dict[float, List] = {}
@@ -107,8 +109,6 @@ class Scene:
                 args.eval,
                 n_train_images=args.n_train_images,
                 use_orbital_trajectory=args.use_orbital_trajectory,
-                visualization_dir=args.model_path,
-                input_ply_path=pretrained_ply_path,
             )
 
             # re-rendering new views based on pretrained ply
@@ -118,21 +118,33 @@ class Scene:
                 )
             if gs is not None:
                 scene_info = apply_offset(args, gs, scene_info)
+                obj_center = (
+                    gs.get_xyz.mean(dim=0).detach().cpu().numpy()
+                )
+                self.object_center = obj_center
                 if args.use_multiplexing:
                     scene_info = create_multiplexed_views(
-                        scene_info, self.n_multiplexed_images
+                        scene_info,
+                        obj_center,
+                        args.angle_deg,
+                        self.n_multiplexed_images,
                     )
                 elif args.use_stereo:
-                    scene_info = create_stereo_views(scene_info)
+                    scene_info = create_stereo_views(
+                        scene_info, obj_center, args.angle_deg
+                    )
                 elif args.use_iphone:  # NEW
                     scene_info = create_iphone_views(
-                        scene_info, args.iphone_same_focal_length
+                        scene_info,
+                        obj_center,
+                        args.angle_deg,
+                        args.iphone_same_focal_length
                     )
                 scene_info = render_splat(args, gs, scene_info)
-                self.object_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
                 metrics = print_camera_metrics(scene_info, self.object_center)
                 if metrics:
                     self.avg_angle = metrics.get("avg_group_angle_deg")
+                    self.group_metrics = metrics.get("group_metrics", {})
         else:
             raise ValueError(
                 f"Could not infer scene type from source path: {args.source_path}"

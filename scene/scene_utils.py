@@ -69,15 +69,37 @@ class PinholeMask(NamedTuple):
     path: str
 
 
-def _offset_camera(cam: CameraInfo, offset_xyz: np.ndarray) -> CameraInfo:
-    """Applies a translation offset to the camera position."""
-    c2w = np.linalg.inv(getWorld2View2(cam.R, cam.T))
-    new_c2w = c2w.copy()
-    world_offset = new_c2w[:3, :3] @ np.asarray(offset_xyz, dtype=np.float32)
-    new_c2w[:3, 3] += world_offset
-    new_w2c = np.linalg.inv(new_c2w)
-    new_R = np.transpose(new_w2c[:3, :3])
+def camera_center_world(cam: CameraInfo) -> np.ndarray:
+    """Return the camera center expressed in world coordinates."""
+    return -cam.R @ cam.T
+
+
+def _camera_to_world_matrix(cam: CameraInfo) -> np.ndarray:
+    return np.linalg.inv(getWorld2View2(cam.R, cam.T))
+
+
+def _camera_from_world_matrix(c2w: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    new_w2c = np.linalg.inv(c2w)
+    new_R = new_w2c[:3, :3].T
     new_T = new_w2c[:3, 3]
+    return new_R, new_T
+
+
+def camera_with_center(cam: CameraInfo, center_world: np.ndarray) -> CameraInfo:
+    """Return a camera whose center is replaced with the provided world position."""
+    c2w = _camera_to_world_matrix(cam)
+    new_c2w = c2w.copy()
+    new_c2w[:3, 3] = np.asarray(center_world, dtype=np.float32)
+    new_R, new_T = _camera_from_world_matrix(new_c2w)
+    return cam._replace(R=new_R, T=new_T)
+
+
+def _offset_camera(cam: CameraInfo, offset_xyz: np.ndarray) -> CameraInfo:
+    c2w = _camera_to_world_matrix(cam)
+    world_offset = c2w[:3, :3] @ np.asarray(offset_xyz, dtype=np.float32)
+    new_c2w = c2w.copy()
+    new_c2w[:3, 3] += world_offset
+    new_R, new_T = _camera_from_world_matrix(new_c2w)
     return cam._replace(R=new_R, T=new_T)
 
 
@@ -98,6 +120,131 @@ def _make_shifted_scaled_cam(
     if abs(scale - 1.0) > 1e-8:
         cam = _scale_camera_fov(cam, scale)
     return cam._replace(uid=uid, image_name=image_name)
+
+
+def solve_offset_for_angle(
+    base_vec: np.ndarray,
+    axis: np.ndarray,
+    angle_deg: float,
+    *,
+    orth_axis: Optional[np.ndarray] = None,
+    orth_ratio: float = 0.0,
+) -> float:
+    """Return the symmetric offset that achieves the requested coverage angle.
+
+    When ``orth_axis``/``orth_ratio`` are provided, both extreme cameras share an
+    additional shift of ``orth_ratio * offset`` along ``orth_axis``.
+    """
+
+    angle = float(angle_deg)
+    if angle <= 0.0:
+        return 0.0
+    if angle >= 180.0:
+        return float("inf")
+
+    base_vec = np.asarray(base_vec, dtype=np.float64)
+    axis = np.asarray(axis, dtype=np.float64)
+
+    base_norm = np.linalg.norm(base_vec)
+    axis_norm = np.linalg.norm(axis)
+    if base_norm < 1e-12 or axis_norm < 1e-12:
+        return 0.0
+
+    axis_unit = axis / axis_norm
+    ratio = float(orth_ratio) if orth_axis is not None else 0.0
+
+    if orth_axis is None or abs(ratio) < 1e-8:
+        cos_theta = np.cos(np.radians(angle))
+
+        if abs(cos_theta - 1.0) < 1e-12:
+            return 0.0
+        if abs(cos_theta + 1.0) < 1e-12:
+            return float("inf")
+
+        q = float(np.dot(base_vec, axis_unit))
+        S = base_norm * base_norm
+        c2 = cos_theta * cos_theta
+
+        a = c2 - 1.0
+        b = 2.0 * (S * (c2 + 1.0) - 2.0 * c2 * q * q)
+        c = (c2 - 1.0) * S * S
+
+        if abs(a) < 1e-12:
+            if abs(b) < 1e-12:
+                return 0.0
+            x = -c / b
+            return float(np.sqrt(max(0.0, x))) if x >= 0.0 else 0.0
+
+        discriminant = b * b - 4.0 * a * c
+        if discriminant < -1e-10:
+            raise ValueError("No real solution for requested angle.")
+        discriminant = max(discriminant, 0.0)
+        sqrt_disc = np.sqrt(discriminant)
+        x1 = (-b + sqrt_disc) / (2.0 * a)
+        x2 = (-b - sqrt_disc) / (2.0 * a)
+
+        valid_x = [x for x in (x1, x2) if x >= 0.0]
+        if not valid_x:
+            raise ValueError("No positive offset solution for requested angle.")
+        offset_sq = max(min(valid_x), 0.0)
+        return float(np.sqrt(offset_sq))
+
+    orth = np.asarray(orth_axis, dtype=np.float64)
+    orth_norm = np.linalg.norm(orth)
+    if orth_norm < 1e-12:
+        return solve_offset_for_angle(base_vec, axis_unit, angle)
+
+    orth_unit = orth / orth_norm
+    orth_unit = orth_unit - np.dot(orth_unit, axis_unit) * axis_unit
+    orth_norm_adj = np.linalg.norm(orth_unit)
+    if orth_norm_adj < 1e-8:
+        return solve_offset_for_angle(base_vec, axis_unit, angle)
+    orth_unit /= orth_norm_adj
+
+    b_vec = base_vec
+    q = float(np.dot(b_vec, axis_unit))
+    p = float(np.dot(b_vec, orth_unit))
+    a_norm_sq = float(np.dot(b_vec, b_vec))
+
+    cos_theta = np.cos(np.radians(angle))
+    cos_sq = float(cos_theta * cos_theta)
+    rho = ratio
+
+    a0 = a_norm_sq
+    b_coef = -2.0 * p * rho
+    gamma = rho * rho + 1.0
+    gamma_prime = rho * rho - 1.0
+
+    q0 = a0 * a0
+    q1 = 2.0 * a0 * b_coef
+    q2 = b_coef * b_coef + 2.0 * a0 * gamma
+    q3 = 2.0 * b_coef * gamma
+    q4 = gamma * gamma
+
+    q2 -= 4.0 * q * q
+
+    poly_main = np.array([q0, q1, q2, q3, q4], dtype=np.float64) * cos_sq
+
+    qp0 = a0 * a0
+    qp1 = 2.0 * a0 * b_coef
+    qp2 = b_coef * b_coef + 2.0 * a0 * gamma_prime
+    qp3 = 2.0 * b_coef * gamma_prime
+    qp4 = gamma_prime * gamma_prime
+
+    poly_shifted = np.array([qp0, qp1, qp2, qp3, qp4], dtype=np.float64)
+
+    poly = poly_main - poly_shifted
+    coeffs = np.trim_zeros(poly[::-1], trim="f")
+    if coeffs.size == 0:
+        raise ValueError("Degenerate polynomial for coupled offset.")
+
+    roots = np.roots(coeffs)
+    tol = 1e-6
+    real_roots = [root.real for root in roots if abs(root.imag) < tol and root.real >= 0.0]
+    if not real_roots:
+        raise ValueError("No positive real solution for coupled offset.")
+    offset = min(real_roots)
+    return float(offset)
 
 
 def getNerfppNorm(cam_info: List[CameraInfo]):

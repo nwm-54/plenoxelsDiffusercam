@@ -1,16 +1,16 @@
 # config.yaml
 program: train_sim_multiviews.py
 method: grid
-name: run_multiviews
+name: run_angles_multiplexing
 parameters:
-  tv_weight: 
-    values: [0.0, 0.01, 1.0]
+  tv_weight:
+    values: [0.0]
   tv_unseen_weight:
-    values: [0.0, 0.01, 0.1]
+    values: [0.0]
   dls:
-    values: [14, 18, 22]
+    values: [12, 20]
   resolution:
-    values: [1, 2, 4, 8]
+    values: [1]
   source_path:
     values: ["/home/wl757/multiplexed-pixels/plenoxels/blender_data/chair",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/drums",
@@ -20,10 +20,21 @@ parameters:
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
+  angle_deg:
+    values: [1, 2, 5, 8, 10, 15, 20, 25, 30, 35, 40]
+  camera_offset:
+    values: [0]
+  n_train_images:
+    values: [1, 3]
+  use_multiplexing:
+    values:
+      - true
+      - false
 command:
   - ${interpreter}
   - ${program}
   - --iterations
   - 3000
-  - ${args}
-  
+  - --output-id
+  - 9
+  - ${args_no_boolean_flags}
