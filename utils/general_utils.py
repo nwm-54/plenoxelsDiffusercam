@@ -154,7 +154,8 @@ def safe_state(silent):
     random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
-    torch.cuda.set_device(torch.device("cuda:0"))
+    if torch.cuda.is_available():
+        torch.cuda.set_device(torch.device("cuda:0"))
 
 
 def get_dataset_name(source_path: str) -> str:

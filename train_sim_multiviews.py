@@ -24,12 +24,15 @@ try:
     TENSORBOARD_FOUND = True
 except ImportError:
     TENSORBOARD_FOUND = False
+    SummaryWriter = None  # type: ignore
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.cuda.set_device(0)
-print(f"Using device: {device}")
-print(f"GPU Name: {torch.cuda.get_device_name(device)}")
-wandb.login()
+if device.type == "cuda":
+    torch.cuda.set_device(0)
+    print(f"Using device: {device}")
+    print(f"GPU Name: {torch.cuda.get_device_name(device)}")
+else:
+    print("Using device: cpu")
 
 
 def training(
@@ -45,11 +48,12 @@ def training(
     dls: float,
     size_threshold_arg: int,
     extent_multiplier: float,
+    include_test_cameras: bool = False,
 ):
     tb_writer, model_path = prepare_output_and_logger(dataset)
 
     gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians)
+    scene = Scene(dataset, gaussians, include_test_cameras=include_test_cameras)
     gaussians.training_setup(opt)
 
     initial_log: Dict[str, float] = {}
@@ -321,7 +325,7 @@ def prepare_output_and_logger(args):
 
 
 def training_report(
-    tb_writer: SummaryWriter,
+    tb_writer: SummaryWriter,  # type: ignore
     iteration: int,
     loss: torch.Tensor,
     elapsed: float,
@@ -496,7 +500,13 @@ if __name__ == "__main__":
     parser.add_argument("--size_threshold", type=int, default=150)
     parser.add_argument("--extent_multiplier", type=float, default=1.0)
     parser.add_argument("--output-id", type=str, default="3")
+    parser.add_argument(
+        "--skip_train",
+        action="store_true",
+        help="Generate camera trajectories and configuration without running training",
+    )
     args = parser.parse_args(sys.argv[1:])
+
     args.save_iterations.append(args.iterations)
 
     # Initialize system state (RNG)
@@ -535,6 +545,24 @@ if __name__ == "__main__":
             f"/share/monakhova/shamus_data/multiplexed_pixels/output{args.output_id}/"
             + run_name
         )
+
+    if args.skip_train:
+        tb_writer, _ = prepare_output_and_logger(dataset)
+        if tb_writer:
+            tb_writer.close()
+        print("DEBUG: Creating GaussianModel...")
+        gaussians = GaussianModel(dataset.sh_degree)
+        print("DEBUG: Creating Scene...")
+        Scene(
+            dataset,
+            gaussians,
+        )
+        print("DEBUG: Scene created successfully")
+        transforms_path = os.path.join(dataset.model_path, "transforms.json")
+        print(f"Transforms written to {transforms_path}")
+        sys.exit(0)
+
+    wandb.login()
     wandb.init(name=run_name)
 
     training(

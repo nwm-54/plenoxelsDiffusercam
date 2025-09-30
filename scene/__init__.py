@@ -10,7 +10,6 @@
 #
 from __future__ import annotations
 
-import json
 import os
 from typing import Dict, List, Optional
 
@@ -30,13 +29,15 @@ from scene.dataset_readers import (
     readNerfSyntheticInfo,
 )
 from scene.gaussian_model import GaussianModel
-from scene.scene_utils import CameraInfo, configure_world_to_m
-from utils.camera_utils import camera_to_JSON, cameraList_from_camInfos
+from scene.scene_utils import configure_world_to_m
+from utils.camera_utils import cameraList_from_camInfos
 from utils.general_utils import get_dataset_name
 from utils.render_utils import (
     get_pretrained_splat_path,
     load_pretrained_splat,
     render_splat,
+    render_with_blender,
+    write_camera_json,
 )
 from utils.visualization_utils import save_camera_visualization
 
@@ -53,6 +54,7 @@ class Scene:
         gaussians: GaussianModel,
         load_iteration: Optional[int] = None,
         resolution_scales: List[float] = [1.0],
+        include_test_cameras: bool = False,
     ):
         """
         :param path: Path to colmap scene main folder.
@@ -118,37 +120,46 @@ class Scene:
                 )
             if gs is not None:
                 scene_info = apply_offset(args, gs, scene_info)
-                obj_center = (
-                    gs.get_xyz.mean(dim=0).detach().cpu().numpy()
-                )
+                obj_center = gs.get_xyz.mean(dim=0).detach().cpu().numpy()
                 self.object_center = obj_center
-                if args.use_multiplexing:
-                    scene_info = create_multiplexed_views(
-                        scene_info,
-                        obj_center,
-                        args.angle_deg,
-                        self.n_multiplexed_images,
-                    )
-                elif args.use_stereo:
-                    scene_info = create_stereo_views(
-                        scene_info, obj_center, args.angle_deg
-                    )
-                elif args.use_iphone:  # NEW
-                    scene_info = create_iphone_views(
-                        scene_info,
-                        obj_center,
-                        args.angle_deg,
-                        args.iphone_same_focal_length
-                    )
-                scene_info = render_splat(args, gs, scene_info)
-                metrics = print_camera_metrics(scene_info, self.object_center)
-                if metrics:
-                    self.avg_angle = metrics.get("avg_group_angle_deg")
-                    self.group_metrics = metrics.get("group_metrics", {})
         else:
             raise ValueError(
                 f"Could not infer scene type from source path: {args.source_path}"
             )
+
+        if gs is not None:
+            if args.use_multiplexing:
+                scene_info = create_multiplexed_views(
+                    scene_info,
+                    self.object_center,
+                    args.angle_deg,
+                    self.n_multiplexed_images,
+                )
+            elif args.use_stereo:
+                scene_info = create_stereo_views(
+                    scene_info, self.object_center, args.angle_deg
+                )
+            elif args.use_iphone:
+                scene_info = create_iphone_views(
+                    scene_info,
+                    self.object_center,
+                    args.angle_deg,
+                    args.iphone_same_focal_length,
+                )
+
+        if args.use_blender:
+            scene_info = render_with_blender(
+                args, scene_info, dataset_name, object_center=self.object_center
+            )
+        elif gs is not None:
+            scene_info = render_splat(args, gs, scene_info)
+
+        self.scene_info = scene_info
+
+        metrics = print_camera_metrics(scene_info, self.object_center)
+        if metrics:
+            self.avg_angle = metrics.get("avg_group_angle_deg")
+            self.group_metrics = metrics.get("group_metrics", {})
 
         point_cloud_for_vis: Optional[object] = (
             gs if gs is not None else scene_info.point_cloud
@@ -164,18 +175,6 @@ class Scene:
 
         with open(scene_info.ply_path, "rb") as src_file, open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file:  # fmt: skip
             dest_file.write(src_file.read())
-
-        json_cams: List[Dict] = []
-        camlist_for_json: List[CameraInfo] = []
-        if scene_info.train_cameras:
-            for cam_list in scene_info.train_cameras.values():
-                camlist_for_json.extend(cam_list)
-        # if scene_info.test_cameras: camlist_for_json.extend(scene_info.test_cameras)
-        # if scene_info.full_test_cameras: camlist_for_json.extend(scene_info.full_test_cameras)
-        for id, cam in enumerate(camlist_for_json):
-            json_cams.append(camera_to_JSON(id, cam))
-        with open(os.path.join(self.model_path, "cameras.json"), "w") as file:
-            json.dump(json_cams, file, indent=4)
 
         self.cameras_extent = scene_info.nerf_normalization["radius"]
 
@@ -195,6 +194,8 @@ class Scene:
             self.full_test_cameras[resolution_scale] = cameraList_from_camInfos(
                 scene_info.full_test_cameras, resolution_scale, args
             )
+
+        self._write_camera_json(include_test_cameras)
 
         self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
         self.multiplexed_gt: Optional[Dict[int, torch.Tensor]] = None
@@ -249,22 +250,18 @@ class Scene:
             )
         return gt
 
-    def _write_camera_json(self):
-        json_cams: List[Dict] = []
-        id_counter = 0
-        for _, viewdict in self.train_cameras.items():
-            for view_idx, cam_list in viewdict.items():
-                for cam in cam_list:
-                    json_cams.append(camera_to_JSON(id_counter, cam))
-                    id_counter += 1
-        for _, cam_list in self.test_cameras.items():
-            for cam in cam_list:
-                json_cams.append(camera_to_JSON(id_counter, cam))
-                id_counter += 1
-        for _, cam_list in self.full_test_cameras.items():
-            for cam in cam_list:
-                json_cams.append(camera_to_JSON(id_counter, cam))
-                id_counter += 1
+    def _write_camera_json(self, include_test: bool = False) -> None:
+        """Export camera poses in NeRF transforms.json format."""
 
-        with open(os.path.join(self.model_path, "cameras.json"), "w") as file:
-            json.dump(json_cams, file, indent=4)
+        if not getattr(self, "scene_info", None):
+            return
+
+        output_path = os.path.join(self.model_path, "transforms.json")
+        transforms_data, _ = write_camera_json(
+            self.scene_info,
+            output_path,
+            include_test=include_test,
+            object_center=self.object_center,
+        )
+        if transforms_data is None:
+            print("Warning: No train cameras available to write transforms.json")

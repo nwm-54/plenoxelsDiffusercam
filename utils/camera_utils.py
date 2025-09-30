@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import os
 import numpy as np
 
 from scene.cameras import Camera
@@ -77,24 +78,35 @@ def cameraList_from_camInfos(cam_infos: CameraInfo, resolution_scale, args):
     return camera_list
 
 
-def camera_to_JSON(id, camera: Camera):
-    Rt = np.zeros((4, 4))
+def _default_file_stub(camera: Camera) -> str:
+    base_name = camera.image_name or f"camera_{camera.uid}"
+    safe_name = base_name.replace(os.sep, "_")
+    return f"./{safe_name}/r_0"
+
+
+def camera_to_JSON(camera: Camera, file_path: str | None = None) -> dict:
+    """Return a NeRF-compatible frame dictionary for ``camera``."""
+
+    Rt = np.zeros((4, 4), dtype=np.float64)
     Rt[:3, :3] = camera.R.transpose()
     Rt[:3, 3] = camera.T
     Rt[3, 3] = 1.0
 
-    W2C = np.linalg.inv(Rt)
-    pos = W2C[:3, 3]
-    rot = W2C[:3, :3]
-    serializable_array_2d = [x.tolist() for x in rot]
-    camera_entry = {
-        "id": id,
-        "img_name": camera.image_name,
-        "width": camera.width,
-        "height": camera.height,
-        "position": pos.tolist(),
-        "rotation": serializable_array_2d,
-        "fy": fov2focal(camera.FovY, camera.height),
-        "fx": fov2focal(camera.FovX, camera.width),
+    c2w = np.linalg.inv(Rt)
+    c2w[:3, 1:3] *= -1.0
+
+    width = float(camera.image_width)
+    height = float(camera.image_height)
+
+    frame_entry = {
+        "file_path": file_path or _default_file_stub(camera),
+        "transform_matrix": c2w.tolist(),
+        "fl_x": float(fov2focal(camera.FoVx, camera.image_width)),
+        "fl_y": float(fov2focal(camera.FoVy, camera.image_height)),
+        "cx": width / 2.0,
+        "cy": height / 2.0,
+        "w": camera.image_width,
+        "h": camera.image_height,
     }
-    return camera_entry
+
+    return frame_entry

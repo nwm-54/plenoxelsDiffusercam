@@ -70,6 +70,7 @@ class ModelParams(ParamGroup["ModelParams"]):
     angle_deg: float
     use_iphone: bool
     iphone_same_focal_length: bool
+    use_blender: bool
     source_path: str
     model_path: str
     images: str
@@ -98,6 +99,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self.angle_deg = 10.0
         self.use_iphone = False
         self.iphone_same_focal_length = False
+        self.use_blender = False
         self.camera_offset = 0.0
         self.pretrained_ply = ""
         self.n_train_images = 1

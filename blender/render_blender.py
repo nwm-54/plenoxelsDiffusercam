@@ -39,12 +39,25 @@ import math
 import os
 import sys
 import time
+from copy import deepcopy
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import bpy
 import numpy as np
 from mathutils import Matrix
+
+def nerf_to_blender_matrix(transform_matrix: List[List[float]]) -> Matrix:
+    """Convert NeRF/OpenGL camera-to-world matrix to Blender coordinates."""
+
+    return Matrix(transform_matrix)
+
+
+def blender_to_nerf_matrix(matrix: Matrix) -> List[List[float]]:
+    """Convert Blender world matrix to NeRF/OpenGL convention."""
+
+    return listify_matrix(matrix)
 
 
 @dataclass
@@ -163,9 +176,32 @@ def ensure_dir(path: str) -> None:
         os.makedirs(path, exist_ok=True)
 
 
+def _detach_camera_from_rig(cam: bpy.types.Object) -> None:
+    """Remove parenting/constraints so the camera can be driven directly."""
+
+    if cam.parent is not None:
+        cam.parent = None
+        cam.matrix_parent_inverse.identity()
+
+    for constraint in list(cam.constraints):
+        cam.constraints.remove(constraint)
+
+
 def extract_camera_name(file_path: str) -> str:
     """Extract camera name from file path like ./camera_name/r_X"""
     return file_path.split("/")[-2] if "/" in file_path else "Camera"
+
+
+def parse_frame_index(file_path: str) -> int:
+    name = Path(file_path).stem
+    tokens = name.split("_")
+    for token in reversed(tokens):
+        if token.isdigit():
+            return int(token)
+        if token.startswith("r") and token[1:].isdigit():
+            return int(token[1:])
+    digits = "".join(c for c in name if c.isdigit())
+    return int(digits) if digits else 0
 
 
 def resolve_output_root(path_str: str) -> str:
@@ -183,6 +219,7 @@ def resolve_output_root(path_str: str) -> str:
 def ensure_camera_exists(name: str, template: bpy.types.Object) -> bpy.types.Object:
     cam = bpy.data.objects.get(name)
     if cam is not None:
+        _detach_camera_from_rig(cam)
         return cam
     if template is None:
         raise RuntimeError(
@@ -192,6 +229,7 @@ def ensure_camera_exists(name: str, template: bpy.types.Object) -> bpy.types.Obj
     new_cam.data = template.data.copy()
     new_cam.name = name
     bpy.context.scene.collection.objects.link(new_cam)
+    _detach_camera_from_rig(new_cam)
     return new_cam
 
 
@@ -362,6 +400,87 @@ def save_transforms_json(data: dict, filepath: str) -> None:
     print(f"Wrote {filepath}")
 
 
+def _frame_intrinsics(frame: dict, transforms_data: dict, cfg: RenderConfig) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]:
+    """Extract width/height and focal lengths for a frame with fallbacks."""
+
+    width = frame.get("w") or transforms_data.get("w") or float(cfg.resolution)
+    height = frame.get("h") or transforms_data.get("h") or float(cfg.resolution)
+
+    fl_x = frame.get("fl_x") or transforms_data.get("fl_x")
+    fl_y = frame.get("fl_y") or transforms_data.get("fl_y")
+
+    angle_x = frame.get("camera_angle_x") or transforms_data.get("camera_angle_x")
+    angle_y = frame.get("camera_angle_y") or transforms_data.get("camera_angle_y")
+
+    if fl_x is None and angle_x is not None and width:
+        fl_x = 0.5 * float(width) / math.tan(float(angle_x) / 2.0)
+    if fl_y is None and angle_y is not None and height:
+        fl_y = 0.5 * float(height) / math.tan(float(angle_y) / 2.0)
+
+    return (
+        float(width) if width is not None else None,
+        float(height) if height is not None else None,
+        float(fl_x) if fl_x is not None else None,
+        float(fl_y) if fl_y is not None else None,
+        float(angle_x) if angle_x is not None else None,
+        float(angle_y) if angle_y is not None else None,
+    )
+
+
+def _apply_intrinsics_to_camera(
+    cam: bpy.types.Object,
+    width: Optional[float],
+    height: Optional[float],
+    fl_x: Optional[float],
+    fl_y: Optional[float],
+    angle_x: Optional[float],
+    angle_y: Optional[float],
+) -> None:
+    """Update Blender camera focal length / sensor so renders match transforms."""
+
+    cam_data = cam.data
+    if cam_data.type != "PERSP":
+        return
+
+    DEFAULT_SENSOR_WIDTH = 36.0
+
+    # Preserve explicit width/height from the frame when available. Otherwise fall back to
+    # the camera's current settings to avoid clobbering custom rigs.
+    img_width = float(width) if width else float(cam_data.sensor_width or DEFAULT_SENSOR_WIDTH)
+    img_height = float(height) if height else float(cam_data.sensor_height or img_width)
+
+    sensor_width = float(getattr(cam_data, "sensor_width", DEFAULT_SENSOR_WIDTH) or DEFAULT_SENSOR_WIDTH)
+    sensor_height = float(getattr(cam_data, "sensor_height", sensor_width * (img_height / img_width)))
+
+    # Always keep the same sensor aspect as the requested image to avoid skew.
+    aspect = img_height / img_width if img_width else 1.0
+    sensor_width = DEFAULT_SENSOR_WIDTH
+    sensor_height = sensor_width * aspect
+
+    horizontal_lens = None
+    vertical_lens = None
+
+    if fl_x and img_width:
+        horizontal_lens = float(fl_x) * sensor_width / img_width
+    elif angle_x is not None:
+        horizontal_lens = 0.5 * sensor_width / math.tan(angle_x / 2.0)
+
+    if fl_y and img_height:
+        vertical_lens = float(fl_y) * sensor_height / img_height
+    elif angle_y is not None:
+        vertical_lens = 0.5 * sensor_height / math.tan(angle_y / 2.0)
+
+    # Prefer the horizontal solution to stay consistent with NeRF-style intrinsics.
+    lens = horizontal_lens or vertical_lens or cam_data.lens
+
+    cam_data.sensor_width = float(sensor_width)
+    cam_data.sensor_height = float(sensor_height)
+    cam_data.lens = float(lens)
+    cam_data.sensor_fit = "HORIZONTAL"
+
+    # Principal point offsets (cx, cy) are assumed to be centered; expose future support here.
+
+
 def generate_transforms(
     cfg: RenderConfig,
     cameras: List[bpy.types.Object],
@@ -399,15 +518,73 @@ def generate_transforms(
             bpy.context.scene.camera = cam
             bpy.context.view_layer.update()
 
-            rel_path = f"./{cam.name}/r_{i}"
+            rel_path = f"./{cam.name}/r_{i:03d}"
 
             frame_entry = {
                 "file_path": rel_path,
-                "transform_matrix": listify_matrix(cam.matrix_world),
+                "transform_matrix": blender_to_nerf_matrix(cam.matrix_world),
             }
             out_data["frames"].append(frame_entry)
 
     return out_data
+
+
+def extend_transforms_for_animation(
+    transforms: Dict, total_frames: int
+) -> Dict:
+    if total_frames <= 0:
+        return transforms
+
+    frames = transforms.get("frames", [])
+    if not frames:
+        return transforms
+
+    grouped: Dict[Tuple[str, Optional[str]], List[Dict]] = {}
+    order: List[Tuple[str, Optional[str]]] = []
+    for frame in frames:
+        file_path = frame.get("file_path")
+        if not file_path:
+            continue
+        if "/" in file_path:
+            camera_path = file_path.rsplit("/", 1)[0]
+        else:
+            camera_path = file_path
+        split_key = frame.get("split") if "split" in frame else None
+        key = (camera_path, split_key)
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(frame)
+
+    if not grouped:
+        return transforms
+
+    def has_required_frames(entries: List[Dict]) -> bool:
+        indices = [
+            parse_frame_index(entry.get("file_path", ""))
+            for entry in entries
+            if entry.get("file_path")
+        ]
+        return indices and max(indices) >= total_frames - 1
+
+    if all(has_required_frames(entries) for entries in grouped.values()):
+        return transforms
+
+    new_frames: List[Dict] = []
+    for key in order:
+        entries = grouped[key]
+        template = min(
+            entries,
+            key=lambda entry: parse_frame_index(entry.get("file_path", "")),
+        )
+        camera_path, _ = key
+        for frame_idx in range(total_frames):
+            cloned = deepcopy(template)
+            cloned["file_path"] = f"{camera_path}/r_{frame_idx:03d}"
+            new_frames.append(cloned)
+
+    transforms["frames"] = new_frames
+    return transforms
 
 
 def render(
@@ -447,11 +624,22 @@ def render(
 
         for frame in cam_frames:
             transform_matrix = frame["transform_matrix"]
-            cam.matrix_world = Matrix(transform_matrix)
+            mw = nerf_to_blender_matrix(transform_matrix)
+            cam.matrix_world = mw
 
-            # Extract frame index and apply arm animation
             file_path = frame["file_path"]
-            frame_idx = int(file_path.split("_")[-1])
+            frame_idx = parse_frame_index(file_path)
+            frame_name = Path(file_path).name
+
+            (
+                width,
+                height,
+                fl_x,
+                fl_y,
+                angle_x,
+                angle_y,
+            ) = _frame_intrinsics(frame, transforms_data, cfg)
+            _apply_intrinsics_to_camera(cam, width, height, fl_x, fl_y, angle_x, angle_y)
 
             # Apply arm animation for this frame
             arm_anim.apply(frame_idx, cfg.views)
@@ -460,7 +648,7 @@ def render(
             bpy.context.view_layer.update()
 
             scn = bpy.context.scene
-            scn.render.filepath = os.path.join(out_dir, f"r_{frame_idx}")
+            scn.render.filepath = os.path.join(out_dir, frame_name)
 
             if not cfg.debug:
                 bpy.ops.render.render(write_still=True)
@@ -501,6 +689,9 @@ def run(cfg: RenderConfig):
         }
 
         cfg.num_cams = len(camera_names) if camera_names else 1
+        transforms_data = extend_transforms_for_animation(
+            transforms_data, cfg.views
+        )
 
     else:
         print(f"Generating new camera poses using trajectory: {cfg.trajectory_name}")
@@ -579,6 +770,12 @@ def run(cfg: RenderConfig):
 
         if cfg.generate_only:
             print("Generated transforms.json only (no rendering performed)")
+            return
+    else:
+        json_path = os.path.join(root, "transforms.json")
+        save_transforms_json(transforms_data, json_path)
+        if cfg.generate_only:
+            print("Copied transforms.json only (no rendering performed)")
             return
 
     if not cfg.generate_only:

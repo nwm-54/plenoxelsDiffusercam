@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
+import subprocess
+import tempfile
 from argparse import ArgumentParser
+from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -16,6 +20,7 @@ from gaussian_renderer import render
 from scene.cameras import Camera
 from scene.gaussian_model import BasicPointCloud, GaussianModel
 from utils.general_utils import get_dataset_name
+from utils.graphics_utils import fov2focal, getWorld2View2
 
 if TYPE_CHECKING:
     from arguments import ModelParams
@@ -91,6 +96,257 @@ def render_splat(
 
     return scene_info._replace(train_cameras=new_train_cameras)
 
+
+def _camera_info_to_opengl_transform(cam_info: "CameraInfo") -> np.ndarray:
+    w2c = getWorld2View2(cam_info.R, cam_info.T).astype(np.float64)
+    c2w = np.linalg.inv(w2c)
+    c2w[:3, 1:3] *= -1.0
+    return c2w
+
+
+def _camera_info_to_frame_entry(
+    cam_info: "CameraInfo", file_stub: str, split: str
+) -> Dict[str, object]:
+    width, height = cam_info.image.size
+    transform = _camera_info_to_opengl_transform(cam_info)
+    fl_x = float(fov2focal(cam_info.FovX, width))
+    fl_y = float(fov2focal(cam_info.FovY, height))
+
+    entry: Dict[str, object] = {
+        "file_path": file_stub,
+        "transform_matrix": transform.tolist(),
+        "fl_x": fl_x,
+        "fl_y": fl_y,
+        "cx": width / 2.0,
+        "cy": height / 2.0,
+        "w": width,
+        "h": height,
+        "split": split,
+    }
+
+    return entry
+
+
+def build_transforms_data(
+    scene_info: "SceneInfo", include_test: bool = False
+) -> Tuple[Optional[Dict[str, object]], Dict[Tuple[int, int], Dict[str, object]]]:
+    frames: List[Dict[str, object]] = []
+    train_lookup: Dict[Tuple[int, int], Dict[str, object]] = {}
+
+    first_train_entry: Optional[Dict[str, object]] = None
+    first_train_cam: Optional["CameraInfo"] = None
+
+    camera_name_map: Dict[int, str] = {}
+    frame_counters: Dict[str, int] = defaultdict(int)
+
+    def _camera_name_for(cam_uid: int) -> str:
+        if cam_uid not in camera_name_map:
+            camera_name_map[cam_uid] = f"camera_{len(camera_name_map) + 1:02d}"
+        return camera_name_map[cam_uid]
+
+    def _file_stub(cam_uid: int) -> Tuple[str, int]:
+        cam_name = _camera_name_for(cam_uid)
+        frame_idx = frame_counters[cam_name]
+        frame_counters[cam_name] += 1
+        return f"./{cam_name}/r_{frame_idx:03d}", frame_idx
+
+    for view_idx, cam_list in sorted(scene_info.train_cameras.items()):
+        for cam_idx, cam_info in enumerate(cam_list):
+            file_stub, _ = _file_stub(cam_info.uid)
+            entry = _camera_info_to_frame_entry(cam_info, file_stub, split="train")
+            frames.append(entry)
+
+            if first_train_entry is None:
+                first_train_entry = entry
+                first_train_cam = cam_info
+
+            train_lookup[(view_idx, cam_idx)] = {
+                "file_stub": file_stub,
+                "image_name": cam_info.image_name
+                or f"view_{view_idx:03d}_cam_{cam_idx:02d}",
+                "cam_info": cam_info,
+            }
+
+    if include_test and scene_info.test_cameras:
+        for cam_info in scene_info.test_cameras:
+            file_stub, _ = _file_stub(cam_info.uid)
+            frames.append(
+                _camera_info_to_frame_entry(cam_info, file_stub, split="test")
+            )
+
+    if include_test and scene_info.full_test_cameras:
+        for cam_info in scene_info.full_test_cameras:
+            file_stub, _ = _file_stub(cam_info.uid)
+            frames.append(
+                _camera_info_to_frame_entry(cam_info, file_stub, split="full")
+            )
+
+    if not frames or first_train_entry is None or first_train_cam is None:
+        return None, train_lookup
+
+    transforms = {
+        "camera_angle_x": float(first_train_cam.FovX),
+        "camera_angle_y": float(first_train_cam.FovY),
+        "fl_x": first_train_entry["fl_x"],
+        "fl_y": first_train_entry["fl_y"],
+        "cx": first_train_entry["w"] / 2.0,
+        "cy": first_train_entry["h"] / 2.0,
+        "w": first_train_entry["w"],
+        "h": first_train_entry["h"],
+        "frames": frames,
+    }
+
+    return transforms, train_lookup
+
+
+def write_camera_json(
+    scene_info: "SceneInfo",
+    output_path: os.PathLike | str,
+    include_test: bool = False,
+    object_center: Optional[np.ndarray] = None,
+) -> Tuple[Optional[Dict[str, object]], Dict[Tuple[int, int], Dict[str, object]]]:
+    transforms_data, frame_lookup = build_transforms_data(
+        scene_info, include_test=include_test
+    )
+    if transforms_data is None:
+        return None, frame_lookup
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if getattr(scene_info, "nerf_normalization", None):
+        normalization = scene_info.nerf_normalization
+        if normalization:
+            transforms_data = copy.deepcopy(transforms_data)
+            transforms_data["normalization"] = {
+                "translate": normalization.get("translate", []).tolist()
+                if hasattr(normalization.get("translate"), "tolist")
+                else normalization.get("translate"),
+                "radius": float(normalization.get("radius"))
+                if normalization.get("radius") is not None
+                else None,
+            }
+    if object_center is not None:
+        transforms_data = copy.deepcopy(transforms_data)
+        transforms_data["object_center"] = (
+            object_center.tolist()
+            if hasattr(object_center, "tolist")
+            else list(object_center)
+        )
+    with output_path.open("w", encoding="utf-8") as file:
+        json.dump(transforms_data, file, indent=2)
+
+    return transforms_data, frame_lookup
+
+
+def render_with_blender(
+    args: "ModelParams",
+    scene_info: "SceneInfo",
+    dataset_name: str,
+    object_center: Optional[np.ndarray] = None,
+) -> "SceneInfo":
+    if not scene_info.train_cameras:
+        return scene_info
+
+    transforms_path = Path(args.model_path) / "transforms.json"
+    transforms_data, frame_lookup = write_camera_json(
+        scene_info,
+        transforms_path,
+        include_test=False,
+        object_center=object_center,
+    )
+    if transforms_data is None:
+        return scene_info
+
+    project_root = Path(__file__).resolve().parents[1]
+    render_script = project_root / "blender" / "render_blender.py"
+    blend_file = project_root / "blender" / f"{dataset_name}.blend"
+
+    if not blend_file.exists():
+        raise FileNotFoundError(
+            f"Expected Blender scene for '{dataset_name}' at {blend_file}"
+        )
+
+    input_views_dir = Path(args.model_path) / "input_views"
+    input_views_dir.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(prefix="blender_render_") as tmp_root:
+        tmp_root_path = Path(tmp_root)
+        total_train_frames = sum(len(c) for c in scene_info.train_cameras.values())
+        cmd = [
+            "conda",
+            "run",
+            "-n",
+            "blender",
+            "blender",
+            "-b",
+            str(blend_file),
+            "-P",
+            str(render_script),
+            "--",
+            "--transforms-json",
+            str(transforms_path),
+            "--results",
+            str(tmp_root_path),
+            "--views",
+            str(max(total_train_frames, 1)),
+        ]
+
+        process = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False
+        )
+
+        if process.returncode != 0:
+            combined_output = process.stderr.strip() or process.stdout.strip()
+            raise RuntimeError(
+                "Blender rendering failed"
+                + (f": {combined_output}" if combined_output else "")
+            )
+
+        new_train_cameras: Dict[int, List["CameraInfo"]] = {}
+        for view_idx, cam_list in scene_info.train_cameras.items():
+            updated_list: List["CameraInfo"] = []
+            for cam_idx, cam_info in enumerate(cam_list):
+                meta = frame_lookup.get((view_idx, cam_idx))
+                if meta is None:
+                    updated_list.append(cam_info)
+                    continue
+
+                file_stub = meta["file_stub"]
+                image_name = meta["image_name"] or cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+
+                rel_path = file_stub[2:] if file_stub.startswith("./") else file_stub
+                rendered_path = tmp_root_path / Path(rel_path)
+                rendered_file = rendered_path.with_suffix(".png")
+
+                if not rendered_file.exists():
+                    print(
+                        f"Warning: Blender output missing for '{rel_path}' at {rendered_file}; keeping original image."
+                    )
+                    updated_list.append(cam_info)
+                    continue
+
+                with Image.open(rendered_file) as pil_image:
+                    image_rgba = pil_image.convert("RGBA")
+
+                black_bg = Image.new("RGBA", image_rgba.size, (0, 0, 0, 255))
+                composited = Image.alpha_composite(black_bg, image_rgba)
+                image_rgb = composited.convert("RGB")
+
+                final_path = input_views_dir / f"{image_name}.png"
+                image_rgb.save(final_path, format="PNG")
+
+                updated_list.append(
+                    cam_info._replace(image=image_rgb, image_path=str(final_path))
+                )
+
+            new_train_cameras[view_idx] = updated_list
+
+    print(
+        f"Rendered {total_train_frames} train frames with Blender; outputs stored in {input_views_dir}"
+    )
+
+    return scene_info._replace(train_cameras=new_train_cameras)
 
 def render_splat_from_camera(
     camera: Camera, gs: GaussianModel, pp: PipelineParams, bg: torch.Tensor
