@@ -7,7 +7,7 @@
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
 #SBATCH --ntasks=4
-#SBATCH --time=8:00:00
+#SBATCH --time=4-8:00:00
 #SBATCH --mem=32G
 
 source /home/wl757/.bashrc
@@ -20,14 +20,14 @@ cd "${WORKDIR}"
 # ---------------------------------------------------------------------------- #
 # User-set configuration
 # ---------------------------------------------------------------------------- #
-DATASET_NAME="demo_stereo"
+DATASET_NAME="demo_iphone"
 DATASET_SOURCE="/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"
 N_TRAIN_VIEWS=3
 ANIMATION_VIEWS=60
 
 TRAIN_ARGS=(
-    # --use_iphone
-    --use_stereo
+    --use_iphone
+    # --use_stereo
     # "--dls"
     # "--use_multiplexing"
 )

@@ -648,7 +648,8 @@ def render(
             bpy.context.view_layer.update()
 
             scn = bpy.context.scene
-            scn.render.filepath = os.path.join(out_dir, frame_name)
+            ext = "." + cfg.img_format.lower() if cfg.img_format.lower() != "jpeg" else ".jpg"
+            scn.render.filepath = os.path.join(out_dir, frame_name + ext)
 
             if not cfg.debug:
                 bpy.ops.render.render(write_still=True)
