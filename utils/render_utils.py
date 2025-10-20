@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
@@ -272,7 +273,7 @@ def render_with_blender(
 
     with tempfile.TemporaryDirectory(prefix="blender_render_") as tmp_root:
         tmp_root_path = Path(tmp_root)
-        total_train_frames = sum(len(c) for c in scene_info.train_cameras.values())
+        total_train_frames = max(len(frame_lookup), 1)
         cmd = [
             "conda",
             "run",
@@ -292,9 +293,15 @@ def render_with_blender(
             str(max(total_train_frames, 1)),
         ]
 
+        cmd.append("--disable-animation")
+
+        render_start = time.perf_counter()
+
         process = subprocess.run(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False
         )
+
+        render_elapsed = time.perf_counter() - render_start
 
         if process.returncode != 0:
             combined_output = process.stderr.strip() or process.stdout.strip()
@@ -304,6 +311,7 @@ def render_with_blender(
             )
 
         new_train_cameras: Dict[int, List["CameraInfo"]] = {}
+        rendered_count = 0
         for view_idx, cam_list in scene_info.train_cameras.items():
             updated_list: List["CameraInfo"] = []
             for cam_idx, cam_info in enumerate(cam_list):
@@ -336,6 +344,7 @@ def render_with_blender(
                 final_path = input_views_dir / f"{image_name}.png"
                 image_rgb.save(final_path, format="PNG")
 
+                rendered_count += 1
                 updated_list.append(
                     cam_info._replace(image=image_rgb, image_path=str(final_path))
                 )
@@ -343,7 +352,7 @@ def render_with_blender(
             new_train_cameras[view_idx] = updated_list
 
     print(
-        f"Rendered {total_train_frames} train frames with Blender; outputs stored in {input_views_dir}"
+        f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}"
     )
 
     return scene_info._replace(train_cameras=new_train_cameras)

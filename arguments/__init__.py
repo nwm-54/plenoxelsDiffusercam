@@ -159,7 +159,7 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
     lambda_shot: float
 
     def __init__(self, parser: ArgumentParser):
-        self.iterations = 30_000
+        self.iterations = 3_000
         self.position_lr_init = 0.00016
         self.position_lr_final = 0.0000016
         self.position_lr_delay_mult = 0.01
@@ -172,13 +172,13 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
         self.exposure_lr_final = 0.001
         self.exposure_lr_delay_steps = 0
         self.exposure_lr_delay_mult = 0.0
-        self.percent_dense = 0.01
-        self.lambda_dssim = 0.2
-        self.densification_interval = 100
+        self.percent_dense = 0.06
+        self.lambda_dssim = 0.1
+        self.densification_interval = 50
         self.opacity_reset_interval = 1000
         self.densify_from_iter = 300
-        self.densify_until_iter = 15_000
-        self.densify_grad_threshold = 0.0002
+        self.densify_until_iter = 3_000
+        self.densify_grad_threshold = 1.5e-05
         self.depth_l1_weight_init = 1.0
         self.depth_l1_weight_final = 0.01
         self.random_background = False

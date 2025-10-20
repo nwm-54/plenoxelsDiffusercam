@@ -83,6 +83,7 @@ class RenderConfig:
     debug: bool = False
     transforms_json: Optional[str] = None
     generate_only: bool = False
+    disable_animation: bool = False
 
     def create_arm_animator(self) -> "ArmAnimator":
         return ArmAnimator(
@@ -139,6 +140,12 @@ def parse_args(argv: List[str]) -> RenderConfig:
         action="store_true",
         help="Generate transforms.json only, skip rendering",
     )
+    parser.add_argument(
+        "--disable-animation",
+        dest="disable_animation",
+        action="store_true",
+        help="Skip animation-style frame interpolation when rendering from transforms.json.",
+    )
 
     parsed = parser.parse_args(argv)
 
@@ -164,6 +171,7 @@ def parse_args(argv: List[str]) -> RenderConfig:
         debug=parsed.debug,
         transforms_json=parsed.transforms_json,
         generate_only=parsed.generate_only,
+        disable_animation=parsed.disable_animation,
     )
 
 
@@ -239,18 +247,39 @@ def enable_cycles_and_gpus() -> None:
     scn.render.use_persistent_data = True
     scn.cycles.use_adaptive_sampling = True
     scn.cycles.use_denoising = True
-    scn.cycles.denoiser = "OPTIX"
 
     try:
         prefs = bpy.context.preferences
         cycles_prefs = prefs.addons["cycles"].preferences
         cycles_prefs.compute_device_type = "OPTIX"
         cycles_prefs.refresh_devices()
+
+        optix_available = False
         for device in cycles_prefs.devices:
-            device.use = device.type == "OPTIX"
-        bpy.context.scene.cycles.device = "GPU"
-    except Exception as e:
-        print("GPU enable skipped:", e)
+            device_type = getattr(device, "type", "").upper()
+            is_optix = device_type == "OPTIX"
+            device.use = is_optix
+            optix_available = optix_available or is_optix
+
+        if optix_available:
+            scn.cycles.device = "GPU"
+        else:
+            print("OPTIX GPU device not available; Blender will use its default device.")
+
+        denoiser_prop = scn.cycles.bl_rna.properties.get("denoiser")
+        if denoiser_prop is not None:
+            available_denoisers = {
+                enum_item.identifier for enum_item in denoiser_prop.enum_items
+            }
+            if "OPTIX" in available_denoisers:
+                scn.cycles.denoiser = "OPTIX"
+            elif "OPENIMAGEDENOISE" in available_denoisers:
+                scn.cycles.denoiser = "OPENIMAGEDENOISE"
+            elif "NLM" in available_denoisers:
+                scn.cycles.denoiser = "NLM"
+
+    except Exception as exc:
+        print("GPU enable skipped:", exc)
 
 
 def configure_image_output(img_format: str, color_depth: int):
@@ -656,9 +685,11 @@ def render(
 
             rendered_frames += 1
 
+    elapsed = time.time() - start_time
     if rendered_frames > 0:
-        elapsed = time.time() - start_time
         print(f"Rendered {rendered_frames} frames in {elapsed:.1f} seconds.")
+    else:
+        print(f"Render stage completed in {elapsed:.1f} seconds (no frames produced).")
 
 
 def run(cfg: RenderConfig):
@@ -690,9 +721,14 @@ def run(cfg: RenderConfig):
         }
 
         cfg.num_cams = len(camera_names) if camera_names else 1
-        transforms_data = extend_transforms_for_animation(
-            transforms_data, cfg.views
-        )
+        if cfg.disable_animation:
+            total_frames = len(transforms_data.get("frames", []))
+            if total_frames:
+                cfg.views = total_frames
+        else:
+            transforms_data = extend_transforms_for_animation(
+                transforms_data, cfg.views
+            )
 
     else:
         print(f"Generating new camera poses using trajectory: {cfg.trajectory_name}")

@@ -2,7 +2,7 @@
 #SBATCH --job-name=lego_4dgs
 #SBATCH --output=slurm_logs/%j.out
 #SBATCH --error=slurm_logs/%j.err
-#SBATCH --partition=monakhova
+#SBATCH --partition=default_partition
 #SBATCH --gres=gpu:1
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
@@ -20,14 +20,14 @@ cd "${WORKDIR}"
 # ---------------------------------------------------------------------------- #
 # User-set configuration
 # ---------------------------------------------------------------------------- #
-DATASET_NAME="demo_iphone"
+DATASET_NAME="demo_stereo"
 DATASET_SOURCE="/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"
 N_TRAIN_VIEWS=3
 ANIMATION_VIEWS=60
 
 TRAIN_ARGS=(
-    --use_iphone
-    # --use_stereo
+    # --use_iphone
+    --use_stereo
     # "--dls"
     # "--use_multiplexing"
 )
@@ -44,6 +44,10 @@ BLENDER_ARGS=(
 
 FOURD_CONVERT_ARGS=(
     # "--skip_vggt"
+    --test_blender "/share/monakhova/shamus_data/multiplexed_pixels/dnerf/lego"
+    --test_transforms "transforms_val.json"
+    --video_blender "/share/monakhova/shamus_data/multiplexed_pixels/dnerf/lego"
+    --video_transforms "transforms_val.json"
 )
 
 FOURD_TRAIN_ARGS=(
