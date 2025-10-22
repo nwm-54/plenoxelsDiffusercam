@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 
 from arguments import ModelParams
-from arguments.multiviews_indices import MULTIVIEW_INDICES
+from arguments.camera_presets import MULTIVIEW_INDICES, BEST_CAMERA_CONFIG
 from scene import multiplexing
 from scene.colmap_loader import (
     qvec2rotmat,

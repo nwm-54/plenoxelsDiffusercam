@@ -3,7 +3,7 @@
 #SBATCH --output=slurm_logs/%j.out
 #SBATCH --error=slurm_logs/%j.err
 #SBATCH --partition=default_partition
-#SBATCH --exclude=lil-compute-05,unicorn-compute-01
+#SBATCH --exclude=lil-compute-05,unicorn-compute-01,bhattacharjee-compute-02
 #SBATCH --gres=gpu:1
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
@@ -14,6 +14,6 @@
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/ttsiu1le
-wandb agent shamus-team/multiplexed-pixels/ua5cci4r
-wandb agent shamus-team/multiplexed-pixels/tn6yf475
+wandb agent shamus-team/multiplexed-pixels/rogikpm8
+wandb agent shamus-team/multiplexed-pixels/c939y7p2
+wandb agent shamus-team/multiplexed-pixels/6ytlyq27

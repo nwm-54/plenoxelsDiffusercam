@@ -3,7 +3,7 @@ import random
 import sys
 import uuid
 from argparse import ArgumentParser, Namespace
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 from tqdm import tqdm
@@ -12,6 +12,7 @@ import wandb
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
+from arguments.camera_presets import apply_profile
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
 from utils.general_utils import get_dataset_name, safe_state
@@ -34,6 +35,76 @@ if device.type == "cuda":
 else:
     print("Using device: cpu")
 
+def compose_run_name(dataset: ModelParams, opt: OptimizationParams, dls: int) -> str:
+    """Build a descriptive run name that mirrors previous inline construction."""
+    if dataset.use_multiplexing:
+        multiplexing_str = "multiplexing"
+    elif dataset.use_stereo:
+        multiplexing_str = "stereo"
+    elif dataset.use_iphone:
+        multiplexing_str = "iphone"
+    else:
+        multiplexing_str = "singleview"
+
+    run_name = (
+        f"{get_dataset_name(dataset.source_path)}_"
+        f"{dataset.n_train_images}views_{multiplexing_str}_dls{dls}"
+    )
+
+    if opt.tv_weight > 0:
+        run_name += f"_tv{opt.tv_weight}"
+    if opt.tv_unseen_weight > 0:
+        run_name += f"_unseen{opt.tv_unseen_weight}"
+    if dataset.camera_offset != 0:
+        run_name += f"_offset{dataset.camera_offset}"
+    if dataset.use_iphone and not dataset.iphone_same_focal_length:
+        run_name += "_multifocal"
+    if dataset.angle_deg:
+        run_name += f"_{dataset.angle_deg}deg"
+    return run_name
+
+
+def log_initial_scene_summary(scene: Scene, opt: OptimizationParams) -> None:
+    """Mirror the original print statements that describe the scene."""
+    print("Tv weight ", opt.tv_weight)
+    print("TV unseen weight ", opt.tv_unseen_weight)
+    print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
+    print("Adjacent test cameras:", len(scene.getTestCameras()))
+    print("Full test cameras:", len(scene.getFullTestCameras()))
+
+
+def collect_validation_configs(scene: Scene) -> List[Dict[str, Any]]:
+    """Centralize creation of validation configurations."""
+    return [
+        {"name": "adjacent test camera", "cameras": scene.getTestCameras()},
+        {"name": "full test camera", "cameras": scene.getFullTestCameras()},
+        {
+            "name": "train camera",
+            "cameras": [
+                cam for cam_list in scene.getTrainCameras().values() for cam in cam_list
+            ],
+        },
+    ]
+
+
+def should_log_wandb_images(
+    iteration: int,
+    testing_iterations: List[int],
+    wandb_image_interval: int,
+    enable_wandb_images: bool,
+) -> bool:
+    """
+    Decide whether to emit W&B image artifacts for this iteration.
+    Matches original logic while centralizing decision-making.
+    """
+    if not enable_wandb_images or not testing_iterations:
+        return False
+
+    if wandb_image_interval <= 0:
+        return iteration == testing_iterations[-1]
+
+    return iteration % wandb_image_interval == 0 or iteration == testing_iterations[-1]
+
 
 def training(
     dataset: ModelParams,
@@ -49,6 +120,9 @@ def training(
     size_threshold_arg: int,
     extent_multiplier: float,
     include_test_cameras: bool = False,
+    wandb_image_interval: int = 0,
+    wandb_max_images: int = 1,
+    wandb_disable_eval_images: bool = False,
 ):
     tb_writer, model_path = prepare_output_and_logger(dataset)
 
@@ -69,15 +143,15 @@ def training(
             initial_log[f"camera_groups/{gid}/distance_m"] = float(dist_val)
     if initial_log:
         wandb.log(initial_log, step=0)
-    print("Tv weight ", opt.tv_weight)
-    print("TV unseen weight ", opt.tv_unseen_weight)
-    print("Train cameras:", sum(len(c) for c in scene.getTrainCameras().values()))
-    print("Adjacent test cameras:", len(scene.getTestCameras()))
-    print("Full test cameras:", len(scene.getFullTestCameras()))
+    log_initial_scene_summary(scene, opt)
 
     if dataset.use_multiplexing:
         print(f"Using multiplexing with {scene.n_multiplexed_images} sub-images")
-        H = W = 800 // resolution
+        if resolution and resolution > 0:
+            scaled_res = max(1, int(800 / float(resolution)))
+            H = W = scaled_res
+        else:
+            H = W = 800
         scene.init_multiplexing(dls, H, W)
     multiplexed_gt = scene.multiplexed_gt
 
@@ -242,6 +316,9 @@ def training(
                 if dataset.use_multiplexing
                 else None,
                 gt_image,
+                wandb_image_interval,
+                wandb_max_images,
+                not wandb_disable_eval_images,
             )
             if iteration in saving_iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -342,6 +419,9 @@ def training_report(
         Tuple[torch.Tensor, List[int], int, int, int, int]
     ] = None,
     gt_image: Optional[torch.Tensor] = None,
+    wandb_image_interval: int = 0,
+    wandb_max_images: int = 1,
+    enable_wandb_images: bool = True,
 ):
     subset_cameras = random.sample(scene.getFullTestCameras(), 10)
     l1_subset, psnr_subset = 0.0, 0.0
@@ -368,22 +448,16 @@ def training_report(
         for key, value in log_dict.items():
             tb_writer.add_scalar(key, value, iteration)
 
-    wandb.log(log_dict, step=iteration)
+    img_dict: Dict[str, Any] = {}
     if iteration in testing_iterations:
-        img_dict = {}
-
-        validation_configs = (
-            {"name": "adjacent test camera", "cameras": scene.getTestCameras()},
-            {"name": "full test camera", "cameras": scene.getFullTestCameras()},
-            {
-                "name": "train camera",
-                "cameras": [
-                    cam
-                    for cam_list in scene.getTrainCameras().values()
-                    for cam in cam_list
-                ],
-            },
+        log_images_this_iter = should_log_wandb_images(
+            iteration,
+            testing_iterations,
+            wandb_image_interval,
+            enable_wandb_images and wandb_max_images > 0,
         )
+
+        validation_configs = collect_validation_configs(scene)
 
         for config in validation_configs:
             cams = config["cameras"]
@@ -395,7 +469,7 @@ def training_report(
                 out = render(viewpoint, scene.gaussians, *renderArgs)["render"]
                 gt = viewpoint.original_image.to(device)
 
-                if idx < 3:
+                if log_images_this_iter and idx < wandb_max_images:
                     out_render = heteroscedastic_noise(
                         out, opt.lambda_read, opt.lambda_shot
                     )
@@ -463,7 +537,7 @@ def training_report(
                     "render/gt_image", gt_image.unsqueeze(0), global_step=iteration
                 )
             img_dict["render/gt_image"] = wandb.Image(gt_image.cpu())
-        wandb.log({**log_dict, **img_dict}, step=iteration)
+    wandb.log({**log_dict, **img_dict}, step=iteration)
 
 
 if __name__ == "__main__":
@@ -501,6 +575,23 @@ if __name__ == "__main__":
     parser.add_argument("--extent_multiplier", type=float, default=1.0)
     parser.add_argument("--output-id", type=str, default="3")
     parser.add_argument(
+        "--wandb_image_interval",
+        type=int,
+        default=0,
+        help="Log W&B evaluation images every N test iterations (0 logs only final iteration).",
+    )
+    parser.add_argument(
+        "--wandb_max_images",
+        type=int,
+        default=1,
+        help="Maximum number of images per validation set to upload when enabled.",
+    )
+    parser.add_argument(
+        "--wandb_disable_eval_images",
+        action="store_true",
+        help="Disable logging evaluation render images to W&B.",
+    )
+    parser.add_argument(
         "--skip_train",
         action="store_true",
         help="Generate camera trajectories and configuration without running training",
@@ -520,25 +611,10 @@ if __name__ == "__main__":
     if opt.iterations not in args.save_iterations:
         args.save_iterations.append(opt.iterations)
 
-    if dataset.use_multiplexing:
-        multiplexing_str = "multiplexing"
-    elif dataset.use_stereo:
-        multiplexing_str = "stereo"
-    elif dataset.use_iphone:
-        multiplexing_str = "iphone"
-    else:
-        multiplexing_str = "singleview"
-    run_name = f"{get_dataset_name(dataset.source_path)}_{dataset.n_train_images}views_{multiplexing_str}_dls{args.dls}"
-    if opt.tv_weight > 0:
-        run_name += f"_tv{opt.tv_weight}"
-    if opt.tv_unseen_weight > 0:
-        run_name += f"_unseen{opt.tv_unseen_weight}"
-    if dataset.camera_offset != 0:
-        run_name += f"_offset{dataset.camera_offset}"
-    if dataset.use_iphone and not dataset.iphone_same_focal_length:
-        run_name += "_multifocal"
-    if dataset.angle_deg:
-        run_name += f"_{dataset.angle_deg}deg"
+    opt, camera_profile = apply_profile(dataset, opt, args.dls)
+    print(f"Applied '{camera_profile}' hyperparameter preset")
+
+    run_name = compose_run_name(dataset, opt, args.dls)
 
     if not dataset.model_path:
         dataset.model_path = (
@@ -563,7 +639,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     wandb.login()
-    wandb.init(name=run_name)
+    wandb.init(
+        name=run_name, save_code=False, settings=wandb.Settings(_disable_stats=True)
+    )
 
     training(
         dataset=dataset,
@@ -578,6 +656,9 @@ if __name__ == "__main__":
         dls=args.dls,
         size_threshold_arg=args.size_threshold,
         extent_multiplier=args.extent_multiplier,
+        wandb_image_interval=args.wandb_image_interval,
+        wandb_max_images=args.wandb_max_images,
+        wandb_disable_eval_images=args.wandb_disable_eval_images,
     )
 
     # All done

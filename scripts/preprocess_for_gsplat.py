@@ -347,7 +347,7 @@ def process_multiple_videos_static(
     normalize_frame_counts(image_dirs)
 
     print("\n=== Phase 3: Generating combined dataset ===")
-    combined_scene = out_root / "combined"
+    combined_scene = out_root
     combined_images = combined_scene / "images"
     if not overwrite and (combined_scene / "sparse").exists():
         print("Combined sparse exists and overwrite disabled; skipping recompute.")
@@ -362,44 +362,6 @@ def process_multiple_videos_static(
         print(f"Combined dataset prepared with {copied} frame(s).")
         run_vggt_on_images(
             combined_scene,
-            conda_exe,
-            conda_env,
-            vggt_script,
-            stage,
-            stage_cache,
-            overwrite,
-        )
-
-    print("\n=== Phase 4: Generating main-camera dataset ===")
-
-    def camera_rank(path: Path) -> tuple[int, str]:
-        stem = path.stem.lower()
-        if "right" in stem:
-            return (0, path.name)
-        if "left" in stem:
-            return (1, path.name)
-        if "wide" in stem:
-            return (2, path.name)
-        return (3, path.name)
-
-    main_idx = min(range(len(tasks)), key=lambda idx: camera_rank(sorted_videos[idx]))
-    main_task = tasks[main_idx]
-    main_images_src = image_dirs[main_idx]
-    main_scene = out_root / "main_camera"
-    main_images = main_scene / "images"
-    if not overwrite and (main_scene / "sparse").exists():
-        print("Main camera sparse exists and overwrite disabled; skipping recompute.")
-    else:
-        ensure_ready_dir(main_images, overwrite=overwrite)
-        copied_main = 0
-        for img in sorted(main_images_src.glob("*.png")):
-            shutil.copy2(img, main_images / img.name)
-            copied_main += 1
-        print(
-            f"Main camera selected: {video_files[main_idx].name} with {copied_main} frame(s)."
-        )
-        run_vggt_on_images(
-            main_scene,
             conda_exe,
             conda_env,
             vggt_script,
