@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List, Literal, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 
 from arguments import ModelParams, OptimizationParams
 
@@ -36,61 +36,84 @@ MULTIVIEW_INDICES: Dict[Literal[1, 3, 5], Dict[str, List[int]]] = {
     },
 }
 
-BASELINE_PARAMS = {
-    "position_lr_init": 0.00016,
-    "densify_grad_threshold": 1.5e-05,
-    "densification_interval": 50,
-    "densify_from_iter": 300,
-    "opacity_reset_interval": 1000,
-    "lambda_dssim": 0.1,
-    "tv_weight": 0.0,
-    "tv_unseen_weight": 0.0,
+# Optimization presets for different training scenarios
+OPTIMIZATION_PRESETS: Dict[str, Dict[str, Any]] = {
+    "baseline": {
+        "position_lr_init": 0.00016,
+        "densify_grad_threshold": 0.000015,
+        "densification_interval": 50,
+        "densify_from_iter": 300,
+        "opacity_reset_interval": 1000,
+        "lambda_dssim": 0.1,
+        "tv_weight": 0.0,
+        "tv_unseen_weight": 0.0,
+    },
+    "balanced_window": {
+        "position_lr_init": 0.00024,
+        "position_lr_final": 8e-06,
+        "densify_grad_threshold": 0.000013,
+        "densification_interval": 35,
+        "densify_from_iter": 220,
+        "densify_until_iter": 2600,
+        "opacity_reset_interval": 600,
+        "lambda_dssim": 0.16,
+        "tv_weight": 0.0025,
+        "tv_unseen_weight": 0.0003,
+        "opacity_lr": 0.07,
+    },
+    "tv_mix": {
+        "position_lr_init": 0.00027,
+        "position_lr_final": 8e-06,
+        "densify_grad_threshold": 0.000011,
+        "densification_interval": 30,
+        "densify_from_iter": 190,
+        "densify_until_iter": 2550,
+        "opacity_reset_interval": 540,
+        "lambda_dssim": 0.17,
+        "tv_weight": 0.0035,
+        "tv_unseen_weight": 0.00035,
+    },
+    "lowview_regularized": {
+        "position_lr_init": 0.00018,
+        "position_lr_final": 6e-06,
+        "densify_grad_threshold": 0.000022,
+        "densification_interval": 45,
+        "densify_from_iter": 220,
+        "densify_until_iter": 2400,
+        "opacity_reset_interval": 750,
+        "percent_dense": 0.045,
+        "lambda_dssim": 0.12,
+        "tv_weight": 0.0035,
+        "tv_unseen_weight": 0.00045,
+        "opacity_lr": 0.08,
+        "scaling_lr": 0.0045,
+        "rotation_lr": 0.0008,
+    },
 }
 
-BALANCED_WINDOW_PARAMS = {
-    "position_lr_init": 0.00024,
-    "position_lr_final": 8e-06,
-    "densify_grad_threshold": 0.000013,
-    "densification_interval": 35,
-    "densify_from_iter": 220,
-    "densify_until_iter": 2600,
-    "opacity_reset_interval": 600,
-    "lambda_dssim": 0.16,
-    "tv_weight": 0.0025,
-    "tv_unseen_weight": 0.0003,
-    "opacity_lr": 0.07,
+# Best preset for each camera type (based on empirical results)
+BEST_CAMERA_PRESET: Dict[str, str] = {
+    "base": "baseline",
+    "iphone": "balanced_window",
+    "stereo": "balanced_window",
+    "lightfield": "tv_mix",
+    "multiplexing": "tv_mix",
+    "iphone_lowview": "lowview_regularized",
+    "stereo_lowview": "lowview_regularized",
 }
 
-TV_MIX_PARAMS = {
-    "position_lr_init": 0.00027,
-    "position_lr_final": 8e-06,
-    "densify_grad_threshold": 0.000011,
-    "densification_interval": 30,
-    "densify_from_iter": 190,
-    "densify_until_iter": 2550,
-    "opacity_reset_interval": 540,
-    "lambda_dssim": 0.17,
-    "tv_weight": 0.0035,
-    "tv_unseen_weight": 0.00035,
-}
-
-BEST_CAMERA_CONFIG: Dict[str, Dict[str, float]] = {
-    "base": BASELINE_PARAMS,
-    "iphone": BASELINE_PARAMS,
-    "stereo": BALANCED_WINDOW_PARAMS,
-    "lightfield": TV_MIX_PARAMS,
-    "multiplexing": TV_MIX_PARAMS,
-}
+LOW_VIEW_MAX_IMAGES = 3
 
 
 def resolve_camera_profile(params: ModelParams, dls: int) -> str:
     """Determine the camera profile key for a given dataset configuration."""
+    low_view = params.n_train_images <= LOW_VIEW_MAX_IMAGES
     if params.use_multiplexing:
         return "lightfield" if dls == 12 else "multiplexing"
     if params.use_stereo:
-        return "stereo"
+        return "stereo_lowview" if low_view else "stereo"
     if params.use_iphone:
-        return "iphone"
+        return "iphone_lowview" if low_view else "iphone"
     return "base"
 
 
@@ -98,18 +121,26 @@ def get_optimization_profile(
     base_opt: OptimizationParams, profile: str
 ) -> OptimizationParams:
     """
-    Produce a copy of ``base_opt`` with preset values applied for the camera profile.
+    Produce a copy of base_opt with preset values applied for the camera profile.
 
-    Keeps the parser-generated namespace intact while adjusting only the tuned keys.
+    Args:
+        base_opt: Base optimization parameters from argument parser
+        profile: Camera profile key (base, stereo, iphone, multiplexing, lightfield)
+
+    Returns:
+        OptimizationParams with preset values applied
     """
-    preset = BEST_CAMERA_CONFIG.get(profile)
-    if not preset:
+    preset_name = BEST_CAMERA_PRESET.get(profile)
+    if not preset_name or preset_name not in OPTIMIZATION_PRESETS:
         return base_opt
 
+    preset_params = OPTIMIZATION_PRESETS[preset_name]
     tuned_opt = copy.deepcopy(base_opt)
-    for key, value in preset.items():
+
+    for key, value in preset_params.items():
         if hasattr(tuned_opt, key):
             setattr(tuned_opt, key, value)
+
     return tuned_opt
 
 

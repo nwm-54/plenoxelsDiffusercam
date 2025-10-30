@@ -190,3 +190,60 @@ SWEEP_CONFIGS = {
 ```
 
 Then launch: `python scripts/launch_sweep.py --sweep my_new_sweep --camera_models all`
+
+## Shared Reconstruction Pipeline
+
+Use `preprocess_shared_gsplat.py` to rebuild training + evaluation captures into a
+single COLMAP/VGGT reconstruction so every subset shares the same pose frame.
+
+```
+python scripts/preprocess_shared_gsplat.py \
+    --train-dir ../gs7/input_data/dog/iphone4 \
+    --eval-dir test=../gs7/input_data/dog/eval/test \
+    --output-dir ../gs7/input_data/dog/iphone4_shared \
+    --train-prefix train \
+    --covisible
+```
+Or run on a cluster via SLURM:
+
+```
+sbatch scripts/preprocess_shared_gsplat.slurm \
+    --train-dir ../gs7/input_data/dog/iphone4 \
+    --eval-dir test=../gs7/input_data/dog/eval/test \
+    --covisible
+```
+
+Key features:
+
+- Reuses `preprocess_for_gsplat` helpers to run VGGT on the union of all frames.
+- Flattens images into `images/` with subset prefixes (`train__`, `test__`, …).
+- Produces per-subset dataset folders under `subsets/<name>/{images,sparse}` that
+  only contain the relevant views while keeping the shared reference frame.
+- Records split metadata in `metadata/summary.json` and `splits/<subset>.txt`.
+- Optionally precomputes covisible masks under `<output>/covisible/<subset>` that can be
+  symlinked into run directories.
+
+### Training with shared datasets
+
+After preprocessing, launch the dual trainer using the combined root as `DATA_DIR`
+and the subset-specific directory for external evaluation:
+
+```
+MATCH=train
+DATA=../gs7/input_data/dog/iphone4_shared
+EVAL=$DATA/subsets/test
+sbatch examples/dual_training.slurm "$DATA" "$MATCH" "$EVAL"
+```
+
+- `MATCH` should match the `train-prefix` used during preprocessing (see
+  `metadata/summary.json` for the generated token).
+- When `EVAL_DIR` differs from `DATA_DIR`, the SLURM script automatically clears
+  the evaluation match string so the hold-out subset is consumed in full. Set
+  `EVAL_MATCH_STRING=<token>` if you need to override this behaviour.
+- Any precomputed covisible masks under `$DATA/covisible/<subset>` are symlinked
+  into each run (`$RESULT_DIR/covisible/<subset>`), so the trainer reuses them
+  without re-running RAFT. Dual-training jobs now generate alignment `.npz` files
+  on demand inside `$RESULT_DIR/alignments`.
+
+Run `python scripts/preprocess_shared_gsplat.py --help` for the full list of
+options (copy mode, include lists, chunk sizing, etc.).

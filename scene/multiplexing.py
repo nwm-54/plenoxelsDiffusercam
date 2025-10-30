@@ -108,13 +108,17 @@ def generate_alpha_map(comap_yx, num_lens, H, W):
 
 def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
     grid_size = int(math.sqrt(num_lens))
-    idx = torch.arange(grid_size, device=device)
+    if not images:
+        return torch.zeros(3, H, W, device=device, dtype=torch.float32)
+
+    image_device = images[0].device
+    idx = torch.arange(grid_size, device=image_device)
     grid_i, grid_j = torch.meshgrid(idx, idx, indexing="ij")
     mapping = ((grid_size - 1 - grid_i) + (grid_size - 1 - grid_j) * grid_size).reshape(
         -1
     )
 
-    images_tensor = torch.stack(images, dim=0).to(device)
+    images_tensor = torch.stack(images, dim=0).to(image_device)
     selected_images = images_tensor[mapping]
     resized_images = F.interpolate(
         selected_images,
@@ -123,10 +127,12 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
         align_corners=False,
     )
 
-    output_image = torch.zeros(3, H, W, device=device, dtype=torch.float32)
+    comap = comap_yx.to(image_device)
+
+    output_image = torch.zeros(3, H, W, device=image_device, dtype=torch.float32)
     for i in range(num_lens):
-        y_coords = comap_yx[i, :, :, 0]
-        x_coords = comap_yx[i, :, :, 1]
+        y_coords = comap[i, :, :, 0]
+        x_coords = comap[i, :, :, 1]
 
         valid_mask = (
             (y_coords != -1)

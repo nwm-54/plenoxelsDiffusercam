@@ -62,11 +62,9 @@ def render_splat(
     out_dir = os.path.join(args.model_path, "input_views")
     os.makedirs(out_dir, exist_ok=True)
 
-    new_train_cameras = copy.deepcopy(scene_info.train_cameras)
-    for view_index, cam_info_list in new_train_cameras.items():
-        updated_cam_info_list = []
-        for cam_info in cam_info_list:
-            cam_info: CameraInfo
+    def _render_cam_list(cam_infos: List[CameraInfo]) -> List[CameraInfo]:
+        updated: List[CameraInfo] = []
+        for cam_info in cam_infos:
             tmp_camera = Camera(
                 colmap_id=cam_info.uid,
                 R=cam_info.R,
@@ -82,6 +80,7 @@ def render_splat(
                 mask=cam_info.mask,
                 image_name=cam_info.image_name,
                 uid=0,
+                group_id=getattr(cam_info, "groupid", 0),
                 data_device=args.data_device,
             )
 
@@ -91,11 +90,21 @@ def render_splat(
             png_path = os.path.join(out_dir, png_name)
             new_image.save(png_path, format="PNG")
 
-            updated_cam_info = cam_info._replace(image=new_image, image_path=png_path)
-            updated_cam_info_list.append(updated_cam_info)
-        new_train_cameras[view_index] = updated_cam_info_list
+            updated.append(cam_info._replace(image=new_image, image_path=png_path))
+        return updated
 
-    return scene_info._replace(train_cameras=new_train_cameras)
+    new_train_cameras = copy.deepcopy(scene_info.train_cameras)
+    for view_index, cam_info_list in new_train_cameras.items():
+        new_train_cameras[view_index] = _render_cam_list(cam_info_list)
+
+    new_test_cameras = _render_cam_list(list(scene_info.test_cameras))
+    new_full_test_cameras = _render_cam_list(list(scene_info.full_test_cameras))
+
+    return scene_info._replace(
+        train_cameras=new_train_cameras,
+        test_cameras=new_test_cameras,
+        full_test_cameras=new_full_test_cameras,
+    )
 
 
 def _camera_info_to_opengl_transform(cam_info: "CameraInfo") -> np.ndarray:
@@ -240,6 +249,72 @@ def write_camera_json(
     return transforms_data, frame_lookup
 
 
+def _build_blender_command(
+    blend_file: Path,
+    render_script: Path,
+    transforms_path: Path,
+    tmp_root_path: Path,
+    total_frames: int,
+) -> List[str]:
+    return [
+        "conda", "run", "-n", "blender", "blender", "-b", str(blend_file),
+        "-P", str(render_script), "--",
+        "--transforms-json", str(transforms_path),
+        "--results", str(tmp_root_path),
+        "--views", str(max(total_frames, 1)),
+        "--disable-animation",
+    ]
+
+
+def _composite_blender_image(rendered_file: Path) -> Image:
+    with Image.open(rendered_file) as pil_image:
+        image_rgba = pil_image.convert("RGBA")
+
+    black_bg = Image.new("RGBA", image_rgba.size, (0, 0, 0, 255))
+    composited = Image.alpha_composite(black_bg, image_rgba)
+    return composited.convert("RGB")
+
+
+def _process_blender_outputs(
+    scene_info: "SceneInfo",
+    frame_lookup: Dict[Tuple[int, int], Dict[str, object]],
+    tmp_root_path: Path,
+    input_views_dir: Path,
+) -> Tuple[Dict[int, List["CameraInfo"]], int]:
+    new_train_cameras: Dict[int, List["CameraInfo"]] = {}
+    rendered_count = 0
+
+    for view_idx, cam_list in scene_info.train_cameras.items():
+        updated_list: List["CameraInfo"] = []
+        for cam_idx, cam_info in enumerate(cam_list):
+            meta = frame_lookup.get((view_idx, cam_idx))
+            if meta is None:
+                updated_list.append(cam_info)
+                continue
+
+            file_stub = meta["file_stub"]
+            image_name = meta["image_name"] or cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+
+            rel_path = file_stub[2:] if file_stub.startswith("./") else file_stub
+            rendered_file = (tmp_root_path / Path(rel_path)).with_suffix(".png")
+
+            if not rendered_file.exists():
+                print(f"Warning: Blender output missing for '{rel_path}' at {rendered_file}; keeping original image.")
+                updated_list.append(cam_info)
+                continue
+
+            image_rgb = _composite_blender_image(rendered_file)
+            final_path = input_views_dir / f"{image_name}.png"
+            image_rgb.save(final_path, format="PNG")
+
+            rendered_count += 1
+            updated_list.append(cam_info._replace(image=image_rgb, image_path=str(final_path)))
+
+        new_train_cameras[view_idx] = updated_list
+
+    return new_train_cameras, rendered_count
+
+
 def render_with_blender(
     args: "ModelParams",
     scene_info: "SceneInfo",
@@ -251,10 +326,7 @@ def render_with_blender(
 
     transforms_path = Path(args.model_path) / "transforms.json"
     transforms_data, frame_lookup = write_camera_json(
-        scene_info,
-        transforms_path,
-        include_test=False,
-        object_center=object_center,
+        scene_info, transforms_path, include_test=False, object_center=object_center
     )
     if transforms_data is None:
         return scene_info
@@ -264,97 +336,30 @@ def render_with_blender(
     blend_file = project_root / "blender" / f"{dataset_name}.blend"
 
     if not blend_file.exists():
-        raise FileNotFoundError(
-            f"Expected Blender scene for '{dataset_name}' at {blend_file}"
-        )
+        raise FileNotFoundError(f"Expected Blender scene for '{dataset_name}' at {blend_file}")
 
     input_views_dir = Path(args.model_path) / "input_views"
     input_views_dir.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory(prefix="blender_render_") as tmp_root:
         tmp_root_path = Path(tmp_root)
-        total_train_frames = max(len(frame_lookup), 1)
-        cmd = [
-            "conda",
-            "run",
-            "-n",
-            "blender",
-            "blender",
-            "-b",
-            str(blend_file),
-            "-P",
-            str(render_script),
-            "--",
-            "--transforms-json",
-            str(transforms_path),
-            "--results",
-            str(tmp_root_path),
-            "--views",
-            str(max(total_train_frames, 1)),
-        ]
-
-        cmd.append("--disable-animation")
-
-        render_start = time.perf_counter()
-
-        process = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False
+        cmd = _build_blender_command(
+            blend_file, render_script, transforms_path, tmp_root_path, len(frame_lookup)
         )
 
+        render_start = time.perf_counter()
+        process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
         render_elapsed = time.perf_counter() - render_start
 
         if process.returncode != 0:
             combined_output = process.stderr.strip() or process.stdout.strip()
-            raise RuntimeError(
-                "Blender rendering failed"
-                + (f": {combined_output}" if combined_output else "")
-            )
+            raise RuntimeError("Blender rendering failed" + (f": {combined_output}" if combined_output else ""))
 
-        new_train_cameras: Dict[int, List["CameraInfo"]] = {}
-        rendered_count = 0
-        for view_idx, cam_list in scene_info.train_cameras.items():
-            updated_list: List["CameraInfo"] = []
-            for cam_idx, cam_info in enumerate(cam_list):
-                meta = frame_lookup.get((view_idx, cam_idx))
-                if meta is None:
-                    updated_list.append(cam_info)
-                    continue
+        new_train_cameras, rendered_count = _process_blender_outputs(
+            scene_info, frame_lookup, tmp_root_path, input_views_dir
+        )
 
-                file_stub = meta["file_stub"]
-                image_name = meta["image_name"] or cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
-
-                rel_path = file_stub[2:] if file_stub.startswith("./") else file_stub
-                rendered_path = tmp_root_path / Path(rel_path)
-                rendered_file = rendered_path.with_suffix(".png")
-
-                if not rendered_file.exists():
-                    print(
-                        f"Warning: Blender output missing for '{rel_path}' at {rendered_file}; keeping original image."
-                    )
-                    updated_list.append(cam_info)
-                    continue
-
-                with Image.open(rendered_file) as pil_image:
-                    image_rgba = pil_image.convert("RGBA")
-
-                black_bg = Image.new("RGBA", image_rgba.size, (0, 0, 0, 255))
-                composited = Image.alpha_composite(black_bg, image_rgba)
-                image_rgb = composited.convert("RGB")
-
-                final_path = input_views_dir / f"{image_name}.png"
-                image_rgb.save(final_path, format="PNG")
-
-                rendered_count += 1
-                updated_list.append(
-                    cam_info._replace(image=image_rgb, image_path=str(final_path))
-                )
-
-            new_train_cameras[view_idx] = updated_list
-
-    print(
-        f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}"
-    )
-
+    print(f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}")
     return scene_info._replace(train_cameras=new_train_cameras)
 
 def render_splat_from_camera(
@@ -367,23 +372,22 @@ def render_splat_from_camera(
     return new_image
 
 
+def _to_numpy(tensor_or_array):
+    if isinstance(tensor_or_array, torch.Tensor):
+        return tensor_or_array.detach().cpu().numpy()
+    return tensor_or_array
+
+
 def camera_forward(camera: Camera) -> np.ndarray:
     z_cam = np.array([0, 0, 1])
-    forward = camera.R @ z_cam
+    R = _to_numpy(camera.R)
+    forward = R @ z_cam
     return forward / np.linalg.norm(forward)
 
 
 def camera_center(camera: Camera) -> np.ndarray:
-    R = (
-        camera.R.detach().cpu().numpy()
-        if isinstance(camera.R, torch.Tensor)
-        else camera.R
-    )
-    T = (
-        camera.T.detach().cpu().numpy()
-        if isinstance(camera.T, torch.Tensor)
-        else camera.T
-    )
+    R = _to_numpy(camera.R)
+    T = _to_numpy(camera.T)
     return -(R @ T)
 
 

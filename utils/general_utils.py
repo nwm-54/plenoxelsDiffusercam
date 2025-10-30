@@ -28,11 +28,12 @@ def NptoTorch(image):
 def PILtoTorch(pil_image, resolution):
     # print("from PIL", pil_image.size, resolution)
     resized_image_PIL = pil_image.resize(resolution)
-    resized_image = torch.from_numpy(np.array(resized_image_PIL)) / 255.0
+    resized_np = np.array(resized_image_PIL, dtype=np.float32) / 255.0
+    resized_image = torch.from_numpy(resized_np)
     if len(resized_image.shape) == 3:
-        return resized_image.permute(2, 0, 1)
+        return resized_image.permute(2, 0, 1).contiguous()
     else:
-        return resized_image.unsqueeze(dim=-1).permute(2, 0, 1)
+        return resized_image.unsqueeze(dim=-1).permute(2, 0, 1).contiguous()
 
 
 def get_expon_lr_func(

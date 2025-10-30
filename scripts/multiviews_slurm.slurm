@@ -14,6 +14,18 @@
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-wandb agent shamus-team/multiplexed-pixels/rogikpm8
-wandb agent shamus-team/multiplexed-pixels/c939y7p2
-wandb agent shamus-team/multiplexed-pixels/6ytlyq27
+# n_train_images
+# stereo
+wandb agent shamus-team/multiplexed-pixels/ob61noxo
+# multiplexing
+wandb agent shamus-team/multiplexed-pixels/um9e3psf
+# iphone
+wandb agent shamus-team/multiplexed-pixels/ween6fgc
+
+# angles
+# stereo
+wandb agent shamus-team/multiplexed-pixels/a9ptglqq
+# multiplexing
+wandb agent shamus-team/multiplexed-pixels/pju94m22
+# iphone
+wandb agent shamus-team/multiplexed-pixels/6b16mfme

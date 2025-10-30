@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 
 from arguments import ModelParams
-from arguments.camera_presets import MULTIVIEW_INDICES, BEST_CAMERA_CONFIG
+from arguments.camera_presets import MULTIVIEW_INDICES
 from scene import multiplexing
 from scene.colmap_loader import (
     qvec2rotmat,
@@ -43,6 +43,51 @@ from utils.sh_utils import SH2RGB
 
 FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
 PIXEL_SIZE_MM = 0.00244
+
+IMAGE_MASK_COMBO = {
+    "IMG_0011.JPG": "IMG_0098.JPG",
+    "IMG_0012.JPG": "IMG_0097.JPG",
+    "IMG_0013.JPG": "IMG_0096.JPG",
+    "IMG_0014.JPG": "IMG_0095.JPG",
+    "IMG_0015.JPG": "IMG_0094.JPG",
+    "IMG_0016.JPG": "IMG_0093.JPG",
+    "IMG_0017.JPG": "IMG_0092.JPG",
+    "IMG_0019.JPG": "IMG_0091.JPG",
+    "IMG_0020.JPG": "IMG_0090.JPG",
+    "IMG_0021.JPG": "IMG_0089.JPG",
+    "IMG_0022.JPG": "IMG_0088.JPG",
+    "IMG_0023.JPG": "IMG_0086.JPG",
+    "IMG_0024.JPG": "IMG_0085.JPG",
+    "IMG_0025.JPG": "IMG_0084.JPG",
+    "IMG_0026.JPG": "IMG_0083.JPG",
+    "IMG_0027.JPG": "IMG_0082.JPG",
+    "IMG_0028.JPG": "IMG_0081.JPG",
+    "IMG_0029.JPG": "IMG_0080.JPG",
+    "IMG_0030.JPG": "IMG_0079.JPG",
+    "IMG_0031.JPG": "IMG_0078.JPG",
+    "IMG_0032.JPG": "IMG_0077.JPG",
+    "IMG_0033.JPG": "IMG_0076.JPG",
+    "IMG_0034.JPG": "IMG_0075.JPG",
+    "IMG_0035.JPG": "IMG_0074.JPG",
+    "IMG_0036.JPG": "IMG_0073.JPG",
+    "IMG_0037.JPG": "IMG_0072.JPG",
+    "IMG_0038.JPG": "IMG_0071.JPG",
+    "IMG_0039.JPG": "IMG_0070.JPG",
+    "IMG_0040.JPG": "IMG_0055.JPG",
+    "IMG_0041.JPG": "IMG_0056.JPG",
+    "IMG_0042.JPG": "IMG_0057.JPG",
+    "IMG_0043.JPG": "IMG_0058.JPG",
+    "IMG_0044.JPG": "IMG_0059.JPG",
+    "IMG_0045.JPG": "IMG_0060.JPG",
+    "IMG_0046.JPG": "IMG_0061.JPG",
+    "IMG_0047.JPG": "IMG_0062.JPG",
+    "IMG_0048.JPG": "IMG_0063.JPG",
+    "IMG_0049.JPG": "IMG_0064.JPG",
+    "IMG_0050.JPG": "IMG_0065.JPG",
+    "IMG_0051.JPG": "IMG_0066.JPG",
+    "IMG_0052.JPG": "IMG_0067.JPG",
+    "IMG_0053.JPG": "IMG_0069.JPG",
+}
 
 
 def _camera_basis_vectors(
@@ -79,9 +124,7 @@ def _compute_baseline(
     cam: CameraInfo,
     obj_center: np.ndarray,
     angle_deg: float,
-) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Compute stereo extrema for a camera using an analytical offset."""
-
+) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam)
     base_vec = base_center - obj_center
     offset = solve_offset_for_angle(base_vec, x_unit, angle_deg)
@@ -195,6 +238,27 @@ def print_camera_metrics(scene_info: SceneInfo, obj_center: Optional[np.ndarray]
     }
 
 
+def _load_cameras_from_json(
+    json_path: str,
+    path: str,
+    white_background: bool,
+    extension: str,
+) -> Tuple[float, List[Tuple[str, str, int, str]]]:
+    with open(json_path) as json_file:
+        contents = json.load(json_file)
+        fov_x = contents["camera_angle_x"]
+        frames = contents["frames"]
+
+        camera_data = []
+        for frame in frames:
+            image_name = frame["file_path"].split("/")[-1]
+            index = int(image_name.split("_")[1])
+            image_filepath = os.path.join(path, frame["file_path"] + extension)
+            camera_data.append((image_filepath, image_name, index, frame["transform_matrix"]))
+
+        return fov_x, camera_data
+
+
 def read_cameras_from_transforms(
     path: str,
     train_transforms_file: str,
@@ -202,48 +266,38 @@ def read_cameras_from_transforms(
     white_background: bool,
     extension: str,
 ) -> Tuple[Dict[int, List[CameraInfo]], List[CameraInfo]]:
-    train_cameras_info, test_cameras_info = defaultdict(list), []
+    train_cameras_info = defaultdict(list)
+    test_cameras_info = []
 
-    with open(os.path.join(path, train_transforms_file)) as json_file:
-        contents = json.load(json_file)
-        fov_x = contents["camera_angle_x"]
-        frames = contents["frames"]
-
-        for frame in frames:
-            image_name: str = frame["file_path"].split("/")[-1]
-            parts = image_name.split("_")
-            index = int(parts[1])
-            image_filepath = os.path.join(path, frame["file_path"] + extension)
-            train_cameras_info[index].append(
-                read_camera(
-                    image_filepath,
-                    image_name,
-                    frame["transform_matrix"],
-                    white_background,
-                    index,
-                    fov_x,
-                )
-            )
-
-    with open(os.path.join(path, test_transforms_file)) as json_file:
-        contents = json.load(json_file)
-        fov_x = contents["camera_angle_x"]
-        frames = contents["frames"]
-
-        for frame in frames:
-            image_name: str = frame["file_path"].split("/")[-1]
-            parts = image_name.split("_")
-            index = int(parts[1])
-            image_filepath = os.path.join(path, frame["file_path"] + extension)
-            camera_info = read_camera(
+    fov_x, train_data = _load_cameras_from_json(
+        os.path.join(path, train_transforms_file), path, white_background, extension
+    )
+    for image_filepath, image_name, index, transform_matrix in train_data:
+        train_cameras_info[index].append(
+            read_camera(
                 image_filepath,
                 image_name,
-                frame["transform_matrix"],
+                transform_matrix,
                 white_background,
                 index,
                 fov_x,
-            )
-            test_cameras_info.append(camera_info)
+            )._replace(groupid=index)
+        )
+
+    fov_x, test_data = _load_cameras_from_json(
+        os.path.join(path, test_transforms_file), path, white_background, extension
+    )
+    for image_filepath, image_name, index, transform_matrix in test_data:
+        test_cameras_info.append(
+            read_camera(
+                image_filepath,
+                image_name,
+                transform_matrix,
+                white_background,
+                index,
+                fov_x,
+            )._replace(groupid=index)
+        )
 
     return train_cameras_info, test_cameras_info
 
@@ -286,15 +340,17 @@ def readNerfSyntheticInfo(
                 for cam in all_train_cameras_list
             ]
         )
+
         try:
             first_view_list_index = [cam.uid for cam in all_train_cameras_list].index(
                 first_view_uid
             )
         except ValueError:
             first_view_list_index = None
+
         selected_indices_in_list = find_max_min_dispersion_subset(
             cam_positions, n_train_images, first_view_list_index
-        )
+        ).tolist()
         selected_cameras = [all_train_cameras_list[i] for i in selected_indices_in_list]
         selected_view_indices = [cam.uid for cam in selected_cameras]
     else:
@@ -381,39 +437,52 @@ def create_multiplexed_views(
     if obj_center is None:
         return scene_info
 
+    def _generate_multiplexed_group(
+        cam_info: CameraInfo,
+        groupid: int,
+        name_prefix: str,
+    ) -> List[CameraInfo]:
+        """Return ``n_multiplexed_images`` cameras offset around ``cam_info``."""
+        base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam_info)
+        stereo_offset = solve_offset_for_angle(base_center - obj_center, x_unit, angle_deg)
+
+        grid_size = max(int(np.sqrt(n_multiplexed_images)), 1)
+        grid_positions = list(product(np.linspace(-1.0, 1.0, grid_size), repeat=2))
+
+        generated: List[CameraInfo] = []
+        for uid, (x_pos, y_pos) in enumerate(grid_positions[:n_multiplexed_images]):
+            if np.isclose(x_pos, -1.0):
+                new_center = base_center - stereo_offset * x_unit
+            elif np.isclose(x_pos, 1.0):
+                new_center = base_center + stereo_offset * x_unit
+            else:
+                x_offset_world = x_unit * (stereo_offset * x_pos)
+                y_offset_world = y_unit * (stereo_offset * y_pos)
+                new_center = base_center + x_offset_world + y_offset_world
+
+            new_cam = _camera_with_new_center(
+                cam_info,
+                new_center,
+                uid=uid,
+                groupid=groupid,
+                image_name=f"{name_prefix}_{uid}",
+            )
+            generated.append(new_cam)
+        return generated
+
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
-    grid_size = max(int(np.sqrt(n_multiplexed_images)), 1)
-    grid_positions = np.linspace(-1.0, 1.0, grid_size)
 
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            (
-                stereo_offset,
-                base_center,
-                x_unit,
-                y_unit,
-                left_center,
-                right_center,
-            ) = _compute_baseline(cam_info, obj_center, angle_deg)
-
-            for uid, (x_pos, y_pos) in enumerate(product(grid_positions, repeat=2)):
-                if np.isclose(x_pos, -1.0):
-                    new_center = left_center
-                elif np.isclose(x_pos, 1.0):
-                    new_center = right_center
-                else:
-                    x_offset_world = x_unit * (stereo_offset * x_pos)
-                    y_offset_world = y_unit * (stereo_offset * y_pos)
-                    new_center = base_center + x_offset_world + y_offset_world
-
-                new_cam = _camera_with_new_center(
+            new_train_cameras[view_idx].extend(
+                _generate_multiplexed_group(
                     cam_info,
-                    new_center,
-                    uid=uid,
-                    groupid=view_idx,
-                    image_name=f"r_{view_idx}_{uid}",
+                    view_idx,
+                    name_prefix=f"r_{view_idx}",
                 )
-                new_train_cameras[view_idx].append(new_cam)
+            )
+
+    # Leave test and full-test camera lists untouched so evaluation occurs on single views.
     return scene_info._replace(train_cameras=new_train_cameras)
 
 
@@ -426,39 +495,77 @@ def create_stereo_views(
         return scene_info
 
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
-    key_offset = max(list(scene_info.train_cameras.keys())) + 1
+    key_offset = max(scene_info.train_cameras.keys()) + 1
 
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            (
-                _,
-                _,
-                _,
-                _,
-                left_center,
-                right_center,
-            ) = _compute_baseline(cam_info, obj_center, angle_deg)
-
-            left_cam = _camera_with_new_center(
-                cam_info,
-                left_center,
-                uid=view_idx,
-                groupid=view_idx,
-                image_name=f"{cam_info.image_name}_left",
+            (_, _, _, _, left_center, right_center) = _compute_baseline(
+                cam_info, obj_center, angle_deg
             )
+
+            left_cam = camera_with_center(
+                cam_info, left_center
+            )._replace(uid=view_idx, groupid=view_idx, image_name=f"{cam_info.image_name}_left")
             new_train_cameras[view_idx] = [left_cam]
 
-            right_view_idx = view_idx + key_offset
-            right_cam = _camera_with_new_center(
-                cam_info,
-                right_center,
-                uid=right_view_idx,
-                groupid=view_idx,
-                image_name=f"{cam_info.image_name}_right",
-            )
-            new_train_cameras[right_view_idx] = [right_cam]
+            right_cam = camera_with_center(
+                cam_info, right_center
+            )._replace(uid=view_idx + key_offset, groupid=view_idx, image_name=f"{cam_info.image_name}_right")
+            new_train_cameras[view_idx + key_offset] = [right_cam]
 
     return scene_info._replace(train_cameras=new_train_cameras)
+
+
+def _compute_iphone_focal_scales(
+    cam_info: CameraInfo, same_focal_lengths: bool, use_angle_positioning: bool
+) -> Tuple[float, float, float]:
+    if same_focal_lengths:
+        return 1.0, 1.0, 1.0
+
+    if use_angle_positioning:
+        return 13.0 / 24.0, 1.0, 77.0 / 24.0
+
+    fx_px = fov2focal(cam_info.FovX, cam_info.width)
+    return (
+        (13.0 / PIXEL_SIZE_MM) / fx_px,
+        (24.0 / PIXEL_SIZE_MM) / fx_px,
+        (77.0 / PIXEL_SIZE_MM) / fx_px,
+    )
+
+
+def _compute_iphone_offsets(
+    cam_info: CameraInfo,
+    obj_center: Optional[np.ndarray],
+    angle_deg: Optional[float],
+    baseline_x: float,
+    baseline_y: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    bx_world = mm_to_world(baseline_x)
+    by_world = mm_to_world(baseline_y)
+    baseline_ratio = abs(baseline_y / baseline_x) if abs(baseline_x) > 1e-6 else 1.0
+
+    if angle_deg is not None and obj_center is not None and angle_deg > 0.0:
+        base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam_info)
+        base_vec = base_center - obj_center
+        offset_x = solve_offset_for_angle(
+            base_vec, x_unit, angle_deg, orth_axis=y_unit, orth_ratio=baseline_ratio
+        )
+        offset_y = baseline_ratio * offset_x
+
+        if not np.isfinite(offset_x) or offset_x <= 0.0:
+            offset_x, offset_y = bx_world, by_world
+
+        return (
+            np.array([-offset_x, -offset_y, 0.0]),
+            np.array([offset_x, -offset_y, 0.0]),
+            np.array([0.0, offset_y, 0.0]),
+        )
+
+    return (
+        np.array([-bx_world, -by_world, 0.0]),
+        np.array([bx_world, -by_world, 0.0]),
+        np.array([0.0, by_world, 0.0]),
+    )
 
 
 def create_iphone_views(
@@ -469,110 +576,32 @@ def create_iphone_views(
     baseline_x: float = 9.5,
     baseline_y: float = 9.5,
 ) -> SceneInfo:
-    """Create iPhone-like triple-camera views with metric baselines and focal lengths.
-
-    Notes:
-    - If `angle_deg` is specified and `obj_center` is provided, uses angular positioning
-      to override the metric baseline approach for consistent maximum angles across view creators.
-    - Otherwise, `baseline_x`, `baseline_y` are interpreted as millimeters and converted to world units.
-    - If `same_focal_lengths` is False, the angle-based branch assumes the reference
-      camera already uses a 24mm equivalent focal length and scales ultrawide/tele
-      by the 13/24 and 77/24 ratios respectively. The metric-baseline branch retains
-      the absolute 13mm/24mm/77mm enforcement when `PIXEL_SIZE_MM > 0`.
-    """
-    # Determine positioning method: angle-based vs metric baseline
-    use_angle_positioning = (
-        angle_deg is not None and obj_center is not None and angle_deg > 0.0
-    )
-
-    bx_world = mm_to_world(baseline_x)
-    by_world = mm_to_world(baseline_y)
-    baseline_ratio = (
-        abs(float(baseline_y) / float(baseline_x)) if abs(baseline_x) > 1e-6 else 1.0
-    )
+    use_angle_positioning = angle_deg is not None and obj_center is not None and angle_deg > 0.0
 
     new_train_cameras: Dict[int, List[CameraInfo]] = defaultdict(list)
-    key_offset = max(list(scene_info.train_cameras.keys())) + 1
+    key_offset = max(scene_info.train_cameras.keys()) + 1
     second_offset = key_offset * 2
+
     for view_idx, cam_info_list in scene_info.train_cameras.items():
         for cam_info in cam_info_list:
-            # Calculate focal length scaling
-            if same_focal_lengths:
-                uw_scale = wide_scale = tele_scale = 1.0
-            else:
-                if use_angle_positioning:
-                    wide_scale = 1.0
-                    uw_scale = 13.0 / 24.0
-                    tele_scale = 77.0 / 24.0
-                else:
-                    fx_px = fov2focal(cam_info.FovX, cam_info.width)
-                    fx_uw_px = 13.0 / PIXEL_SIZE_MM
-                    fx_wide_px = 24.0 / PIXEL_SIZE_MM
-                    fx_tele_px = 77.0 / PIXEL_SIZE_MM
+            uw_scale, wide_scale, tele_scale = _compute_iphone_focal_scales(
+                cam_info, same_focal_lengths, use_angle_positioning
+            )
+            uw_offset, wide_offset, tele_offset = _compute_iphone_offsets(
+                cam_info, obj_center, angle_deg, baseline_x, baseline_y
+            )
 
-                    uw_scale = fx_uw_px / fx_px
-                    wide_scale = fx_wide_px / fx_px
-                    tele_scale = fx_tele_px / fx_px
+            cameras = [
+                (view_idx, uw_offset, uw_scale, "uw"),
+                (view_idx + key_offset, wide_offset, wide_scale, "wide"),
+                (view_idx + second_offset, tele_offset, tele_scale, "tele"),
+            ]
 
-            # Calculate camera offsets
-            if use_angle_positioning:
-                base_center, x_unit, y_unit, _ = _camera_basis_vectors(cam_info)
-                base_vec = base_center - obj_center
-                offset_x = solve_offset_for_angle(
-                    base_vec,
-                    x_unit,
-                    float(angle_deg),
-                    orth_axis=y_unit,
-                    orth_ratio=baseline_ratio,
+            for uid, offset, scale, suffix in cameras:
+                cam = _make_shifted_scaled_cam(
+                    cam_info, offset, scale, uid, f"{cam_info.image_name}_{suffix}"
                 )
-                offset_y = baseline_ratio * offset_x
-
-                if not np.isfinite(offset_x) or offset_x <= 0.0:
-                    offset_x = bx_world
-                    offset_y = by_world
-
-                uw_offset = np.array([-offset_x, -offset_y, 0.0])
-                wide_offset = np.array([offset_x, -offset_y, 0.0])
-                tele_offset = np.array([0.0, offset_y, 0.0])
-            else:
-                # Use original metric baseline approach
-                uw_offset = np.array([-bx_world, -by_world, 0.0])
-                wide_offset = np.array([bx_world, -by_world, 0.0])
-                tele_offset = np.array([0.0, by_world, 0.0])
-
-            # Create the three iPhone cameras
-            uw_idx = view_idx
-            ultrawide = _make_shifted_scaled_cam(
-                cam_info,
-                offset_xyz=uw_offset,
-                scale=uw_scale,
-                uid=uw_idx,
-                image_name=f"{cam_info.image_name}_uw",
-            )
-            ultrawide = ultrawide._replace(groupid=view_idx)
-            new_train_cameras[view_idx] = [ultrawide]
-
-            wide_idx = view_idx + key_offset
-            wide = _make_shifted_scaled_cam(
-                cam_info,
-                offset_xyz=wide_offset,
-                scale=wide_scale,
-                uid=wide_idx,
-                image_name=f"{cam_info.image_name}_wide",
-            )
-            wide = wide._replace(groupid=view_idx)
-            new_train_cameras[wide_idx] = [wide]
-
-            tele_idx = view_idx + second_offset
-            tele = _make_shifted_scaled_cam(
-                cam_info,
-                offset_xyz=tele_offset,
-                scale=tele_scale,
-                uid=tele_idx,
-                image_name=f"{cam_info.image_name}_tele",
-            )
-            tele = tele._replace(groupid=view_idx)
-            new_train_cameras[tele_idx] = [tele]
+                new_train_cameras[uid] = [cam._replace(groupid=view_idx)]
 
     return scene_info._replace(train_cameras=new_train_cameras)
 
@@ -655,62 +684,11 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         image_name = os.path.basename(image_path).split(".")[0]
         image = Image.open(image_path)
 
-        image_mask_combo = {
-            "IMG_0011.JPG": "IMG_0098.JPG",
-            "IMG_0012.JPG": "IMG_0097.JPG",
-            "IMG_0013.JPG": "IMG_0096.JPG",
-            "IMG_0014.JPG": "IMG_0095.JPG",
-            "IMG_0015.JPG": "IMG_0094.JPG",
-            "IMG_0016.JPG": "IMG_0093.JPG",
-            "IMG_0017.JPG": "IMG_0092.JPG",
-            # "IMG_0018.JPG":"IMG_0091.JPG",
-            "IMG_0019.JPG": "IMG_0091.JPG",
-            "IMG_0020.JPG": "IMG_0090.JPG",
-            "IMG_0021.JPG": "IMG_0089.JPG",
-            "IMG_0022.JPG": "IMG_0088.JPG",
-            "IMG_0023.JPG": "IMG_0086.JPG",
-            "IMG_0024.JPG": "IMG_0085.JPG",
-            "IMG_0025.JPG": "IMG_0084.JPG",
-            "IMG_0026.JPG": "IMG_0083.JPG",
-            "IMG_0027.JPG": "IMG_0082.JPG",
-            "IMG_0028.JPG": "IMG_0081.JPG",
-            "IMG_0029.JPG": "IMG_0080.JPG",
-            "IMG_0030.JPG": "IMG_0079.JPG",
-            "IMG_0031.JPG": "IMG_0078.JPG",
-            "IMG_0032.JPG": "IMG_0077.JPG",
-            "IMG_0033.JPG": "IMG_0076.JPG",
-            "IMG_0034.JPG": "IMG_0075.JPG",
-            "IMG_0035.JPG": "IMG_0074.JPG",
-            "IMG_0036.JPG": "IMG_0073.JPG",
-            "IMG_0037.JPG": "IMG_0072.JPG",
-            "IMG_0038.JPG": "IMG_0071.JPG",
-            "IMG_0039.JPG": "IMG_0070.JPG",
-            "IMG_0040.JPG": "IMG_0055.JPG",
-            "IMG_0041.JPG": "IMG_0056.JPG",
-            "IMG_0042.JPG": "IMG_0057.JPG",
-            "IMG_0043.JPG": "IMG_0058.JPG",
-            "IMG_0044.JPG": "IMG_0059.JPG",
-            "IMG_0045.JPG": "IMG_0060.JPG",
-            "IMG_0046.JPG": "IMG_0061.JPG",
-            "IMG_0047.JPG": "IMG_0062.JPG",
-            "IMG_0048.JPG": "IMG_0063.JPG",
-            "IMG_0049.JPG": "IMG_0064.JPG",
-            "IMG_0050.JPG": "IMG_0065.JPG",
-            "IMG_0051.JPG": "IMG_0066.JPG",
-            "IMG_0052.JPG": "IMG_0067.JPG",
-            "IMG_0053.JPG": "IMG_0069.JPG",
-        }
         mask_name = ""
-        if image_mask_combo.get(extr.name, None):
-            # mask_path = f"/home/vitran/gs6/2024_04_06/masks/{image_mask_combo[extr.name]}"
-            mask_name = image_mask_combo[extr.name]
-            # mask = Image.open(mask_path).convert('L')
-            # threshold = 20
-            # mask = mask.point(lambda p: 1 if p > threshold else 0)
+        if IMAGE_MASK_COMBO.get(extr.name, None):
+            mask_name = IMAGE_MASK_COMBO[extr.name]
 
-            image_path = (
-                f"/home/vitran/gs6/2024_04_06/masks/{image_mask_combo[extr.name]}"
-            )
+            image_path = f"/home/vitran/gs6/2024_04_06/masks/{IMAGE_MASK_COMBO[extr.name]}"
             bbox, contour = get_bounding_box(image_path)
             image_with_bbox = draw_bounding_box(image_path, bbox)
             image_rgb = cv2.cvtColor(image_with_bbox, cv2.COLOR_BGR2RGB)

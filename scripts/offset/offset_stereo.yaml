@@ -3,10 +3,10 @@ program: train_sim_multiviews.py
 method: grid
 name: run_offset_singleview_stereo
 parameters:
-  tv_weight: 
-    values: [0.0]
-  tv_unseen_weight:
-    values: [0.0]
+  camera_offset:
+    values: [2, 0, -2, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -75, -100, -125, -150, -175, -200, -250, -500]
+  n_train_images:
+    values: [1]
   resolution:
     values: [1]
   source_path:
@@ -18,10 +18,6 @@ parameters:
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
-  camera_offset:
-    values: [2, 0, -2, -5, -10, -15, -20, -25, -30, -35, -40, -45, -50, -75, -100, -125, -150, -175, -200, -250, -500]
-  n_train_images:
-    values: [1]
   use_stereo:
     values:
       - true
@@ -29,8 +25,8 @@ command:
   - ${interpreter}
   - ${program}
   - --iterations
-  - 3000
+  - '3000'
   - --output-id
-  - 8
+  - '8'
   - ${args_no_boolean_flags}
   

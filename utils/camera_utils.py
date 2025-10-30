@@ -15,34 +15,33 @@ if TYPE_CHECKING:
 WARNED = False
 
 
+def _compute_resolution(orig_w, orig_h, args_resolution, resolution_scale):
+    if args_resolution in [1, 2, 4, 8]:
+        scale = resolution_scale * args_resolution
+        return (round(orig_w / scale), round(orig_h / scale))
+
+    if args_resolution == -1:
+        if orig_w > 1600:
+            global WARNED
+            if not WARNED:
+                print(
+                    "[ INFO ] Encountered quite large input images (>1.6K pixels width), rescaling to 1.6K.\n "
+                    "If this is not desired, please explicitly specify '--resolution/-r' as 1"
+                )
+                WARNED = True
+            global_down = orig_w / 1600
+        else:
+            global_down = 1
+    else:
+        global_down = orig_w / args_resolution
+
+    scale = global_down * resolution_scale
+    return (int(orig_w / scale), int(orig_h / scale))
+
+
 def loadCam(args, id, cam_info: CameraInfo, resolution_scale):
     orig_w, orig_h = cam_info.image.size
-
-    if args.resolution in [1, 2, 4, 8]:
-        resolution = (
-            round(orig_w / (resolution_scale * args.resolution)),
-            round(orig_h / (resolution_scale * args.resolution)),
-        )
-    else:  # should be a type that converts to float
-        if args.resolution == -1:
-            if orig_w > 1600:
-                global WARNED
-                if not WARNED:
-                    print(
-                        "[ INFO ] Encountered quite large input images (>1.6K pixels width), rescaling to 1.6K.\n "
-                        "If this is not desired, please explicitly specify '--resolution/-r' as 1"
-                    )
-                    WARNED = True
-                global_down = orig_w / 1600
-            else:
-                global_down = 1
-        else:
-            global_down = orig_w / args.resolution
-
-        scale = float(global_down) * float(resolution_scale)
-        resolution = (int(orig_w / scale), int(orig_h / scale))
-
-    # print(orig_w, orig_h, cam_info.image_name, cam_info.image )
+    resolution = _compute_resolution(orig_w, orig_h, args.resolution, resolution_scale)
     resized_image_rgb = PILtoTorch(cam_info.image, resolution)
 
     gt_image = resized_image_rgb[:3, ...]
@@ -63,6 +62,7 @@ def loadCam(args, id, cam_info: CameraInfo, resolution_scale):
         #   image=gt_image, gt_alpha_mask=loaded_mask,mask=PILtoTorch(cam_info.mask.mask, resolution).cuda() if cam_info.mask is not None else None,
         image_name=cam_info.image_name,
         uid=id,
+        group_id=getattr(cam_info, "groupid", cam_info.uid),
         data_device=args.data_device,
     )
 

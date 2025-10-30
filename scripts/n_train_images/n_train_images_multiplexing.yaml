@@ -3,12 +3,10 @@ program: train_sim_multiviews.py
 method: grid
 name: run_n_train_images_multiplexing
 parameters:
-  tv_weight: 
-    values: [0.0]
-  tv_unseen_weight:
-    values: [0.0]
   dls:
     values: [12, 20]
+  n_train_images:
+    values: [1, 2, 3, 5, 10, 15, 20, 30, 40, 50]
   resolution:
     values: [1]
   source_path:
@@ -20,8 +18,6 @@ parameters:
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/ficus",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12",
              "/home/wl757/multiplexed-pixels/plenoxels/blender_data/hotdog",]
-  n_train_images:
-    values: [1, 2, 3, 5, 10, 15, 20, 30, 40, 50]
   use_multiplexing:
     values:
       - true
@@ -30,8 +26,8 @@ command:
   - ${interpreter}
   - ${program}
   - --iterations
-  - 3000
+  - '3000'
   - --output-id
-  - 7
+  - '7'
   - ${args_no_boolean_flags}
   

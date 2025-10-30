@@ -14,6 +14,7 @@ import os
 from typing import Dict, List, Optional
 
 import imageio.v3 as iio
+import numpy as np
 import torch
 
 from arguments import ModelParams
@@ -148,9 +149,17 @@ class Scene:
                 )
 
         if args.use_blender:
-            scene_info = render_with_blender(
-                args, scene_info, dataset_name, object_center=self.object_center
-            )
+            if is_blender_type:
+                scene_info = render_with_blender(
+                    args, scene_info, dataset_name, object_center=self.object_center
+                )
+            else:
+                print(
+                    "Warning: use_blender requested but dataset is not Blender-type; "
+                    "skipping Blender rendering."
+                )
+                if gs is not None:
+                    scene_info = render_splat(args, gs, scene_info)
         elif gs is not None:
             scene_info = render_splat(args, gs, scene_info)
 
@@ -183,9 +192,15 @@ class Scene:
             self.train_cameras[resolution_scale] = {}
             if scene_info.train_cameras:
                 for view_idx, cam_infos_for_view in scene_info.train_cameras.items():
+                    normalized_cam_infos = [
+                        cam_info
+                        if getattr(cam_info, "groupid", None) is not None
+                        else cam_info._replace(groupid=view_idx)
+                        for cam_info in cam_infos_for_view
+                    ]
                     self.train_cameras[resolution_scale][view_idx] = (
                         cameraList_from_camInfos(
-                            cam_infos_for_view, resolution_scale, args
+                            normalized_cam_infos, resolution_scale, args
                         )
                     )
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(
@@ -198,6 +213,12 @@ class Scene:
         self._write_camera_json(include_test_cameras)
 
         self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
+        if args.pretrained_ply:
+            try:
+                self.gaussians.load_ply(args.pretrained_ply)
+                print(f"Initialized Gaussians from pretrained PLY: {args.pretrained_ply}")
+            except Exception as exc:
+                print("Warning: failed to load pretrained PLY '{}': {}".format(args.pretrained_ply, exc))
         self.multiplexed_gt: Optional[Dict[int, torch.Tensor]] = None
 
     def save(self, iteration: int, path: str = "point_cloud.ply"):
@@ -221,20 +242,34 @@ class Scene:
             self.n_multiplexed_images, dls, H, W
         )
         self.dim_lens_lf_yx = dim_lens_lf_yx
-        self.comap_yx = torch.from_numpy(comap_yx).to(device)
+        self.comap_yx = torch.from_numpy(comap_yx.astype(np.float32)).to(device)
         self.max_overlap = multiplexing.get_max_overlap(
             self.comap_yx, self.n_multiplexed_images, H, W
         )
         self.multiplexed_gt = self._load_ground_truth(H, W)
+        # Keep test evaluation single-view; no multiplexed composites for these splits.
+        self.multiplexed_test_gt = {}
+        self.multiplexed_full_test_gt = {}
 
-    def _load_ground_truth(self, H: int, W: int, scale=1.0) -> Dict[int, torch.Tensor]:
+    def _load_ground_truth(
+        self,
+        H: int,
+        W: int,
+        scale: float = 1.0,
+        camera_groups: Optional[Dict[int, List[Camera]]] = None,
+    ) -> Dict[int, torch.Tensor]:
         gt: Dict[int, torch.Tensor] = {}
-        for view_idx, cam_list in self.getTrainCameras(scale).items():
+        groups = (
+            camera_groups if camera_groups is not None else self.getTrainCameras(scale)
+        )
+        for view_idx, cam_list in groups.items():
             if not isinstance(view_idx, int):
                 continue
 
             cam_list = sorted(cam_list, key=lambda c: c.uid)
-            imgs = [cam.original_image.to(cam.data_device) for cam in cam_list]
+            imgs = [
+                cam.original_image.to("cpu", dtype=torch.float32) for cam in cam_list
+            ]
             gt[view_idx] = multiplexing.generate(
                 imgs,
                 self.comap_yx,
@@ -243,7 +278,7 @@ class Scene:
                 H,
                 W,
                 self.max_overlap,
-            )
+            ).to(dtype=torch.float32)
             iio.imwrite(
                 os.path.join(self.model_path, f"gt_view_{view_idx}.png"),
                 (gt[view_idx].permute(1, 2, 0).cpu().numpy() * 255).astype("uint8"),

@@ -15,7 +15,7 @@ from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene
-from train_sim_multiviews import training
+from train_sim_multiviews import TrainingConfig, WandbImageConfig, training
 from utils.image_utils import psnr
 from utils.loss_utils import ssim
 
@@ -90,7 +90,7 @@ def _train_and_load(
     original_wandb = tsm.wandb
     tsm.wandb = _wandb_stub()
     try:
-        training(
+        training_config = TrainingConfig(
             dataset=model_params,
             opt=opt_params,
             pipe=pipe_params,
@@ -99,10 +99,12 @@ def _train_and_load(
             debug_from=TRAIN_ITERS + 1,
             resolution=1,
             dls=dls if dls is not None else 20,
-            size_threshold_arg=150,
+            size_threshold=150,
             extent_multiplier=1.0,
+            wandb_images=WandbImageConfig(interval=0, max_images=0, enable_eval_images=False),
             include_test_cameras=True,
         )
+        training(training_config)
     finally:
         tsm.wandb = original_wandb
 
