@@ -1,9 +1,10 @@
+import itertools
 import os
 import random
 import uuid
 from argparse import Namespace
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import torch
 
@@ -21,19 +22,15 @@ from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
 from utils.general_utils import get_dataset_name
-from utils.image_utils import heteroscedastic_noise, psnr, quantize_14bit
+from utils.image_utils import psnr
 from utils.loss_utils import l1_loss, ssim
-
 
 __all__ = [
     "TENSORBOARD_FOUND",
     "SummaryWriter",
     "WandbImageConfig",
-    "TrainingReportContext",
-    "TrainingConfig",
     "compose_run_name",
     "log_initial_scene_summary",
-    "collect_validation_configs",
     "group_train_cameras",
     "sample_camera_views",
     "render_multiplexed_view",
@@ -83,35 +80,6 @@ def log_initial_scene_summary(scene: Scene, opt: OptimizationParams) -> None:
     print("Full test cameras:", len(scene.getFullTestCameras()))
 
 
-def collect_validation_configs(scene: Scene) -> List[Dict[str, Any]]:
-    """Centralize creation of validation configurations."""
-    def _representative_cameras(cams: List[Camera]) -> List[Camera]:
-        return cams
-
-    return [
-        {
-            "name": "adjacent test camera",
-            "cameras": _representative_cameras(scene.getTestCameras()),
-            "multiplexed_groups": {},
-            "multiplexed_gt": {},
-        },
-        {
-            "name": "full test camera",
-            "cameras": _representative_cameras(scene.getFullTestCameras()),
-            "multiplexed_groups": {},
-            "multiplexed_gt": {},
-        },
-        {
-            "name": "train camera",
-            "cameras": [
-                cam for cam_list in scene.getTrainCameras().values() for cam in cam_list
-            ],
-            "multiplexed_groups": scene.getTrainCameras(),
-            "multiplexed_gt": getattr(scene, "multiplexed_gt", {}),
-        },
-    ]
-
-
 @dataclass
 class WandbImageConfig:
     interval: int
@@ -120,46 +88,15 @@ class WandbImageConfig:
 
     def should_log(self, iteration: int, testing_iterations: List[int]) -> bool:
         """Return True if this iteration should emit W&B image artifacts."""
-        if not self.enable_eval_images or self.max_images <= 0 or not testing_iterations:
+        if (
+            not self.enable_eval_images
+            or self.max_images <= 0
+            or not testing_iterations
+        ):
             return False
         if self.interval <= 0:
             return iteration == testing_iterations[-1]
         return iteration % self.interval == 0 or iteration == testing_iterations[-1]
-
-
-@dataclass
-class TrainingReportContext:
-    writer: Optional[SummaryWriter]  # type: ignore[valid-type]
-    testing_iterations: List[int]
-    scene: Scene
-    pipe: PipelineParams
-    background: torch.Tensor
-    device: torch.device
-    opt: OptimizationParams
-    wandb_images: WandbImageConfig
-    wandb: Any
-    multiplexing_args: Optional[
-        Tuple[torch.Tensor, List[int], int, int, int, int]
-    ] = None
-
-
-@dataclass
-class TrainingConfig:
-    dataset: ModelParams
-    opt: OptimizationParams
-    pipe: PipelineParams
-    testing_iterations: List[int]
-    saving_iterations: List[int]
-    debug_from: int
-    resolution: int
-    dls: float
-    size_threshold: int
-    extent_multiplier: float
-    wandb_images: WandbImageConfig
-    include_test_cameras: bool = False
-    multiplex_max_subimages: int = 160
-    profile_memory: bool = False
-
 
 def group_train_cameras(
     all_train_cameras: Dict[int, List[Camera]],
@@ -318,60 +255,29 @@ def prepare_output_and_logger(args: ModelParams):
     return tb_writer, args.model_path
 
 
-def _synchronize_cuda_or_raise(
-    tag: str, camera: Optional[Camera] = None, enable_env: str = "GS_ENABLE_CUDA_SYNC"
-) -> None:
-    """
-    Synchronize CUDA to surface asynchronous errors closer to their origin.
-    When CUDA raises, append the current tag (and camera info if available) to aid debugging.
-    Set environment variable GS_ENABLE_CUDA_SYNC=1 to turn this diagnostic on.
-    """
-    if not torch.cuda.is_available() or os.environ.get(enable_env, "") not in {"1", "true", "True"}:
-        return
-
-    try:
-        torch.cuda.synchronize()
-    except RuntimeError as err:
-        cam_name = getattr(camera, "image_name", None)
-        cam_uid = getattr(camera, "uid", None)
-        context = tag
-        if cam_name or cam_uid is not None:
-            context += f" (camera={cam_name or 'unknown'}, uid={cam_uid})"
-        raise RuntimeError(f"CUDA failure detected during {context}") from err
-
-
 def training_report(
-    ctx: TrainingReportContext,
+    *,
     iteration: int,
     loss: torch.Tensor,
     elapsed: float,
     unseen_tv_loss: torch.Tensor,
     train_loss: torch.Tensor,
     mean_train_tv_loss: float,
+    scene: Scene,
+    gaussians: GaussianModel,
+    pipe: PipelineParams,
+    background: torch.Tensor,
+    device: torch.device,
+    wandb_images: WandbImageConfig,
+    testing_iterations: List[int],
+    tb_writer,
+    wandb_module,
     gt_image: Optional[torch.Tensor] = None,
     extra_log: Optional[Dict[str, Any]] = None,
-    noise_params: Optional[Dict[str, float]] = None,
+    multiplexing_args: Optional[
+        Tuple[torch.Tensor, List[int], int, int, int, int]
+    ] = None,
 ) -> None:
-    scene = ctx.scene
-    tb_writer = ctx.writer
-    testing_iterations = ctx.testing_iterations
-    device = ctx.device
-    wandb = ctx.wandb
-
-    _synchronize_cuda_or_raise("training_report_start")
-
-    lambda_read = (
-        noise_params["lambda_read"]
-        if noise_params is not None and "lambda_read" in noise_params
-        else ctx.opt.lambda_read
-    )
-    lambda_shot = (
-        noise_params["lambda_shot"]
-        if noise_params is not None and "lambda_shot" in noise_params
-        else ctx.opt.lambda_shot
-    )
-    apply_noise_for_logging = (lambda_read > 0.0) or (lambda_shot > 0.0)
-
     full_test_cameras = scene.getFullTestCameras()
     subset_size = min(10, len(full_test_cameras))
     l1_subset, psnr_subset = 0.0, 0.0
@@ -379,8 +285,7 @@ def training_report(
     if subset_size > 0:
         subset_cameras = random.sample(full_test_cameras, subset_size)
         for viewpoint in subset_cameras:
-            out = render(viewpoint, scene.gaussians, ctx.pipe, ctx.background)["render"]
-            _synchronize_cuda_or_raise("eval_subset_render", viewpoint)
+            out = render(viewpoint, gaussians, pipe, background)["render"]
             gt = viewpoint.original_image.to(device)
             l1_subset += l1_loss(out, gt).mean().double().item()
             psnr_subset += psnr(out, gt).mean().double().item()
@@ -391,8 +296,6 @@ def training_report(
         l1_subset = 0.0
         psnr_subset = 0.0
 
-    total_pts = scene.gaussians.get_xyz.shape[0]
-
     log_dict = {
         "total_loss": loss.item(),
         "unseen_tv_loss": unseen_tv_loss.item(),
@@ -400,7 +303,7 @@ def training_report(
         "train_loss": train_loss.item(),
         "eval_l1": l1_subset,
         "eval_psnr": psnr_subset,
-        "total_points": total_pts,
+        "total_points": gaussians.get_xyz.shape[0],
         "iter_time": elapsed,
     }
 
@@ -413,139 +316,137 @@ def training_report(
 
     img_dict: Dict[str, Any] = {}
     if iteration in testing_iterations:
-        log_images_this_iter = ctx.wandb_images.should_log(iteration, testing_iterations)
+        log_images_this_iter = wandb_images.should_log(
+            iteration, testing_iterations
+        )
 
-        validation_configs = collect_validation_configs(scene)
+        def _init_metric_accumulator() -> Dict[str, float]:
+            return {"l1": 0.0, "psnr": 0.0, "ssim": 0.0, "lpips": 0.0, "count": 0.0}
 
-        for config in validation_configs:
-            cams = config["cameras"]
-            if not cams:
-                continue
+        def _accumulate_metrics(
+            acc: Dict[str, float], pred: torch.Tensor, gt: torch.Tensor
+        ) -> None:
+            pred = pred.clamp(0.0, 1.0)
+            acc["l1"] += float(l1_loss(pred, gt).mean().item())
+            acc["psnr"] += float(psnr(pred, gt).mean().item())
+            acc["ssim"] += float(ssim(pred, gt).mean().item())
+            acc["lpips"] += float(
+                lpips(pred.unsqueeze(0), gt.unsqueeze(0), net_type="vgg").mean().item()
+            )
+            acc["count"] += 1.0
 
-            render_cache: Dict[str, torch.Tensor] = {}
-            l1_test, psnr_test, ssim_test, lpips_test = 0.0, 0.0, 0.0, 0.0
-            for idx, viewpoint in enumerate(cams):
-                out = render(viewpoint, scene.gaussians, ctx.pipe, ctx.background)[
-                    "render"
-                ]
-                _synchronize_cuda_or_raise(f"{config['name']}_render", viewpoint)
-                gt = viewpoint.original_image.to(device)
-                render_cache[viewpoint.image_name] = out.detach()
+        def _evaluate_split(name: str, samples: Iterable[Dict[str, torch.Tensor]]) -> None:
+            metrics = _init_metric_accumulator()
+            logged = 0
 
-                eval_render = torch.clamp(out, 0.0, 1.0)
-                if apply_noise_for_logging:
-                    eval_render = heteroscedastic_noise(
-                        eval_render, lambda_read, lambda_shot
-                    )
-                    eval_render = quantize_14bit(eval_render)
+            with torch.no_grad():
+                for idx, sample in enumerate(samples):
+                    pred = sample["pred"]
+                    gt = sample["gt"]
+                    label = sample.get("label", str(idx))
 
-                if log_images_this_iter and idx < ctx.wandb_images.max_images:
-                    if tb_writer:
-                        tb_writer.add_images(
-                            f"render/{config['name']}_{viewpoint.image_name}/",
-                            eval_render[None],
-                            global_step=iteration,
-                        )
-                        tb_writer.add_images(
-                            f"ground_truth/{config['name']}_{viewpoint.image_name}/",
-                            gt[None],
-                            global_step=iteration,
-                        )
-                    img_dict[f"render/{config['name']}_{viewpoint.image_name}"] = (
-                        wandb.Image(eval_render.cpu())
-                    )
+                    _accumulate_metrics(metrics, pred, gt)
 
-                l1_test += l1_loss(eval_render, gt).mean().double()
-                psnr_test += psnr(eval_render, gt).mean().double()
-                ssim_test += ssim(eval_render, gt)
-                lpips_test += (
-                    lpips(eval_render.unsqueeze(0), gt.unsqueeze(0), net_type="vgg")
-                    .mean()
-                    .double()
-                )
+                    if log_images_this_iter and logged < wandb_images.max_images:
+                        pred_img = pred.detach().clamp(0.0, 1.0).cpu()
+                        gt_img = gt.detach().clamp(0.0, 1.0).cpu()
+                        if tb_writer:
+                            tb_writer.add_images(
+                                f"render/{name}_{label}",
+                                pred_img.unsqueeze(0),
+                                global_step=iteration,
+                            )
+                            tb_writer.add_images(
+                                f"ground_truth/{name}_{label}",
+                                gt_img.unsqueeze(0),
+                                global_step=iteration,
+                            )
+                        img_dict[f"render/{name}_{label}"] = wandb_module.Image(pred_img)
+                        logged += 1
 
-            l1_test /= len(cams)
-            psnr_test /= len(cams)
-            ssim_test /= len(cams)
-            lpips_test /= len(cams)
+            if metrics["count"] == 0:
+                return
 
-            msg = f"[ITER {iteration}] Evaluating {config['name']}: L1 {l1_test:.4f} PSNR {psnr_test:.4f} SSIM {ssim_test:.4f} LPIPS {lpips_test:.4f}"
+            l1_avg = metrics["l1"] / metrics["count"]
+            psnr_avg = metrics["psnr"] / metrics["count"]
+            ssim_avg = metrics["ssim"] / metrics["count"]
+            lpips_avg = metrics["lpips"] / metrics["count"]
+
+            msg = (
+                f"[ITER {iteration}] Evaluating {name}: "
+                f"L1 {l1_avg:.4f} PSNR {psnr_avg:.4f} "
+                f"SSIM {ssim_avg:.4f} LPIPS {lpips_avg:.4f}"
+            )
             print(msg)
 
             if tb_writer:
-                tb_writer.add_scalar(f"l1_loss/{config['name']}", l1_test, iteration)
-                tb_writer.add_scalar(f"psnr/{config['name']}", psnr_test, iteration)
-                tb_writer.add_scalar(f"ssim/{config['name']}", ssim_test, iteration)
-                tb_writer.add_scalar(f"lpips/{config['name']}", lpips_test, iteration)
-            log_dict[f"l1_loss/{config['name']}"] = l1_test.item()
-            log_dict[f"psnr/{config['name']}"] = psnr_test.item()
-            log_dict[f"ssim/{config['name']}"] = ssim_test.item()
-            log_dict[f"lpips/{config['name']}"] = lpips_test.item()
+                tb_writer.add_scalar(f"l1_loss/{name}", l1_avg, iteration)
+                tb_writer.add_scalar(f"psnr/{name}", psnr_avg, iteration)
+                tb_writer.add_scalar(f"ssim/{name}", ssim_avg, iteration)
+                tb_writer.add_scalar(f"lpips/{name}", lpips_avg, iteration)
+            log_dict[f"l1_loss/{name}"] = l1_avg
+            log_dict[f"psnr/{name}"] = psnr_avg
+            log_dict[f"ssim/{name}"] = ssim_avg
+            log_dict[f"lpips/{name}"] = lpips_avg
 
-            mp_groups = config.get("multiplexed_groups")
-            mp_gt = config.get("multiplexed_gt")
-            if mp_groups and mp_gt:
-                mp_l1_sum = 0.0
-                mp_psnr_sum = 0.0
-                mp_count = 0
+        def _iterate_single_cameras(cameras: Iterable[Camera]):
+            for cam in cameras:
+                pred = render(cam, gaussians, pipe, background)["render"]
+                yield {
+                    "pred": torch.clamp(pred, 0.0, 1.0),
+                    "gt": cam.original_image.to(device),
+                    "label": cam.image_name or f"camera_{cam.uid}",
+                }
 
-                for group_id, cam_group in mp_groups.items():
-                    if group_id not in mp_gt or not cam_group:
-                        continue
+        def _iterate_multiplexed(groups: Dict[int, List[Camera]]):
+            mp_gt = getattr(scene, "multiplexed_gt", {}) or {}
+            for group_id, cam_group in groups.items():
+                if not cam_group:
+                    continue
+                gt_image = mp_gt.get(group_id)
+                if gt_image is None:
+                    continue
+                gt_tensor = gt_image.to(device, dtype=torch.float32)
+                rendered, _, _ = render_multiplexed_view(
+                    cam_group,
+                    gaussians,
+                    pipe,
+                    background,
+                    scene,
+                    gt_tensor.shape[1],
+                    gt_tensor.shape[2],
+                    device,
+                )
+                yield {
+                    "pred": torch.clamp(rendered, 0.0, 1.0),
+                    "gt": gt_tensor,
+                    "label": cam_group[0].image_name
+                    if cam_group[0].image_name
+                    else f"group_{group_id}",
+                }
 
-                    rendered_sub_images: List[torch.Tensor] = []
-                    for cam in cam_group:
-                        cached = render_cache.get(cam.image_name)
-                        if cached is None:
-                            cached = render(cam, scene.gaussians, ctx.pipe, ctx.background)[
-                                "render"
-                            ]
-                        rendered = cached.clone()
-                        if cam.mask is not None:
-                            rendered = rendered * cam.mask.to(device)
-                        rendered_sub_images.append(rendered)
+        _evaluate_split(
+            "adjacent test camera", _iterate_single_cameras(scene.getTestCameras())
+        )
+        _evaluate_split(
+            "full test camera", _iterate_single_cameras(scene.getFullTestCameras())
+        )
 
-                    if not rendered_sub_images:
-                        continue
+        train_groups = scene.getTrainCameras()
+        if getattr(scene, "multiplexed_gt", None):
+            _evaluate_split("train camera", _iterate_multiplexed(train_groups))
+        else:
+            flattened = itertools.chain.from_iterable(train_groups.values())
+            _evaluate_split("train camera", _iterate_single_cameras(flattened))
 
-                    gt_image = mp_gt[group_id].to(device, dtype=torch.float32)
-                    mp_render = multiplexing.generate(
-                        rendered_sub_images,
-                        scene.comap_yx,
-                        scene.dim_lens_lf_yx,
-                        scene.n_multiplexed_images,
-                        gt_image.shape[1],
-                        gt_image.shape[2],
-                        scene.max_overlap,
-                    )
-
-                    mp_l1_sum += (
-                        l1_loss(mp_render, gt_image).mean().double().item()
-                    )
-                    mp_psnr_sum += psnr(mp_render, gt_image).mean().double().item()
-                    mp_count += 1
-
-                if mp_count > 0:
-                    mp_l1 = mp_l1_sum / mp_count
-                    mp_psnr_value = mp_psnr_sum / mp_count
-                    log_name = f"multiplexed {config['name']}"
-                    log_dict[f"l1_loss/{log_name}"] = mp_l1
-                    log_dict[f"psnr/{log_name}"] = mp_psnr_value
-                    if tb_writer:
-                        tb_writer.add_scalar(f"l1_loss/{log_name}", mp_l1, iteration)
-                        tb_writer.add_scalar(f"psnr/{log_name}", mp_psnr_value, iteration)
-
-        if ctx.multiplexing_args is not None:
+        if multiplexing_args is not None:
             train_cameras = list(scene.getTrainCameras().values())[0]
             image_list: List[torch.Tensor] = []
             for single_viewpoint in train_cameras:
-                render_pkg = render(
-                    single_viewpoint, scene.gaussians, ctx.pipe, ctx.background
-                )
-                _synchronize_cuda_or_raise("train_camera_render", single_viewpoint)
+                render_pkg = render(single_viewpoint, gaussians, pipe, background)
                 image_list.append(render_pkg["render"])
             multiplexed_image = multiplexing.generate(
-                image_list, *ctx.multiplexing_args
+                image_list, *multiplexing_args
             )
             if tb_writer:
                 tb_writer.add_images(
@@ -553,12 +454,14 @@ def training_report(
                     multiplexed_image.unsqueeze(0),
                     global_step=iteration,
                 )
-            img_dict["render/trained_multiplex"] = wandb.Image(multiplexed_image.cpu())
+            img_dict["render/trained_multiplex"] = wandb_module.Image(
+                multiplexed_image.cpu()
+            )
 
         if gt_image is not None:
             if tb_writer:
                 tb_writer.add_images(
                     "render/gt_image", gt_image.unsqueeze(0), global_step=iteration
                 )
-            img_dict["render/gt_image"] = wandb.Image(gt_image.cpu())
-    wandb.log({**log_dict, **img_dict}, step=iteration)
+            img_dict["render/gt_image"] = wandb_module.Image(gt_image.cpu())
+    wandb_module.log({**log_dict, **img_dict}, step=iteration)

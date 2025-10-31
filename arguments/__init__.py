@@ -90,7 +90,7 @@ class ModelParams(ParamGroup["ModelParams"]):
         self._images = "images"
         self._depths = ""
         self._resolution = 1
-        self._white_background = True
+        self._white_background = False
         self.train_test_exp = False
         self.data_device = "cuda"
         self.eval = False
@@ -159,26 +159,26 @@ class OptimizationParams(ParamGroup["OptimizationParams"]):
     lambda_shot: float
 
     def __init__(self, parser: ArgumentParser):
-        self.iterations = 30_000
-        self.position_lr_init = 0.00016
-        self.position_lr_final = 0.0000016
-        self.position_lr_delay_mult = 0.01
-        self.position_lr_max_steps = 30_000
-        self.feature_lr = 0.0025
-        self.opacity_lr = 0.05
-        self.scaling_lr = 0.005
-        self.rotation_lr = 0.001
+        self.iterations = 3_000
+        self.position_lr_init = 0.00022
+        self.position_lr_final = 0.00002
+        self.position_lr_delay_mult = 0.02
+        self.position_lr_max_steps = 3_000
+        self.feature_lr = 0.0018
+        self.opacity_lr = 0.045
+        self.scaling_lr = 0.0035
+        self.rotation_lr = 0.0007
         self.exposure_lr_init = 0.01
         self.exposure_lr_final = 0.001
         self.exposure_lr_delay_steps = 0
         self.exposure_lr_delay_mult = 0.0
-        self.percent_dense = 0.01
+        self.percent_dense = 0.015
         self.lambda_dssim = 0.2
-        self.densification_interval = 100
-        self.opacity_reset_interval = 1000
-        self.densify_from_iter = 300
-        self.densify_until_iter = 15_000
-        self.densify_grad_threshold = 0.0002
+        self.densification_interval = 60
+        self.opacity_reset_interval = 700
+        self.densify_from_iter = 120
+        self.densify_until_iter = 2_600
+        self.densify_grad_threshold = 0.00005
         self.depth_l1_weight_init = 1.0
         self.depth_l1_weight_final = 0.01
         self.random_background = False

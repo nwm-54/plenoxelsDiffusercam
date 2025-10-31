@@ -10,12 +10,12 @@ from typing import Dict, Iterable, Optional, Sequence, Tuple
 import torch
 import torch.nn.functional as F
 
-import train_sim_multiviews as tsm
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
 from lpipsPyTorch import lpips
 from scene import GaussianModel, Scene
-from train_sim_multiviews import TrainingConfig, WandbImageConfig, training
+from train_sim_multiviews import training
+from utils.train_utils import WandbImageConfig, prepare_output_and_logger
 from utils.image_utils import psnr
 from utils.loss_utils import ssim
 
@@ -86,11 +86,20 @@ def _train_and_load(
     model_params.model_path = str(cache_dir)
     opt_params.iterations = TRAIN_ITERS
 
-    # Override wandb with no-ops during training to avoid external dependencies
-    original_wandb = tsm.wandb
-    tsm.wandb = _wandb_stub()
+    tb_writer, _ = prepare_output_and_logger(model_params)
+
+    gaussians = GaussianModel(model_params.sh_degree)
+    scene = Scene(
+        model_params,
+        gaussians,
+        include_test_cameras=True,
+    )
+    gaussians.training_setup(opt_params)
+
     try:
-        training_config = TrainingConfig(
+        training(
+            scene=scene,
+            gaussians=gaussians,
             dataset=model_params,
             opt=opt_params,
             pipe=pipe_params,
@@ -101,12 +110,17 @@ def _train_and_load(
             dls=dls if dls is not None else 20,
             size_threshold=150,
             extent_multiplier=1.0,
-            wandb_images=WandbImageConfig(interval=0, max_images=0, enable_eval_images=False),
-            include_test_cameras=True,
+            wandb_images=WandbImageConfig(
+                interval=0, max_images=0, enable_eval_images=False
+            ),
+            multiplex_max_subimages=0,
+            profile_memory=False,
+            tb_writer=tb_writer,
+            wandb_module=_wandb_stub(),
         )
-        training(training_config)
     finally:
-        tsm.wandb = original_wandb
+        if tb_writer:
+            tb_writer.close()
 
     original_use_blender = model_params.use_blender
     model_params.use_blender = False

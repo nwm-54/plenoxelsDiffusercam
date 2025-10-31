@@ -229,12 +229,14 @@ def ensure_camera_exists(name: str, template: bpy.types.Object) -> bpy.types.Obj
     if cam is not None:
         _detach_camera_from_rig(cam)
         return cam
-    if template is None:
-        raise RuntimeError(
-            f"Cannot auto-create camera '{name}' because template camera is missing."
-        )
-    new_cam = template.copy()
-    new_cam.data = template.data.copy()
+
+    if template is not None:
+        new_cam = template.copy()
+        new_cam.data = template.data.copy()
+    else:
+        cam_data = bpy.data.cameras.new(f"{name}_data")
+        new_cam = bpy.data.objects.new(name, cam_data)
+
     new_cam.name = name
     bpy.context.scene.collection.objects.link(new_cam)
     _detach_camera_from_rig(new_cam)
@@ -245,33 +247,44 @@ def enable_cycles_and_gpus() -> None:
     bpy.context.scene.render.engine = "CYCLES"
     scn = bpy.context.scene
     scn.render.use_persistent_data = True
-    scn.cycles.use_adaptive_sampling = True
     scn.cycles.use_denoising = True
 
     try:
         prefs = bpy.context.preferences
         cycles_prefs = prefs.addons["cycles"].preferences
-        cycles_prefs.compute_device_type = "OPTIX"
-        cycles_prefs.refresh_devices()
 
-        optix_available = False
-        for device in cycles_prefs.devices:
-            device_type = getattr(device, "type", "").upper()
-            is_optix = device_type == "OPTIX"
-            device.use = is_optix
-            optix_available = optix_available or is_optix
+        selected_backend = None
+        try:
+            cycles_prefs.compute_device_type = "OPTIX"
+            cycles_prefs.refresh_devices()
+            gpu_found = False
+            for device in cycles_prefs.devices:
+                dev_type = getattr(device, "type", "").upper()
+                is_optix = dev_type == "OPTIX"
+                device.use = is_optix
+                gpu_found = gpu_found or is_optix
+            if gpu_found:
+                selected_backend = "OPTIX"
+        except Exception:
+            pass
 
-        if optix_available:
+        if selected_backend == "OPTIX":
             scn.cycles.device = "GPU"
+            print("Using Cycles GPU backend: OPTIX")
         else:
-            print("OPTIX GPU device not available; Blender will use its default device.")
+            scn.cycles.device = "CPU"
+            print("OPTIX GPU backend unavailable; falling back to CPU rendering.")
+            cycles_prefs.compute_device_type = "NONE"
+            cycles_prefs.refresh_devices()
+            for device in cycles_prefs.devices:
+                device.use = getattr(device, "type", "").upper() == "CPU"
 
         denoiser_prop = scn.cycles.bl_rna.properties.get("denoiser")
         if denoiser_prop is not None:
             available_denoisers = {
                 enum_item.identifier for enum_item in denoiser_prop.enum_items
             }
-            if "OPTIX" in available_denoisers:
+            if "OPTIX" in available_denoisers and selected_backend == "OPTIX":
                 scn.cycles.denoiser = "OPTIX"
             elif "OPENIMAGEDENOISE" in available_denoisers:
                 scn.cycles.denoiser = "OPENIMAGEDENOISE"
@@ -295,6 +308,39 @@ def configure_image_output(img_format: str, color_depth: int):
         pass
     scn.render.dither_intensity = 0.0
     scn.render.film_transparent = True
+
+
+def configure_cycles_sampling() -> None:
+    scn = bpy.context.scene
+    target_samples = int(os.environ.get("GS_CYCLES_SAMPLES", "96"))
+    scn.cycles.samples = target_samples
+    if hasattr(scn.cycles, "preview_samples"):
+        scn.cycles.preview_samples = max(1, target_samples // 2)
+
+    if hasattr(scn.cycles, "use_adaptive_sampling"):
+        scn.cycles.use_adaptive_sampling = True
+        if hasattr(scn.cycles, "adaptive_threshold"):
+            scn.cycles.adaptive_threshold = float(os.environ.get("GS_CYCLES_ADAPTIVE_THRESHOLD", 0.01))
+        if hasattr(scn.cycles, "adaptive_min_samples"):
+            scn.cycles.adaptive_min_samples = min(target_samples, max(16, target_samples // 4))
+
+    if hasattr(scn.cycles, "use_auto_tile_size"):
+        scn.cycles.use_auto_tile_size = True
+    else:
+        pass
+
+    if hasattr(scn.cycles, "max_bounces"):
+        scn.cycles.max_bounces = min(scn.cycles.max_bounces, 8)
+    if hasattr(scn.cycles, "diffuse_bounces"):
+        scn.cycles.diffuse_bounces = min(scn.cycles.diffuse_bounces, 4)
+    if hasattr(scn.cycles, "glossy_bounces"):
+        scn.cycles.glossy_bounces = min(scn.cycles.glossy_bounces, 4)
+    if hasattr(scn.cycles, "transmission_bounces"):
+        scn.cycles.transmission_bounces = min(scn.cycles.transmission_bounces, 6)
+
+    print(
+        f"Cycles sampling configured: {target_samples} samples, auto tile size={'on' if getattr(scn.cycles, 'use_auto_tile_size', False) else 'manual'}"
+    )
 
 
 @dataclass
@@ -639,15 +685,15 @@ def render(
         camera_frames[cam_name].append(frame)
 
     camera_map = {cam.name: cam for cam in cameras}
+    template_for_new = cameras[0] if cameras else bpy.data.objects.get("Camera")
 
     for cam_name, cam_frames in camera_frames.items():
         if cam_name not in camera_map:
-            print(
-                f"Warning: Camera '{cam_name}' from transforms.json not found in scene"
-            )
-            continue
-
-        cam = camera_map[cam_name]
+            cam = ensure_camera_exists(cam_name, template_for_new)
+            camera_map[cam_name] = cam
+            cameras.append(cam)
+        else:
+            cam = camera_map[cam_name]
         out_dir = os.path.join(root, cam_name)
         ensure_dir(out_dir)
 
@@ -697,6 +743,7 @@ def run(cfg: RenderConfig):
         np.random.seed(cfg.seed)
 
     enable_cycles_and_gpus()
+    configure_cycles_sampling()
     configure_image_output(cfg.img_format, cfg.color_depth)
 
     arm_anim = cfg.create_arm_animator()
@@ -753,10 +800,6 @@ def run(cfg: RenderConfig):
         return template_cam
 
     template_cam = find_template_camera()
-    if template_cam is None:
-        raise RuntimeError(
-            "No template camera found. Please ensure the scene contains at least one camera."
-        )
 
     if cfg.transforms_json:
         camera_names = {
@@ -768,6 +811,10 @@ def run(cfg: RenderConfig):
             for name in sorted(camera_names)
         ]
     else:
+        if template_cam is None:
+            raise RuntimeError(
+                "No template camera found. Please ensure the scene contains at least one camera."
+            )
         cameras = [
             ensure_camera_exists(f"camera_{i:02d}", template_cam)
             for i in range(cfg.num_cams)

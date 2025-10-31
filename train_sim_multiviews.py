@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import sys
@@ -16,8 +17,6 @@ from utils.general_utils import safe_state
 from utils.image_utils import heteroscedastic_noise, quantize_14bit
 from utils.loss_utils import l1_loss, ssim
 from utils.train_utils import (
-    TrainingConfig,
-    TrainingReportContext,
     WandbImageConfig,
     compose_run_name,
     group_train_cameras,
@@ -49,19 +48,85 @@ def compute_noise_lambdas(
     return opt.lambda_read, opt.lambda_shot, 1.0
 
 
-def training(config: TrainingConfig) -> None:
-    dataset = config.dataset
-    opt = config.opt
-    pipe = config.pipe
+def adapt_optimization_schedule(opt: OptimizationParams) -> None:
+    """Clamp optimisation schedules to the configured iteration budget."""
+    opt.position_lr_max_steps = max(1, min(opt.position_lr_max_steps, opt.iterations))
+    opt.densify_until_iter = max(1, min(opt.densify_until_iter, opt.iterations))
+    if opt.densify_from_iter >= opt.densify_until_iter:
+        opt.densify_from_iter = max(
+            1, opt.densify_until_iter - max(1, opt.densification_interval)
+        )
+    if opt.opacity_reset_interval > opt.iterations:
+        opt.opacity_reset_interval = max(opt.densification_interval, opt.iterations)
 
-    testing_iterations = list(config.testing_iterations)
-    saving_iterations = list(config.saving_iterations)
 
-    tb_writer, _ = prepare_output_and_logger(dataset)
+def prune_background_gaussians(
+    gaussians: GaussianModel,
+    object_center: torch.Tensor,
+    safe_radius: float,
+    color_threshold: float = 0.08,
+    opacity_threshold: float = 0.25,
+    min_coverage: float = 1.0,
+) -> int:
+    """
+    Geometrically gate background pruning so only very dark, low-coverage Gaussians
+    that sit outside the foreground hull are removed.
+    """
+    if safe_radius <= 0 or gaussians.get_xyz.numel() == 0:
+        return 0
 
-    gaussians = GaussianModel(dataset.sh_degree)
-    scene = Scene(dataset, gaussians, include_test_cameras=config.include_test_cameras)
-    gaussians.training_setup(opt)
+    with torch.no_grad():
+        xyz = gaussians.get_xyz.detach()
+        object_center = object_center.to(xyz.device)
+        distances = torch.linalg.norm(xyz - object_center, dim=1)
+        outside = distances > safe_radius
+        if not outside.any():
+            return 0
+
+        dc = gaussians.get_features_dc.detach().squeeze(1)  # (N, 3)
+        rgb = torch.clamp(dc + 0.5, 0.0, 1.0)
+        color_energy = torch.linalg.norm(rgb, dim=1)
+        opacities = gaussians.get_opacity.detach().squeeze(1)
+
+        coverage = (
+            gaussians.denom.squeeze(1) if gaussians.denom.ndim > 1 else gaussians.denom
+        )
+        low_coverage = coverage <= min_coverage
+
+        candidate_mask = (
+            outside
+            & (color_energy < color_threshold)
+            & (torch.logical_or(opacities < opacity_threshold, low_coverage))
+        )
+
+        removed = int(candidate_mask.sum().item())
+        if removed > 0:
+            gaussians.prune_points(candidate_mask)
+        return removed
+
+
+def training(
+    *,
+    scene: Scene,
+    gaussians: GaussianModel,
+    dataset: ModelParams,
+    opt: OptimizationParams,
+    pipe: PipelineParams,
+    testing_iterations: List[int],
+    saving_iterations: List[int],
+    debug_from: int,
+    resolution: int,
+    dls: float,
+    size_threshold: int,
+    extent_multiplier: float,
+    wandb_images: WandbImageConfig,
+    multiplex_max_subimages: int,
+    profile_memory: bool,
+    tb_writer,
+    wandb_module,
+) -> None:
+    testing_iterations = list(testing_iterations)
+    saving_iterations = list(saving_iterations)
 
     print("lambda_dssim", opt.lambda_dssim)
 
@@ -69,19 +134,19 @@ def training(config: TrainingConfig) -> None:
     if getattr(scene, "avg_angle", None) is not None:
         initial_log["average_angle"] = float(scene.avg_angle)
     if initial_log:
-        wandb.log(initial_log, step=0)
+        wandb_module.log(initial_log, step=0)
     log_initial_scene_summary(scene, opt)
 
     H = W = 0
     multiplexing_args = None
     if dataset.use_multiplexing:
         print(f"Using multiplexing with {scene.n_multiplexed_images} sub-images")
-        if config.resolution and config.resolution > 0:
-            scaled_res = max(1, int(800 / float(config.resolution)))
+        if resolution and resolution > 0:
+            scaled_res = max(1, int(800 / float(resolution)))
             H = W = scaled_res
         else:
             H = W = 800
-        scene.init_multiplexing(config.dls, H, W)
+        scene.init_multiplexing(dls, H, W)
         multiplexing_args = (
             scene.comap_yx,
             scene.dim_lens_lf_yx,
@@ -106,38 +171,20 @@ def training(config: TrainingConfig) -> None:
     all_train_cameras = group_train_cameras(raw_train_cameras)
     total_train_views = len(all_train_cameras)
 
-    profile_gpu = config.profile_memory and torch.cuda.is_available()
-    subimage_budget = None
-    if dataset.use_multiplexing and config.multiplex_max_subimages > 0:
-        subimage_budget = max(
-            config.multiplex_max_subimages, scene.n_multiplexed_images
-        )
-
-    print(
-        "Sampling at most {} view groups per iteration; total iterations {}".format(
-            "all" if not dataset.use_multiplexing else "limited",
-            opt.iterations,
-        )
+    subimages_per_group = (
+        len(next(iter(all_train_cameras.values()))) if all_train_cameras else 1
     )
+
+    profile_gpu = profile_memory and torch.cuda.is_available()
+    subimage_budget: Optional[int] = None
+    if dataset.use_multiplexing and multiplex_max_subimages > 0:
+        subimage_budget = max(multiplex_max_subimages, subimages_per_group)
 
     view_indices = list(all_train_cameras.keys())
     available_view_indices: List[int] = []
     # Decide how many distinct main views to include per iteration (sampling with coverage)
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     ema_loss_for_log = 0.0
-
-    report_ctx = TrainingReportContext(
-        writer=tb_writer,
-        testing_iterations=list(testing_iterations),
-        scene=scene,
-        pipe=pipe,
-        background=background,
-        device=device,
-        opt=opt,
-        wandb_images=config.wandb_images,
-        wandb=wandb,
-        multiplexing_args=multiplexing_args,
-    )
 
     for iteration in range(1, opt.iterations + 1):
         if profile_gpu:
@@ -150,7 +197,7 @@ def training(config: TrainingConfig) -> None:
         if iteration % 500 == 0:
             gaussians.oneupSHdegree()
 
-        if iteration - 1 == config.debug_from:
+        if iteration - 1 == debug_from:
             pipe.debug = True
 
         bg = torch.rand((3), device=device) if opt.random_background else background
@@ -170,6 +217,7 @@ def training(config: TrainingConfig) -> None:
             "lambda_read": lambda_read,
             "lambda_shot": lambda_shot,
         }
+        # keep logging minimal to avoid confusion
 
         iteration_loss_sum = 0.0
         iteration_tv_sum = 0.0
@@ -178,12 +226,11 @@ def training(config: TrainingConfig) -> None:
 
         cameras_to_train: Dict[int, List]
         if dataset.use_multiplexing:
-            if subimage_budget:
-                max_groups = subimage_budget // scene.n_multiplexed_images
-                max_groups = max(1, max_groups)
+            if subimage_budget is None:
+                num_cameras_to_sample = len(view_indices)
             else:
-                max_groups = len(all_train_cameras)
-            num_cameras_to_sample = min(len(view_indices), max_groups)
+                max_groups = max(1, subimage_budget // max(1, subimages_per_group))
+                num_cameras_to_sample = min(len(view_indices), max_groups)
         else:
             num_cameras_to_sample = min(len(view_indices), 120)
 
@@ -207,67 +254,15 @@ def training(config: TrainingConfig) -> None:
 
         actual_sampled = len(cameras_to_train)
         total_sampled_views += actual_sampled
-        if dataset.use_multiplexing and subimage_budget:
-            sampled_subimages = actual_sampled * scene.n_multiplexed_images
-            extra_log["sampled_subimages"] = float(sampled_subimages)
-            extra_log["subimage_budget"] = float(subimage_budget)
+        # No per-step logging beyond total_subimages; keep loop state minimal.
 
-        total_train_loss = torch.zeros((), device=device, dtype=torch.float32)
-        mean_train_tv_loss = 0.0
-        cameras_processed = 0
-        all_render_pkgs: List[Dict[str, torch.Tensor]] = []
-
-        for _, viewpoint_cam in cameras_to_train.items():
-            if not viewpoint_cam:
-                continue
-
-            if dataset.use_multiplexing:
-                rendered_image, tv_train_loss, render_pkgs = render_multiplexed_view(
-                    viewpoint_cam, gaussians, pipe, bg, scene, H, W, device
-                )
-                all_render_pkgs.extend(render_pkgs)
-                viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1])
-                gt_image = multiplexed_gt[viewpoint_index].to(
-                    device, dtype=torch.float32
-                )
-            else:
-                rendered_image, tv_train_loss, render_pkgs = render_single_view(
-                    viewpoint_cam, gaussians, pipe, bg, device
-                )
-                all_render_pkgs.extend(render_pkgs)
-                gt_image = viewpoint_cam[0].original_image.to(
-                    device, dtype=torch.float32
-                )
-
-            if lambda_read > 0.0 or lambda_shot > 0.0:
-                rendered_for_loss = heteroscedastic_noise(
-                    rendered_image, lambda_read, lambda_shot
-                )
-                rendered_for_loss = quantize_14bit(rendered_for_loss)
-            else:
-                rendered_for_loss = rendered_image
-
-            L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(rendered_for_loss, gt_image)
-            ssim_term = opt.lambda_dssim * (1.0 - ssim(rendered_for_loss, gt_image))
-            train_tv = opt.tv_weight * tv_train_loss
-
-            total_train_loss = total_train_loss + L_l1 + ssim_term + train_tv
-            mean_train_tv_loss += float(train_tv.item())
-            cameras_processed += 1
-            last_gt_image = gt_image
-            if render_pkgs:
-                last_radii = render_pkgs[-1]["radii"].detach()
-
-        if cameras_processed == 0:
+        # Micro-batch across camera groups to avoid OOM
+        group_items = list(cameras_to_train.items())
+        total_groups = len(group_items)
+        if total_groups == 0:
             continue
 
-        total_train_loss = total_train_loss / cameras_processed
-        mean_train_tv_loss = mean_train_tv_loss / cameras_processed
-        train_loss_value = total_train_loss.detach().item()
-        iteration_loss_sum = train_loss_value * cameras_processed
-        iteration_tv_sum = mean_train_tv_loss * cameras_processed
-        iteration_view_count = cameras_processed
-
+        # Compute unseen TV once per iteration
         tv_candidates = scene.getFullTestCameras()
         if tv_candidates:
             tv_viewpoints = random.choices(tv_candidates, k=min(3, len(tv_candidates)))
@@ -278,18 +273,110 @@ def training(config: TrainingConfig) -> None:
         else:
             unseen_tv = torch.zeros((), device=device, dtype=torch.float32)
 
-        loss = total_train_loss + unseen_tv
-        loss.backward()
+        # Backprop unseen TV first, then accumulate per-group losses
+        if unseen_tv.requires_grad:
+            unseen_tv.backward(retain_graph=False)
 
-        iteration_avg_train_loss = iteration_loss_sum / max(iteration_view_count, 1)
-        iteration_avg_train_tv = iteration_tv_sum / max(iteration_view_count, 1)
-        loss_value = loss.detach().item()
-        unseen_tv_value = unseen_tv.detach().item()
+        mean_train_tv_loss = 0.0
+        iteration_loss_sum = 0.0
+        iteration_tv_sum = 0.0
+        iteration_view_count = 0
+        cameras_processed = 0
 
-        accumulated_loss = loss_value
-        accumulated_train_loss = iteration_avg_train_loss
-        accumulated_train_tv = iteration_avg_train_tv
+        # Start with a conservative micro-batch size and adapt on OOM.
+        # Empirically, 12 multiplexed groups keeps peak usage ~32GB on a 48GB card.
+        micro_bs = 12 if dataset.use_multiplexing else 32
+        micro_bs = min(micro_bs, total_groups)
+        start_idx = 0
+        while start_idx < total_groups:
+            end_idx = min(total_groups, start_idx + micro_bs)
+            batch = group_items[start_idx:end_idx]
+            try:
+                micro_sum = torch.zeros((), device=device, dtype=torch.float32)
+                micro_tv_acc = 0.0
+                micro_count = 0
+                micro_render_pkgs: List[Dict[str, torch.Tensor]] = []
+                for _, viewpoint_cam in batch:
+                    if not viewpoint_cam:
+                        continue
+
+                    if dataset.use_multiplexing:
+                        rendered_image, tv_train_loss, render_pkgs = (
+                            render_multiplexed_view(
+                                viewpoint_cam, gaussians, pipe, bg, scene, H, W, device
+                            )
+                        )
+                        micro_render_pkgs.extend(render_pkgs)
+                        viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1])
+                        gt_image = multiplexed_gt[viewpoint_index].to(
+                            device, dtype=torch.float32
+                        )
+                    else:
+                        rendered_image, tv_train_loss, render_pkgs = render_single_view(
+                            viewpoint_cam, gaussians, pipe, bg, device
+                        )
+                        micro_render_pkgs.extend(render_pkgs)
+                        gt_image = viewpoint_cam[0].original_image.to(
+                            device, dtype=torch.float32
+                        )
+
+                    rendered_for_loss = (
+                        quantize_14bit(
+                            heteroscedastic_noise(
+                                rendered_image, lambda_read, lambda_shot
+                            )
+                        )
+                        if (lambda_read > 0.0 or lambda_shot > 0.0)
+                        else rendered_image
+                    )
+                    L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(
+                        rendered_for_loss, gt_image
+                    )
+                    ssim_term = opt.lambda_dssim * (
+                        1.0 - ssim(rendered_for_loss, gt_image)
+                    )
+                    train_tv = opt.tv_weight * tv_train_loss
+
+                    micro_sum = micro_sum + L_l1 + ssim_term + train_tv
+                    micro_tv_acc += float(train_tv.item())
+                    micro_count += 1
+                    cameras_processed += 1
+                    last_gt_image = gt_image
+                    if render_pkgs:
+                        last_radii = render_pkgs[-1]["radii"].detach()
+
+                if micro_count > 0:
+                    # Accumulate gradients: scale by total number of groups for a true mean
+                    (micro_sum / total_groups).backward(retain_graph=False)
+                    mean_train_tv_loss += micro_tv_acc
+                    iteration_loss_sum += micro_sum.detach().item()
+                    iteration_tv_sum += micro_tv_acc
+                    iteration_view_count += micro_count
+                    # Update densification stats incrementally to keep memory bounded
+                    if micro_render_pkgs:
+                        update_densification_stats(gaussians, micro_render_pkgs)
+
+                start_idx = end_idx
+                # Free cached memory aggressively between micro-batches
+                torch.cuda.empty_cache()
+            except RuntimeError as e:
+                if "out of memory" in str(e) and micro_bs > 1:
+                    torch.cuda.empty_cache()
+                    micro_bs = max(1, micro_bs // 2)
+                    continue  # retry same range with smaller batch
+                raise
+
+        if iteration_view_count == 0:
+            continue
+
+        mean_train_tv_loss = mean_train_tv_loss / iteration_view_count
+        train_loss_value = iteration_loss_sum / iteration_view_count
+        # accumulated_loss here mirrors final scalar used in training_report
+        accumulated_loss = train_loss_value + unseen_tv.detach().item()
+        accumulated_train_loss = train_loss_value
+        accumulated_train_tv = mean_train_tv_loss
         gt_image = last_gt_image
+        unseen_tv_value = unseen_tv.detach().item()
 
         if profile_gpu:
             torch.cuda.synchronize()
@@ -304,8 +391,27 @@ def training(config: TrainingConfig) -> None:
         iter_end.record()
 
         with torch.no_grad():
-            if all_render_pkgs:
-                update_densification_stats(gaussians, all_render_pkgs)
+            if dataset.use_multiplexing or dataset.use_iphone or dataset.use_stereo:
+                if getattr(scene, "object_center", None) is not None:
+                    object_center_tensor = torch.as_tensor(
+                        scene.object_center, device=device, dtype=torch.float32
+                    )
+                else:
+                    object_center_tensor = gaussians.get_xyz.detach().mean(dim=0)
+                safe_radius = float(scene.cameras_extent * extent_multiplier)
+                if not math.isfinite(safe_radius) or safe_radius <= 0.0:
+                    safe_radius = float(
+                        gaussians.get_xyz.detach().norm(dim=1).max().item()
+                    )
+                safe_radius *= 1.1
+                removed = prune_background_gaussians(
+                    gaussians,
+                    object_center_tensor,
+                    safe_radius,
+                )
+                if removed > 0:
+                    extra_log.setdefault("pruned_background_gaussians", 0.0)
+                    extra_log["pruned_background_gaussians"] += float(removed)
 
             # Progress bar
             ema_loss_for_log = 0.4 * accumulated_loss + 0.6 * ema_loss_for_log
@@ -317,7 +423,6 @@ def training(config: TrainingConfig) -> None:
 
             # Log and save
             training_report(
-                report_ctx,
                 iteration=iteration,
                 loss=torch.tensor(accumulated_loss),
                 elapsed=iter_start.elapsed_time(iter_end),
@@ -326,7 +431,16 @@ def training(config: TrainingConfig) -> None:
                 mean_train_tv_loss=float(accumulated_train_tv),
                 gt_image=gt_image,
                 extra_log=extra_log,
-                noise_params={"lambda_read": lambda_read, "lambda_shot": lambda_shot},
+                scene=scene,
+                gaussians=gaussians,
+                pipe=pipe,
+                background=background,
+                device=device,
+                wandb_images=wandb_images,
+                testing_iterations=testing_iterations,
+                tb_writer=tb_writer,
+                wandb_module=wandb_module,
+                multiplexing_args=multiplexing_args,
             )
             if iteration in saving_iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -340,7 +454,7 @@ def training(config: TrainingConfig) -> None:
                     and last_radii is not None
                 ):
                     size_threshold = (
-                        config.size_threshold
+                        size_threshold
                         if iteration > opt.opacity_reset_interval
                         else None
                     )
@@ -352,7 +466,7 @@ def training(config: TrainingConfig) -> None:
                     gaussians.densify_and_prune(
                         max_grad=opt.densify_grad_threshold,
                         min_opacity=0.005,
-                        extent=scene.cameras_extent * config.extent_multiplier,
+                        extent=scene.cameras_extent * extent_multiplier,
                         max_screen_size=size_threshold,
                         radii=last_radii,
                     )
@@ -432,8 +546,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--multiplex_max_subimages",
         type=int,
-        default=160,
-        help="Maximum number of multiplexed sub-images to render per iteration (<=0 disables the limit).",
+        default=0,
+        help="Maximum number of multiplexed sub-images per iteration (0 means cover all groups each step).",
     )
     parser.add_argument(
         "--profile_memory",
@@ -468,6 +582,8 @@ if __name__ == "__main__":
     else:
         camera_profile = "none"
 
+    adapt_optimization_schedule(opt)
+
     if opt.iterations not in args.save_iterations:
         args.save_iterations.append(opt.iterations)
 
@@ -479,18 +595,15 @@ if __name__ == "__main__":
             + run_name
         )
 
+    tb_writer, _ = prepare_output_and_logger(dataset)
+
+    gaussians = GaussianModel(dataset.sh_degree)
+    scene = Scene(dataset, gaussians)
+    gaussians.training_setup(opt)
+
     if args.skip_train:
-        tb_writer, _ = prepare_output_and_logger(dataset)
         if tb_writer:
             tb_writer.close()
-        print("DEBUG: Creating GaussianModel...")
-        gaussians = GaussianModel(dataset.sh_degree)
-        print("DEBUG: Creating Scene...")
-        Scene(
-            dataset,
-            gaussians,
-        )
-        print("DEBUG: Scene created successfully")
         transforms_path = os.path.join(dataset.model_path, "transforms.json")
         print(f"Transforms written to {transforms_path}")
         sys.exit(0)
@@ -506,7 +619,9 @@ if __name__ == "__main__":
         enable_eval_images=not args.wandb_disable_eval_images,
     )
 
-    train_config = TrainingConfig(
+    training(
+        scene=scene,
+        gaussians=gaussians,
         dataset=dataset,
         opt=opt,
         pipe=pipe,
@@ -520,9 +635,12 @@ if __name__ == "__main__":
         wandb_images=wandb_images,
         multiplex_max_subimages=args.multiplex_max_subimages,
         profile_memory=args.profile_memory,
+        tb_writer=tb_writer,
+        wandb_module=wandb,
     )
 
-    training(train_config)
+    if tb_writer:
+        tb_writer.close()
 
     # All done
     print("\nTraining complete.")

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import time
+import threading
 from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
@@ -28,6 +31,7 @@ if TYPE_CHECKING:
     from scene.scene_utils import CameraInfo, SceneInfo
 
 PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
+BLENDER_CACHE_ROOT = Path("/share/monakhova/shamus_data/multiplexed_pixels/blender_cache")
 
 
 def get_pretrained_splat_path(args: ModelParams) -> Optional[str]:
@@ -266,13 +270,18 @@ def _build_blender_command(
     ]
 
 
-def _composite_blender_image(rendered_file: Path) -> Image:
-    with Image.open(rendered_file) as pil_image:
-        image_rgba = pil_image.convert("RGBA")
+def _camera_fingerprint(cam_info: "CameraInfo") -> str:
+    h = hashlib.sha1()
+    h.update(np.asarray(cam_info.R, dtype=np.float32).tobytes())
+    h.update(np.asarray(cam_info.T, dtype=np.float32).tobytes())
+    h.update(np.asarray([cam_info.FovX, cam_info.FovY], dtype=np.float32).tobytes())
+    h.update(np.asarray([cam_info.width, cam_info.height], dtype=np.float32).tobytes())
+    return h.hexdigest()
 
-    black_bg = Image.new("RGBA", image_rgba.size, (0, 0, 0, 255))
-    composited = Image.alpha_composite(black_bg, image_rgba)
-    return composited.convert("RGB")
+
+def _load_blender_rgba(rendered_file: Path) -> Image:
+    with Image.open(rendered_file) as pil_image:
+        return pil_image.convert("RGBA")
 
 
 def _process_blender_outputs(
@@ -299,14 +308,15 @@ def _process_blender_outputs(
             rendered_file = (tmp_root_path / Path(rel_path)).with_suffix(".png")
 
             if not rendered_file.exists():
-                print(f"Warning: Blender output missing for '{rel_path}' at {rendered_file}; keeping original image.")
-                updated_list.append(cam_info)
-                continue
+                raise RuntimeError(
+                    f"Blender did not produce expected output '{rel_path}' at {rendered_file}."
+                )
 
-            image_rgb = _composite_blender_image(rendered_file)
+            image_rgba = _load_blender_rgba(rendered_file)
             final_path = input_views_dir / f"{image_name}.png"
-            image_rgb.save(final_path, format="PNG")
+            image_rgba.save(final_path, format="PNG")
 
+            image_rgb = image_rgba.convert("RGB")
             rendered_count += 1
             updated_list.append(cam_info._replace(image=image_rgb, image_path=str(final_path)))
 
@@ -341,26 +351,129 @@ def render_with_blender(
     input_views_dir = Path(args.model_path) / "input_views"
     input_views_dir.mkdir(parents=True, exist_ok=True)
 
+    cache_dataset_dir = BLENDER_CACHE_ROOT / dataset_name
+    cache_dataset_dir.mkdir(parents=True, exist_ok=True)
+
+    fingerprint_info: Dict[Tuple[int, int], Tuple[Path, str, "CameraInfo"]] = {}
+    all_cached = True
+    for view_idx, cam_list in scene_info.train_cameras.items():
+        for cam_idx, cam_info in enumerate(cam_list):
+            fp = _camera_fingerprint(cam_info)
+            cache_png = cache_dataset_dir / f"{fp}.png"
+            meta = frame_lookup.get((view_idx, cam_idx))
+            image_name = meta["image_name"] if meta and meta.get("image_name") else cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+            fingerprint_info[(view_idx, cam_idx)] = (cache_png, image_name, cam_info)
+            if not cache_png.exists():
+                all_cached = False
+
+    if all_cached and fingerprint_info:
+        print(f"Loaded Blender renderings from cache: {cache_dataset_dir}")
+        new_train_cameras: Dict[int, List["CameraInfo"]] = defaultdict(list)
+        for view_idx, cam_idx in sorted(fingerprint_info.keys()):
+            cache_png, image_name, original_cam = fingerprint_info[(view_idx, cam_idx)]
+            with Image.open(cache_png) as pil_image:
+                image_rgba = pil_image.convert("RGBA")
+            final_path = input_views_dir / f"{image_name}.png"
+            shutil.copy2(cache_png, final_path)
+            new_train_cameras[view_idx].append(
+                original_cam._replace(image=image_rgba.convert("RGB"), image_path=str(final_path))
+            )
+        return scene_info._replace(train_cameras=dict(new_train_cameras))
+
     with tempfile.TemporaryDirectory(prefix="blender_render_") as tmp_root:
         tmp_root_path = Path(tmp_root)
         cmd = _build_blender_command(
             blend_file, render_script, transforms_path, tmp_root_path, len(frame_lookup)
         )
 
+        total_views = len(fingerprint_info)
+        print(f"Invoking Blender to render {total_views} training sub-views; this may take a few minutes...")
         render_start = time.perf_counter()
-        process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+        stdout_lines: List[str] = []
+        stderr_lines: List[str] = []
+
+        def _consume_stream(stream: Optional[object], sink: List[str]) -> None:
+            if stream is None:
+                return
+            try:
+                with stream:
+                    for line in iter(stream.readline, ""):
+                        sink.append(line)
+            except Exception:
+                # Stream consumption failures should not mask Blender errors.
+                pass
+
+        stdout_thread = threading.Thread(
+            target=_consume_stream, args=(process.stdout, stdout_lines), daemon=True
+        )
+        stderr_thread = threading.Thread(
+            target=_consume_stream, args=(process.stderr, stderr_lines), daemon=True
+        )
+        stdout_thread.start()
+        stderr_thread.start()
+        try:
+            while True:
+                retcode = process.poll()
+                elapsed = time.perf_counter() - render_start
+                png_count = sum(1 for _ in tmp_root_path.glob("**/*.png"))
+                print(
+                    f"Blender render running... {png_count}/{total_views} images rendered, {elapsed:.1f}s elapsed",
+                    end="\r",
+                    flush=True,
+                )
+                if retcode is not None:
+                    break
+                time.sleep(2.0)
+
+        finally:
+            try:
+                process.wait()
+            except Exception:
+                pass
+            stdout_thread.join()
+            stderr_thread.join()
+            elapsed = time.perf_counter() - render_start
+
+        stdout = "".join(stdout_lines)
+        stderr = "".join(stderr_lines)
+        final_png_count = sum(1 for _ in tmp_root_path.glob("**/*.png"))
+        print(
+            f"Blender render completed in {elapsed:.1f}s with {final_png_count}/{total_views} images{' ' * 20}"
+        )
+
         render_elapsed = time.perf_counter() - render_start
 
         if process.returncode != 0:
-            combined_output = process.stderr.strip() or process.stdout.strip()
+            combined_output = stderr.strip() or stdout.strip()
             raise RuntimeError("Blender rendering failed" + (f": {combined_output}" if combined_output else ""))
 
         new_train_cameras, rendered_count = _process_blender_outputs(
             scene_info, frame_lookup, tmp_root_path, input_views_dir
         )
 
+        if rendered_count > 0:
+            for (view_idx, cam_idx), (cache_png, image_name, _) in fingerprint_info.items():
+                cam_list = new_train_cameras.get(view_idx)
+                if not cam_list or cam_idx >= len(cam_list):
+                    continue
+                cache_png.parent.mkdir(parents=True, exist_ok=True)
+                src_path = input_views_dir / f"{image_name}.png"
+                if src_path.exists():
+                    shutil.copy2(src_path, cache_png)
+        else:
+            raise RuntimeError("Blender returned without producing any training images.")
+
     print(f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}")
     return scene_info._replace(train_cameras=new_train_cameras)
+
 
 def render_splat_from_camera(
     camera: Camera, gs: GaussianModel, pp: PipelineParams, bg: torch.Tensor

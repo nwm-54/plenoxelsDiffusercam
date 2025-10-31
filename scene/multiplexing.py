@@ -13,6 +13,23 @@ SUBIMAGES = list(range(16))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+# Convert sRGB inputs to linear light before blending, then return to sRGB.
+def _srgb_to_linear(image: torch.Tensor) -> torch.Tensor:
+    return torch.where(
+        image <= 0.04045,
+        image / 12.92,
+        torch.pow((image + 0.055) / 1.055, 2.4),
+    )
+
+
+def _linear_to_srgb(image: torch.Tensor) -> torch.Tensor:
+    return torch.where(
+        image <= 0.0031308,
+        image * 12.92,
+        1.055 * torch.pow(image.clamp(min=0.0), 1.0 / 2.4) - 0.055,
+    )
+
+
 # from multiplexing_updated.py
 def get_comap(
     num_lens: int, d_lens_sensor: int, H: int, W: int
@@ -120,16 +137,20 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
 
     images_tensor = torch.stack(images, dim=0).to(image_device)
     selected_images = images_tensor[mapping]
-    resized_images = F.interpolate(
-        selected_images,
-        size=(dim_lens_lf_yx[0], dim_lens_lf_yx[1]),
-        mode="bilinear",
-        align_corners=False,
+    resized_images = (
+        F.interpolate(
+            selected_images,
+            size=(dim_lens_lf_yx[0], dim_lens_lf_yx[1]),
+            mode="bilinear",
+            align_corners=False,
+        )
+        .clamp(0.0, 1.0)
     )
+    resized_linear = _srgb_to_linear(resized_images)
 
     comap = comap_yx.to(image_device)
 
-    output_image = torch.zeros(3, H, W, device=image_device, dtype=torch.float32)
+    output_linear = torch.zeros(3, H, W, device=image_device, dtype=torch.float32)
     for i in range(num_lens):
         y_coords = comap[i, :, :, 0]
         x_coords = comap[i, :, :, 1]
@@ -149,10 +170,13 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
             y_indices, x_indices = torch.where(valid_mask)
             y_src = y_coords[valid_mask].long()
             x_src = x_coords[valid_mask].long()
-            output_image[:, y_indices, x_indices] += resized_images[i, :, y_src, x_src]
+            output_linear[:, y_indices, x_indices] += resized_linear[
+                i, :, y_src, x_src
+            ]
 
-    output_image = torch.div(output_image, max_overlap)
-    return output_image
+    output_linear = torch.div(output_linear, max(max_overlap, 1))
+    output_srgb = _linear_to_srgb(output_linear.clamp(0.0, 1.0))
+    return output_srgb.clamp(0.0, 1.0)
 
 
 def get_rays_per_pixel(H, W, comap_yx, max_per_pixel, num_lens):
