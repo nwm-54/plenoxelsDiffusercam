@@ -1,4 +1,3 @@
-import math
 import os
 import random
 import sys
@@ -46,63 +45,6 @@ def compute_noise_lambdas(
     Keeping the noise constant preserves the desired camera simulation.
     """
     return opt.lambda_read, opt.lambda_shot, 1.0
-
-
-def adapt_optimization_schedule(opt: OptimizationParams) -> None:
-    """Clamp optimisation schedules to the configured iteration budget."""
-    opt.position_lr_max_steps = max(1, min(opt.position_lr_max_steps, opt.iterations))
-    opt.densify_until_iter = max(1, min(opt.densify_until_iter, opt.iterations))
-    if opt.densify_from_iter >= opt.densify_until_iter:
-        opt.densify_from_iter = max(
-            1, opt.densify_until_iter - max(1, opt.densification_interval)
-        )
-    if opt.opacity_reset_interval > opt.iterations:
-        opt.opacity_reset_interval = max(opt.densification_interval, opt.iterations)
-
-
-def prune_background_gaussians(
-    gaussians: GaussianModel,
-    object_center: torch.Tensor,
-    safe_radius: float,
-    color_threshold: float = 0.08,
-    opacity_threshold: float = 0.25,
-    min_coverage: float = 1.0,
-) -> int:
-    """
-    Geometrically gate background pruning so only very dark, low-coverage Gaussians
-    that sit outside the foreground hull are removed.
-    """
-    if safe_radius <= 0 or gaussians.get_xyz.numel() == 0:
-        return 0
-
-    with torch.no_grad():
-        xyz = gaussians.get_xyz.detach()
-        object_center = object_center.to(xyz.device)
-        distances = torch.linalg.norm(xyz - object_center, dim=1)
-        outside = distances > safe_radius
-        if not outside.any():
-            return 0
-
-        dc = gaussians.get_features_dc.detach().squeeze(1)  # (N, 3)
-        rgb = torch.clamp(dc + 0.5, 0.0, 1.0)
-        color_energy = torch.linalg.norm(rgb, dim=1)
-        opacities = gaussians.get_opacity.detach().squeeze(1)
-
-        coverage = (
-            gaussians.denom.squeeze(1) if gaussians.denom.ndim > 1 else gaussians.denom
-        )
-        low_coverage = coverage <= min_coverage
-
-        candidate_mask = (
-            outside
-            & (color_energy < color_threshold)
-            & (torch.logical_or(opacities < opacity_threshold, low_coverage))
-        )
-
-        removed = int(candidate_mask.sum().item())
-        if removed > 0:
-            gaussians.prune_points(candidate_mask)
-        return removed
 
 
 def training(
@@ -157,6 +99,8 @@ def training(
         )
     multiplexed_gt = scene.multiplexed_gt
 
+    metrics_summary_path = os.path.join(dataset.model_path, "metrics_summary.json")
+
     background = torch.tensor(
         [1, 1, 1] if dataset.white_background else [0, 0, 0],
         dtype=torch.float32,
@@ -175,6 +119,8 @@ def training(
     # Progress tracking
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     ema_loss_for_log = 0.0
+
+    unseen_tv_queue: List = []
 
     for iteration in range(1, opt.iterations + 1):
         if profile_gpu:
@@ -196,6 +142,7 @@ def training(
         accumulated_train_loss = 0.0
         accumulated_train_tv = 0.0
         last_radii: Optional[torch.Tensor] = None
+        last_group_scale: Optional[float] = None
 
         lambda_read, lambda_shot, noise_scale = compute_noise_lambdas(
             opt, iteration, total_train_views
@@ -225,7 +172,19 @@ def training(
         # Compute unseen TV once per iteration
         tv_candidates = scene.getFullTestCameras()
         if tv_candidates:
-            tv_viewpoints = random.choices(tv_candidates, k=min(3, len(tv_candidates)))
+            if not unseen_tv_queue:
+                unseen_tv_queue = tv_candidates.copy()
+                random.shuffle(unseen_tv_queue)
+            sample_count = min(3, len(tv_candidates))
+            tv_viewpoints: List = []
+            while len(tv_viewpoints) < sample_count:
+                if not unseen_tv_queue:
+                    unseen_tv_queue = tv_candidates.copy()
+                    random.shuffle(unseen_tv_queue)
+                candidate = unseen_tv_queue.pop()
+                if candidate in tv_viewpoints:
+                    continue
+                tv_viewpoints.append(candidate)
             tv_loss = sum(
                 tv_2d(render(vp, gaussians, pipe, bg)["render"]) for vp in tv_viewpoints
             )
@@ -256,9 +215,13 @@ def training(
                 micro_tv_acc = 0.0
                 micro_count = 0
                 micro_render_pkgs: List[Dict[str, torch.Tensor]] = []
-                for _, viewpoint_cam in batch:
+                for group_id, viewpoint_cam in batch:
                     if not viewpoint_cam:
                         continue
+
+                    group_scale = getattr(scene, "group_pruning_scales", {}).get(
+                        group_id, getattr(scene, "pruning_extent_scale", 1.0)
+                    )
 
                     if dataset.use_multiplexing:
                         rendered_image, tv_train_loss, render_pkgs = (
@@ -267,35 +230,66 @@ def training(
                             )
                         )
                         micro_render_pkgs.extend(render_pkgs)
-                        viewpoint_index = int(viewpoint_cam[0].image_name.split("_")[1])
-                        gt_image = multiplexed_gt[viewpoint_index].to(
-                            device, dtype=torch.float32
+                        gt_tensor = multiplexed_gt.get(group_id)
+                        if gt_tensor is None:
+                            raise KeyError(
+                                f"Missing multiplexed ground truth for group {group_id}"
+                            )
+                        gt_image = gt_tensor.to(device, dtype=torch.float32)
+
+                        rendered_for_loss = (
+                            quantize_14bit(
+                                heteroscedastic_noise(
+                                    rendered_image, lambda_read, lambda_shot
+                                )
+                            )
+                            if (lambda_read > 0.0 or lambda_shot > 0.0)
+                            else rendered_image
                         )
+                        L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(
+                            rendered_for_loss, gt_image
+                        )
+                        ssim_term = opt.lambda_dssim * (
+                            1.0 - ssim(rendered_for_loss, gt_image)
+                        )
+                        train_tv = opt.tv_weight * tv_train_loss
                     else:
-                        rendered_image, tv_train_loss, render_pkgs = render_single_view(
+                        # For stereo/iPhone, render each camera independently
+                        rendered_images, tv_losses, render_pkgs = render_single_view(
                             viewpoint_cam, gaussians, pipe, bg, device
                         )
                         micro_render_pkgs.extend(render_pkgs)
-                        gt_image = viewpoint_cam[0].original_image.to(
-                            device, dtype=torch.float32
-                        )
 
-                    rendered_for_loss = (
-                        quantize_14bit(
-                            heteroscedastic_noise(
-                                rendered_image, lambda_read, lambda_shot
+                        # Compute loss separately for each camera and average
+                        L_l1_per_cam = []
+                        ssim_per_cam = []
+                        tv_per_cam = []
+
+                        for rendered_image, tv_loss, cam in zip(rendered_images, tv_losses, viewpoint_cam):
+                            gt_image = cam.original_image.to(device, dtype=torch.float32)
+
+                            rendered_for_loss = (
+                                quantize_14bit(
+                                    heteroscedastic_noise(
+                                        rendered_image, lambda_read, lambda_shot
+                                    )
+                                )
+                                if (lambda_read > 0.0 or lambda_shot > 0.0)
+                                else rendered_image
                             )
-                        )
-                        if (lambda_read > 0.0 or lambda_shot > 0.0)
-                        else rendered_image
-                    )
-                    L_l1 = (1.0 - opt.lambda_dssim) * l1_loss(
-                        rendered_for_loss, gt_image
-                    )
-                    ssim_term = opt.lambda_dssim * (
-                        1.0 - ssim(rendered_for_loss, gt_image)
-                    )
-                    train_tv = opt.tv_weight * tv_train_loss
+
+                            L_l1_per_cam.append(
+                                (1.0 - opt.lambda_dssim) * l1_loss(rendered_for_loss, gt_image)
+                            )
+                            ssim_per_cam.append(
+                                opt.lambda_dssim * (1.0 - ssim(rendered_for_loss, gt_image))
+                            )
+                            tv_per_cam.append(opt.tv_weight * tv_loss)
+
+                        # Average losses across all cameras
+                        L_l1 = torch.stack(L_l1_per_cam).mean()
+                        ssim_term = torch.stack(ssim_per_cam).mean()
+                        train_tv = torch.stack(tv_per_cam).mean()
 
                     micro_sum = micro_sum + L_l1 + ssim_term + train_tv
                     micro_tv_acc += float(train_tv.item())
@@ -304,6 +298,7 @@ def training(
                     last_gt_image = gt_image
                     if render_pkgs:
                         last_radii = render_pkgs[-1]["radii"].detach()
+                        last_group_scale = float(group_scale)
 
                 if micro_count > 0:
                     # Accumulate gradients: scale by total number of groups for a true mean
@@ -351,28 +346,6 @@ def training(
         iter_end.record()
 
         with torch.no_grad():
-            if dataset.use_multiplexing or dataset.use_iphone or dataset.use_stereo:
-                if getattr(scene, "object_center", None) is not None:
-                    object_center_tensor = torch.as_tensor(
-                        scene.object_center, device=device, dtype=torch.float32
-                    )
-                else:
-                    object_center_tensor = gaussians.get_xyz.detach().mean(dim=0)
-                safe_radius = float(scene.cameras_extent * extent_multiplier)
-                if not math.isfinite(safe_radius) or safe_radius <= 0.0:
-                    safe_radius = float(
-                        gaussians.get_xyz.detach().norm(dim=1).max().item()
-                    )
-                safe_radius *= 1.1
-                removed = prune_background_gaussians(
-                    gaussians,
-                    object_center_tensor,
-                    safe_radius,
-                )
-                if removed > 0:
-                    extra_log.setdefault("pruned_background_gaussians", 0.0)
-                    extra_log["pruned_background_gaussians"] += float(removed)
-
             # Progress bar
             ema_loss_for_log = 0.4 * accumulated_loss + 0.6 * ema_loss_for_log
             if iteration % 10 == 0:
@@ -401,6 +374,7 @@ def training(
                 tb_writer=tb_writer,
                 wandb_module=wandb_module,
                 multiplexing_args=multiplexing_args,
+                summary_path=metrics_summary_path,
             )
             if iteration in saving_iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -423,10 +397,15 @@ def training(
                         # Hotfix for when single-view case is not able to set cameras_extent
                         scene.cameras_extent = 4.8
 
+                    extent_scale = (
+                        last_group_scale
+                        if last_group_scale is not None
+                        else getattr(scene, "pruning_extent_scale", 1.0)
+                    )
                     gaussians.densify_and_prune(
                         max_grad=opt.densify_grad_threshold,
                         min_opacity=0.005,
-                        extent=scene.cameras_extent * extent_multiplier,
+                        extent=scene.cameras_extent * extent_multiplier * extent_scale,
                         max_screen_size=size_threshold,
                         radii=last_radii,
                     )
@@ -437,6 +416,7 @@ def training(
                     gaussians.reset_opacity()
 
                 last_radii = None
+                last_group_scale = None
 
             elif iteration % opt.opacity_reset_interval == 0 or (
                 dataset.white_background and iteration == opt.densify_from_iter
@@ -450,6 +430,7 @@ def training(
 
         # If densification was not triggered, ensure temporary radii state is cleared
         last_radii = None
+        last_group_scale = None
 
 
 if __name__ == "__main__":
@@ -535,8 +516,6 @@ if __name__ == "__main__":
         print(f"Applied '{camera_profile}' hyperparameter preset")
     else:
         camera_profile = "none"
-
-    adapt_optimization_schedule(opt)
 
     if opt.iterations not in args.save_iterations:
         args.save_iterations.append(opt.iterations)

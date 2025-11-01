@@ -72,6 +72,9 @@ class Scene:
         self.group_metrics: Dict[int, Dict[str, float]] = {}
         self.object_center = None
 
+        self.group_pruning_scales: Dict[int, float] = {}
+        self.pruning_extent_scale: float = 1.0
+
         self.train_cameras: Dict[float, Dict[int, List]] = {}
         self.test_cameras: Dict[float, List] = {}
         self.full_test_cameras: Dict[float, List] = {}
@@ -167,6 +170,10 @@ class Scene:
         if metrics:
             self.avg_angle = metrics.get("avg_group_angle_deg")
             self.group_metrics = metrics.get("group_metrics", {})
+            self._update_pruning_scales()
+        else:
+            self.pruning_extent_scale = 1.0
+            self.group_pruning_scales = {}
 
         point_cloud_for_vis: Optional[object] = (
             gs if gs is not None else scene_info.point_cloud
@@ -220,6 +227,26 @@ class Scene:
         self.multiplexed_gt: Optional[Dict[int, torch.Tensor]] = None
         self.microlens_weights: Optional[torch.Tensor] = None
         self.throughput_map: Optional[torch.Tensor] = None
+
+    def _angle_to_extent_scale(self, angle_deg: Optional[float]) -> float:
+        if angle_deg is None or not np.isfinite(angle_deg):
+            return 1.0
+        base_angle = 10.0
+        scale = angle_deg / base_angle if base_angle > 0 else 1.0
+        return float(np.clip(scale, 0.7, 1.3))
+
+    def _update_pruning_scales(self) -> None:
+        self.group_pruning_scales = {}
+        scales: List[float] = []
+        for gid, metrics in self.group_metrics.items():
+            angle = metrics.get("angle_deg")
+            scale = self._angle_to_extent_scale(angle)
+            self.group_pruning_scales[gid] = scale
+            scales.append(scale)
+        if scales:
+            self.pruning_extent_scale = float(np.mean(scales))
+        else:
+            self.pruning_extent_scale = 1.0
 
     def save(self, iteration: int, path: str = "point_cloud.ply"):
         point_cloud_path = os.path.join(

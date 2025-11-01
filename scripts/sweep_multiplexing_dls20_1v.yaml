@@ -1,0 +1,143 @@
+# WandB Sweep Configuration for Multiplexing (DLS=20) Optimization (1 View)
+# Optimizes parameters from arguments/camera_presets.py for multiplexing camera training
+program: train_sim_multiviews.py
+method: bayes
+name: sweep_multiplexing_dls20_1v
+metric:
+  name: psnr/adjacent test camera
+  goal: maximize
+
+parameters:
+  # Fixed dataset configuration
+  source_path:
+    value: "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"
+  use_multiplexing:
+    value: true
+  dls:
+    value: 20
+  resolution:
+    value: 1
+  camera_offset:
+    value: 0
+
+  # Number of training images to test
+  n_train_images:
+    values: [1]
+
+  # ===== Learning Rates =====
+  # Position learning rate (most critical parameter)
+  position_lr_init:
+    distribution: log_uniform_values
+    min: 0.00008
+    max: 0.0005
+
+  position_lr_final:
+    distribution: log_uniform_values
+    min: 2.0e-06
+    max: 2.5e-05
+
+  # Opacity learning rate
+  opacity_lr:
+    distribution: uniform
+    min: 0.02
+    max: 0.15
+
+  # Scaling learning rate
+  scaling_lr:
+    distribution: log_uniform_values
+    min: 0.0015
+    max: 0.008
+
+  # Rotation learning rate
+  rotation_lr:
+    distribution: log_uniform_values
+    min: 0.0002
+    max: 0.002
+
+  # Feature learning rate
+  feature_lr:
+    distribution: log_uniform_values
+    min: 0.0005
+    max: 0.005
+
+  # ===== Densification Parameters =====
+  # Gradient threshold for densification (critical for quality)
+  densify_grad_threshold:
+    distribution: log_uniform_values
+    min: 5.0e-06
+    max: 4.0e-05
+
+  # Densification interval (iterations between densification steps)
+  densification_interval:
+    distribution: int_uniform
+    min: 20
+    max: 70
+
+  # Start densification iteration
+  densify_from_iter:
+    distribution: int_uniform
+    min: 100
+    max: 400
+
+  # Stop densification iteration
+  densify_until_iter:
+    distribution: int_uniform
+    min: 2000
+    max: 2900
+
+  # Percent dense threshold
+  percent_dense:
+    distribution: uniform
+    min: 0.01
+    max: 0.1
+
+  # ===== Regularization Parameters =====
+  # SSIM loss weight (lambda_dssim)
+  lambda_dssim:
+    distribution: uniform
+    min: 0.0
+    max: 0.3
+
+  # Total Variation weight for rendered views
+  tv_weight:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.01
+
+  # Total Variation weight for unseen views (regularization)
+  tv_unseen_weight:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.002
+
+  # ===== Opacity Management =====
+  # Opacity reset interval (critical for preventing floaters)
+  opacity_reset_interval:
+    distribution: int_uniform
+    min: 300
+    max: 1200
+
+  # ===== Training Configuration =====
+  iterations:
+    value: 3000
+
+  # Fixed noise simulation parameters (as per AGENTS.md guidelines)
+  lambda_read:
+    value: 0.01
+  lambda_shot:
+    value: 0.01
+
+  # ===== WandB Image Logging (minimal to save storage) =====
+  wandb_max_images:
+    value: 1
+  wandb_image_interval:
+    value: 0  # Only log at final iteration
+
+  # Output identifier for organization
+  output-id:
+    value: '18'
+
+command:
+  - ${interpreter}
+  - ${program}
+  - ${args_no_boolean_flags}

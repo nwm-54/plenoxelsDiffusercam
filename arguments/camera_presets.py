@@ -73,6 +73,22 @@ OPTIMIZATION_PRESETS: Dict[str, Dict[str, Any]] = {
         "tv_weight": 0.0035,
         "tv_unseen_weight": 0.00035,
     },
+    "multiplexing_dls20": {
+        "position_lr_init": 0.00024,
+        "position_lr_final": 6e-06,
+        "densify_grad_threshold": 0.000014,
+        "densification_interval": 28,
+        "densify_from_iter": 200,
+        "densify_until_iter": 2900,
+        "opacity_reset_interval": 520,
+        "lambda_dssim": 0.18,
+        "tv_weight": 0.0045,
+        "tv_unseen_weight": 0.00055,
+        "percent_dense": 0.05,
+        "opacity_lr": 0.082,
+        "scaling_lr": 0.004,
+        "rotation_lr": 0.00085,
+    },
     "lowview_regularized": {
         "position_lr_init": 0.00018,
         "position_lr_final": 6e-06,
@@ -96,8 +112,9 @@ BEST_CAMERA_PRESET: Dict[str, str] = {
     "base": "baseline",
     "iphone": "balanced_window",
     "stereo": "balanced_window",
-    "lightfield": "tv_mix",
-    "multiplexing": "tv_mix",
+    "lightfield_dls12": "tv_mix",
+    "multiplexing_dls20": "multiplexing_dls20",
+    "multiplexing_generic": "tv_mix",
     "iphone_lowview": "lowview_regularized",
     "stereo_lowview": "lowview_regularized",
 }
@@ -109,7 +126,11 @@ def resolve_camera_profile(params: ModelParams, dls: int) -> str:
     """Determine the camera profile key for a given dataset configuration."""
     low_view = params.n_train_images <= LOW_VIEW_MAX_IMAGES
     if params.use_multiplexing:
-        return "lightfield" if dls == 12 else "multiplexing"
+        if dls == 12:
+            return "lightfield_dls12"
+        if dls >= 20:
+            return "multiplexing_dls20"
+        return "multiplexing_generic"
     if params.use_stereo:
         return "stereo_lowview" if low_view else "stereo"
     if params.use_iphone:

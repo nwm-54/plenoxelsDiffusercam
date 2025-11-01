@@ -1,4 +1,6 @@
 import itertools
+import json
+import math
 import os
 import random
 import uuid
@@ -212,20 +214,28 @@ def render_single_view(
     pipe: PipelineParams,
     bg: torch.Tensor,
     device: torch.device,
-) -> Tuple[torch.Tensor, torch.Tensor, List[Dict[str, torch.Tensor]]]:
-    """Render a single view. Returns (rendered_image, tv_loss, render_packages)."""
-    assert len(viewpoint_cam) == 1, "Single view should have exactly one camera"
+) -> Tuple[List[torch.Tensor], List[torch.Tensor], List[Dict[str, torch.Tensor]]]:
+    """Render single or multiple independent views (stereo/iPhone).
 
-    cam = viewpoint_cam[0]
-    render_pkg = render(cam, gaussians, pipe, bg, scaling_modifier=1.0)
+    For multiple cameras (stereo/iPhone), renders each independently.
+    Returns (list of rendered_images, list of tv_losses, render_packages).
+    """
+    all_render_pkgs = []
+    rendered_images = []
+    tv_losses = []
 
-    rendered_image = render_pkg["render"]
-    if cam.mask is not None:
-        rendered_image *= cam.mask.to(device)
+    for cam in viewpoint_cam:
+        render_pkg = render(cam, gaussians, pipe, bg, scaling_modifier=1.0)
+        rendered_image = render_pkg["render"]
 
-    tv_loss = tv_2d(rendered_image)
+        if cam.mask is not None:
+            rendered_image *= cam.mask.to(device)
 
-    return rendered_image, tv_loss, [render_pkg]
+        rendered_images.append(rendered_image)
+        tv_losses.append(tv_2d(rendered_image))
+        all_render_pkgs.append(render_pkg)
+
+    return rendered_images, tv_losses, all_render_pkgs
 
 
 def update_densification_stats(
@@ -297,6 +307,7 @@ def training_report(
     multiplexing_args: Optional[
         Tuple[torch.Tensor, List[int], int, int, int, torch.Tensor, torch.Tensor]
     ] = None,
+    summary_path: Optional[str] = None,
 ) -> None:
     full_test_cameras = scene.getFullTestCameras()
     subset_size = min(10, len(full_test_cameras))
@@ -490,3 +501,21 @@ def training_report(
                 )
             img_dict["render/gt_image"] = wandb_module.Image(gt_image.cpu())
     wandb_module.log({**log_dict, **img_dict}, step=iteration)
+
+    if summary_path and testing_iterations and iteration == testing_iterations[-1]:
+        metrics_payload = {
+            key: float(value)
+            for key, value in log_dict.items()
+            if isinstance(value, (int, float)) and math.isfinite(float(value))
+        }
+        train_psnr = metrics_payload.get("psnr/train camera")
+        summary_data = {
+            "iteration": iteration,
+            "metrics": metrics_payload,
+            "train_psnr": train_psnr,
+        }
+        try:
+            with open(summary_path, "w") as f:
+                json.dump(summary_data, f, indent=2)
+        except OSError:
+            pass
