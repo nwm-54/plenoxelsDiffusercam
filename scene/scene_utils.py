@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
@@ -8,7 +7,6 @@ from PIL import Image
 
 from scene.gaussian_model import BasicPointCloud
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.render_utils import storePly
 from utils.sh_utils import SH2RGB
 
 WORLD_TO_M: float = 0.09904
@@ -36,7 +34,7 @@ class SceneInfo(NamedTuple):
     test_cameras: List[CameraInfo]
     full_test_cameras: List[CameraInfo]
     nerf_normalization: Dict[str, np.ndarray]
-    ply_path: str
+    ply_path: Optional[str]
 
 
 def configure_world_to_m(scale_m_per_world: float) -> None:
@@ -271,10 +269,8 @@ def getNerfppNorm(cam_info: List[CameraInfo]):
 
 def generate_random_pcd(
     path: str, num_pts: int = 100_000
-) -> Tuple[BasicPointCloud, str]:
+) -> Tuple[BasicPointCloud, Optional[str]]:
     print(f"Generating random spherical point cloud with {num_pts} points")
-    ply_path = os.path.join(path, "points3d.ply")
-
     # Cuboid
     # We create random points inside the bounds of the synthetic Blender scenes
     xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3
@@ -294,9 +290,8 @@ def generate_random_pcd(
     pcd = BasicPointCloud(
         points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3))
     )
-    storePly(ply_path, xyz, SH2RGB(shs) * 255)
 
-    return pcd, ply_path
+    return pcd, None
 
 
 def read_camera(

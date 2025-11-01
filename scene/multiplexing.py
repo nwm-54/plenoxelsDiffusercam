@@ -102,14 +102,6 @@ def read_images(num_lens, img_dir, base):
     return images
 
 
-def get_max_overlap(comap_yx, num_lens, H, W):
-    overlap_count = torch.zeros(H, W, dtype=torch.int32, device=device)
-    for i in range(num_lens):
-        valid_mask = comap_yx[i][:, :, 1] != -1
-        overlap_count = overlap_count + valid_mask
-    return overlap_count.max().item()
-
-
 def generate_alpha_map(comap_yx, num_lens, H, W):
     overlap_count = np.zeros((H, W), dtype=np.int32)
 
@@ -123,7 +115,67 @@ def generate_alpha_map(comap_yx, num_lens, H, W):
     return alpha_map
 
 
-def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
+def compute_throughput_map(
+    comap_yx: torch.Tensor, num_lens: int, dim_lens_lf_yx: List[int]
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Compute smooth square-aperture throughput weights for each microlens.
+
+    Each microlens contributes with a softly tapered tent profile inside its
+    square footprint. The weights are normalised so that, for every sensor
+    pixel with valid coverage, the contributions across microlenses sum to one.
+    """
+    if comap_yx.shape[0] != num_lens:
+        raise ValueError("Number of microlenses does not match comap shape")
+
+    height = max(int(dim_lens_lf_yx[0]), 1)
+    width = max(int(dim_lens_lf_yx[1]), 1)
+    valid_mask = (comap_yx[..., 0] >= 0) & (comap_yx[..., 1] >= 0)
+
+    local_y = torch.clamp(comap_yx[..., 0], min=0.0)
+    local_x = torch.clamp(comap_yx[..., 1], min=0.0)
+    if height > 1:
+        norm_y = local_y / float(height - 1)
+    else:
+        norm_y = torch.full_like(local_y, 0.5)
+    if width > 1:
+        norm_x = local_x / float(width - 1)
+    else:
+        norm_x = torch.full_like(local_x, 0.5)
+
+    tri_y = 1.0 - torch.abs(2.0 * norm_y - 1.0)
+    tri_x = 1.0 - torch.abs(2.0 * norm_x - 1.0)
+    tri_y = torch.clamp(tri_y, min=0.0)
+    tri_x = torch.clamp(tri_x, min=0.0)
+    weights = tri_y * tri_x
+
+    weights = torch.where(valid_mask, weights, torch.zeros_like(weights))
+    pixel_weight_sum = weights.sum(dim=0)
+
+    safe_coverage = torch.where(
+        pixel_weight_sum > 0.0,
+        pixel_weight_sum,
+        torch.ones_like(pixel_weight_sum),
+    )
+    microlens_weights = weights / safe_coverage.unsqueeze(0)
+    microlens_weights = torch.where(
+        valid_mask, microlens_weights, torch.zeros_like(microlens_weights)
+    )
+
+    coverage_mask = pixel_weight_sum > 0.0
+    return microlens_weights, coverage_mask
+
+
+def generate(
+    images,
+    comap_yx,
+    dim_lens_lf_yx,
+    num_lens,
+    H,
+    W,
+    microlens_weights,
+    throughput_map,
+):
     grid_size = int(math.sqrt(num_lens))
     if not images:
         return torch.zeros(3, H, W, device=device, dtype=torch.float32)
@@ -151,6 +203,7 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
     comap = comap_yx.to(image_device)
 
     output_linear = torch.zeros(3, H, W, device=image_device, dtype=torch.float32)
+    microlens_weights = microlens_weights.to(image_device)
     for i in range(num_lens):
         y_coords = comap[i, :, :, 0]
         x_coords = comap[i, :, :, 1]
@@ -170,11 +223,19 @@ def generate(images, comap_yx, dim_lens_lf_yx, num_lens, H, W, max_overlap):
             y_indices, x_indices = torch.where(valid_mask)
             y_src = y_coords[valid_mask].long()
             x_src = x_coords[valid_mask].long()
-            output_linear[:, y_indices, x_indices] += resized_linear[
-                i, :, y_src, x_src
-            ]
+            # Weights are normalised per pixel, so the accumulation below is a
+            # true weighted average of sub-views.
+            weights = microlens_weights[i, y_indices, x_indices]
+            output_linear[:, y_indices, x_indices] += (
+                resized_linear[i, :, y_src, x_src] * weights.unsqueeze(0)
+            )
 
-    output_linear = torch.div(output_linear, max(max_overlap, 1))
+    if throughput_map is not None:
+        throughput = throughput_map.to(image_device)
+        zero_mask = throughput <= 0.0
+        if torch.any(zero_mask):
+            output_linear[:, zero_mask] = 0.0
+
     output_srgb = _linear_to_srgb(output_linear.clamp(0.0, 1.0))
     return output_srgb.clamp(0.0, 1.0)
 

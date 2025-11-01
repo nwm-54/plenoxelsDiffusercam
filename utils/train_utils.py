@@ -18,7 +18,7 @@ except ImportError:
 
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from gaussian_renderer import render
-from lpipsPyTorch import lpips
+from lpipsPyTorch.modules.lpips import LPIPS
 from scene import GaussianModel, Scene, multiplexing
 from scene.cameras import Camera
 from utils.general_utils import get_dataset_name
@@ -41,6 +41,23 @@ __all__ = [
     "training_report",
 ]
 
+_LPIPS_METRIC_CACHE: Dict[Tuple[str, str], LPIPS] = {}
+
+
+def _get_lpips_metric(device: torch.device, net_type: str = "vgg") -> LPIPS:
+    """
+    Return a cached LPIPS module for the requested device/net combination.
+    Modules are constructed lazily and reused to avoid per-sample instantiation cost.
+    """
+    key = (net_type, str(device))
+    metric = _LPIPS_METRIC_CACHE.get(key)
+    if metric is None:
+        metric = LPIPS(net_type=net_type).to(device)
+        metric.eval()
+        for param in metric.parameters():
+            param.requires_grad_(False)
+        _LPIPS_METRIC_CACHE[key] = metric
+    return metric
 
 def compose_run_name(dataset: ModelParams, opt: OptimizationParams, dls: int) -> str:
     """Build a descriptive run name that mirrors previous inline construction."""
@@ -173,6 +190,8 @@ def render_multiplexed_view(
 
     tv_loss /= len(viewpoint_cam)
 
+    assert scene.microlens_weights is not None
+    assert scene.throughput_map is not None
     rendered_image = multiplexing.generate(
         rendered_sub_images,
         scene.comap_yx,
@@ -180,7 +199,8 @@ def render_multiplexed_view(
         scene.n_multiplexed_images,
         height,
         width,
-        scene.max_overlap,
+        scene.microlens_weights,
+        scene.throughput_map,
     )
 
     return rendered_image, tv_loss, all_render_pkgs
@@ -275,7 +295,7 @@ def training_report(
     gt_image: Optional[torch.Tensor] = None,
     extra_log: Optional[Dict[str, Any]] = None,
     multiplexing_args: Optional[
-        Tuple[torch.Tensor, List[int], int, int, int, int]
+        Tuple[torch.Tensor, List[int], int, int, int, torch.Tensor, torch.Tensor]
     ] = None,
 ) -> None:
     full_test_cameras = scene.getFullTestCameras()
@@ -324,20 +344,25 @@ def training_report(
             return {"l1": 0.0, "psnr": 0.0, "ssim": 0.0, "lpips": 0.0, "count": 0.0}
 
         def _accumulate_metrics(
-            acc: Dict[str, float], pred: torch.Tensor, gt: torch.Tensor
+            acc: Dict[str, float],
+            pred: torch.Tensor,
+            gt: torch.Tensor,
+            lpips_metric: LPIPS,
         ) -> None:
             pred = pred.clamp(0.0, 1.0)
             acc["l1"] += float(l1_loss(pred, gt).mean().item())
             acc["psnr"] += float(psnr(pred, gt).mean().item())
             acc["ssim"] += float(ssim(pred, gt).mean().item())
-            acc["lpips"] += float(
-                lpips(pred.unsqueeze(0), gt.unsqueeze(0), net_type="vgg").mean().item()
-            )
+            lpips_val = lpips_metric(
+                pred.unsqueeze(0), gt.unsqueeze(0)
+            ).mean()
+            acc["lpips"] += float(lpips_val.item())
             acc["count"] += 1.0
 
         def _evaluate_split(name: str, samples: Iterable[Dict[str, torch.Tensor]]) -> None:
             metrics = _init_metric_accumulator()
             logged = 0
+            lpips_metric = _get_lpips_metric(device, net_type="vgg")
 
             with torch.no_grad():
                 for idx, sample in enumerate(samples):
@@ -345,7 +370,7 @@ def training_report(
                     gt = sample["gt"]
                     label = sample.get("label", str(idx))
 
-                    _accumulate_metrics(metrics, pred, gt)
+                    _accumulate_metrics(metrics, pred, gt, lpips_metric)
 
                     if log_images_this_iter and logged < wandb_images.max_images:
                         pred_img = pred.detach().clamp(0.0, 1.0).cpu()

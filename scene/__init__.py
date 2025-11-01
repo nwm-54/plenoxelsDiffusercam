@@ -163,8 +163,6 @@ class Scene:
         elif gs is not None:
             scene_info = render_splat(args, gs, scene_info)
 
-        self.scene_info = scene_info
-
         metrics = print_camera_metrics(scene_info, self.object_center)
         if metrics:
             self.avg_angle = metrics.get("avg_group_angle_deg")
@@ -181,9 +179,6 @@ class Scene:
             highlighted_view_indices=list(scene_info.train_cameras.keys()),
             point_cloud=point_cloud_for_vis,
         )
-
-        with open(scene_info.ply_path, "rb") as src_file, open(os.path.join(self.model_path, "input.ply"), "wb") as dest_file:  # fmt: skip
-            dest_file.write(src_file.read())
 
         self.cameras_extent = scene_info.nerf_normalization["radius"]
 
@@ -212,7 +207,10 @@ class Scene:
 
         self._write_camera_json(include_test_cameras)
 
+        if scene_info.point_cloud is None or len(scene_info.point_cloud.points) == 0:
+            raise ValueError("SceneInfo must provide a non-empty point cloud.")
         self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
+        self.scene_info = scene_info
         if args.pretrained_ply:
             try:
                 self.gaussians.load_ply(args.pretrained_ply)
@@ -220,6 +218,8 @@ class Scene:
             except Exception as exc:
                 print("Warning: failed to load pretrained PLY '{}': {}".format(args.pretrained_ply, exc))
         self.multiplexed_gt: Optional[Dict[int, torch.Tensor]] = None
+        self.microlens_weights: Optional[torch.Tensor] = None
+        self.throughput_map: Optional[torch.Tensor] = None
 
     def save(self, iteration: int, path: str = "point_cloud.ply"):
         point_cloud_path = os.path.join(
@@ -243,8 +243,11 @@ class Scene:
         )
         self.dim_lens_lf_yx = dim_lens_lf_yx
         self.comap_yx = torch.from_numpy(comap_yx.astype(np.float32)).to(device)
-        self.max_overlap = multiplexing.get_max_overlap(
-            self.comap_yx, self.n_multiplexed_images, H, W
+        (
+            self.microlens_weights,
+            self.throughput_map,
+        ) = multiplexing.compute_throughput_map(
+            self.comap_yx, self.n_multiplexed_images, self.dim_lens_lf_yx
         )
         self.multiplexed_gt = self._load_ground_truth(H, W)
         # Keep test evaluation single-view; no multiplexed composites for these splits.
@@ -277,7 +280,8 @@ class Scene:
                 self.n_multiplexed_images,
                 H,
                 W,
-                self.max_overlap,
+                self.microlens_weights,
+                self.throughput_map,
             ).to(dtype=torch.float32)
             iio.imwrite(
                 os.path.join(self.model_path, f"gt_view_{view_idx}.png"),

@@ -38,7 +38,7 @@ from scene.scene_utils import (
 )
 from utils.general_utils import get_dataset_name
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.render_utils import fetchPly, find_max_min_dispersion_subset, storePly
+from utils.render_utils import fetchPly, find_max_min_dispersion_subset
 from utils.sh_utils import SH2RGB
 
 FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
@@ -761,51 +761,35 @@ def readColmapSceneInfo(
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
-    # bin_path = os.path.join(path, "sparse/0/points3D.bin")
-    # txt_path = os.path.join(path, "sparse/0/points3D.txt")
-    # random init for real data
-    num_pts = 10000
-    print(f"Generating random point cloud ({num_pts})...")
+    pcd: Optional[BasicPointCloud] = None
+    if os.path.exists(ply_path):
+        try:
+            pcd = fetchPly(ply_path)
+        except Exception:
+            pcd = None
 
-    # We create random points inside the bounds of the synthetic Blender scenes
-    # xyz = np.random.random((num_pts, 3)) * 2.6 - 1.3 #original
-    # custom mean and std
-    mean_xyz = [0.44064777, -0.25568339, 14.77189822]
-    std_xyz = [1.66879624, 2.07055282, 2.40053613]
-    xyz = []
-    for n in range(3):
-        pts = np.random.random(num_pts)
-        # shifted_pts = pts * std_xyz[n] + (mean_xyz[n] - std_xyz[n] / 2)
-        shifted_pts = pts * std_xyz[n] + mean_xyz[n]
-        xyz.append(shifted_pts)
+    if pcd is None:
+        num_pts = 10000
+        print(f"Generating random point cloud ({num_pts})...")
 
-        actual_mean = np.mean(shifted_pts)
-        actual_stddev = np.std(shifted_pts)
-        print(f"Desired Mean: {mean_xyz[n]}, Actual Mean: {actual_mean}")
-        print(f"Desired Stddev: {std_xyz[n]}, Actual Stddev: {actual_stddev}")
-    xyz = np.stack(xyz, axis=1)
-    shs = np.random.random((num_pts, 3)) / 255.0
-    pcd = BasicPointCloud(
-        points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3))
-    )
+        mean_xyz = [0.44064777, -0.25568339, 14.77189822]
+        std_xyz = [1.66879624, 2.07055282, 2.40053613]
+        xyz = []
+        for n in range(3):
+            pts = np.random.random(num_pts)
+            shifted_pts = pts * std_xyz[n] + mean_xyz[n]
+            xyz.append(shifted_pts)
 
-    storePly(ply_path, xyz, SH2RGB(shs) * 255)
-    try:
-        pcd = fetchPly(ply_path)
-    except Exception:
-        pcd = None
-    # uncomment to get colmap init
-    # if not os.path.exists(ply_path):
-    #     print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
-    #     try:
-    #         xyz, rgb, _ = read_points3D_binary(bin_path)
-    #     except:
-    #         xyz, rgb, _ = read_points3D_text(txt_path)
-    #     storePly(ply_path, xyz, rgb)
-    # try:
-    #     pcd = fetchPly(ply_path)
-    # except:
-    #     pcd = None
+            actual_mean = np.mean(shifted_pts)
+            actual_stddev = np.std(shifted_pts)
+            print(f"Desired Mean: {mean_xyz[n]}, Actual Mean: {actual_mean}")
+            print(f"Desired Stddev: {std_xyz[n]}, Actual Stddev: {actual_stddev}")
+        xyz = np.stack(xyz, axis=1)
+        shs = np.random.random((num_pts, 3)) / 255.0
+        pcd = BasicPointCloud(
+            points=xyz, colors=SH2RGB(shs), normals=np.zeros((num_pts, 3))
+        )
+        ply_path = None
 
     # tv_cam_infos = readCamerasFromTransforms("/home/vitran/plenoxels/blender_data/lego", "transforms_train.json", False, ".png")
     # tv_cam_infos = readCamerasFromTransforms("/home/vitran/plenoxels/blender_data/lego", "transforms_train.json", False, ".png")

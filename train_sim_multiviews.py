@@ -120,7 +120,6 @@ def training(
     size_threshold: int,
     extent_multiplier: float,
     wandb_images: WandbImageConfig,
-    multiplex_max_subimages: int,
     profile_memory: bool,
     tb_writer,
     wandb_module,
@@ -153,7 +152,8 @@ def training(
             scene.n_multiplexed_images,
             H,
             W,
-            scene.max_overlap,
+            scene.microlens_weights,
+            scene.throughput_map,
         )
     multiplexed_gt = scene.multiplexed_gt
 
@@ -171,18 +171,8 @@ def training(
     all_train_cameras = group_train_cameras(raw_train_cameras)
     total_train_views = len(all_train_cameras)
 
-    subimages_per_group = (
-        len(next(iter(all_train_cameras.values()))) if all_train_cameras else 1
-    )
-
     profile_gpu = profile_memory and torch.cuda.is_available()
-    subimage_budget: Optional[int] = None
-    if dataset.use_multiplexing and multiplex_max_subimages > 0:
-        subimage_budget = max(multiplex_max_subimages, subimages_per_group)
-
-    view_indices = list(all_train_cameras.keys())
-    available_view_indices: List[int] = []
-    # Decide how many distinct main views to include per iteration (sampling with coverage)
+    # Progress tracking
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     ema_loss_for_log = 0.0
 
@@ -206,7 +196,6 @@ def training(
         accumulated_train_loss = 0.0
         accumulated_train_tv = 0.0
         last_radii: Optional[torch.Tensor] = None
-        total_sampled_views = 0
 
         lambda_read, lambda_shot, noise_scale = compute_noise_lambdas(
             opt, iteration, total_train_views
@@ -224,43 +213,14 @@ def training(
         iteration_view_count = 0
         last_gt_image: Optional[torch.Tensor] = None
 
-        cameras_to_train: Dict[int, List]
-        if dataset.use_multiplexing:
-            if subimage_budget is None:
-                num_cameras_to_sample = len(view_indices)
-            else:
-                max_groups = max(1, subimage_budget // max(1, subimages_per_group))
-                num_cameras_to_sample = min(len(view_indices), max_groups)
-        else:
-            num_cameras_to_sample = min(len(view_indices), 120)
-
-        if len(view_indices) > num_cameras_to_sample:
-            if not available_view_indices:
-                available_view_indices = view_indices.copy()
-                random.shuffle(available_view_indices)
-
-            num_to_sample = min(num_cameras_to_sample, len(available_view_indices))
-            sampled_indices = [
-                available_view_indices.pop() for _ in range(num_to_sample)
-            ]
-
-            if not available_view_indices:
-                available_view_indices = view_indices.copy()
-                random.shuffle(available_view_indices)
-
-            cameras_to_train = {idx: all_train_cameras[idx] for idx in sampled_indices}
-        else:
-            cameras_to_train = all_train_cameras
-
-        actual_sampled = len(cameras_to_train)
-        total_sampled_views += actual_sampled
-        # No per-step logging beyond total_subimages; keep loop state minimal.
-
-        # Micro-batch across camera groups to avoid OOM
+        cameras_to_train: Dict[int, List] = all_train_cameras
         group_items = list(cameras_to_train.items())
+        random.shuffle(group_items)
         total_groups = len(group_items)
         if total_groups == 0:
             continue
+
+        total_sampled_views = total_groups
 
         # Compute unseen TV once per iteration
         tv_candidates = scene.getFullTestCameras()
@@ -544,12 +504,6 @@ if __name__ == "__main__":
         help="Disable logging evaluation render images to W&B.",
     )
     parser.add_argument(
-        "--multiplex_max_subimages",
-        type=int,
-        default=0,
-        help="Maximum number of multiplexed sub-images per iteration (0 means cover all groups each step).",
-    )
-    parser.add_argument(
         "--profile_memory",
         action="store_true",
         help="Enable per-iteration GPU memory profiling.",
@@ -557,7 +511,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use_camera_profile",
         action="store_true",
-        help="Apply camera-specific hyperparameter presets (matches legacy behaviour when disabled).",
+        help="Apply camera-specific hyperparameter presets.",
     )
     parser.add_argument(
         "--skip_train",
@@ -633,7 +587,6 @@ if __name__ == "__main__":
         size_threshold=args.size_threshold,
         extent_multiplier=args.extent_multiplier,
         wandb_images=wandb_images,
-        multiplex_max_subimages=args.multiplex_max_subimages,
         profile_memory=args.profile_memory,
         tb_writer=tb_writer,
         wandb_module=wandb,

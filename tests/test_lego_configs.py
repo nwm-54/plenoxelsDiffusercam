@@ -113,7 +113,6 @@ def _train_and_load(
             wandb_images=WandbImageConfig(
                 interval=0, max_images=0, enable_eval_images=False
             ),
-            multiplex_max_subimages=0,
             profile_memory=False,
             tb_writer=tb_writer,
             wandb_module=_wandb_stub(),
