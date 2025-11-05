@@ -1,0 +1,109 @@
+program: train_sim_multiviews.py
+method: bayes
+name: sweep_iphone_30v
+metric:
+  name: psnr/full test camera
+  goal: maximize
+
+parameters:
+  # Fixed dataset configuration
+  source_path:
+    value: "/home/wl757/multiplexed-pixels/plenoxels/blender_data/lego_gen12"
+  use_iphone:
+    value: true
+  resolution:
+    value: 1
+  camera_offset:
+    value: 0
+  n_train_images:
+    values: [30]
+  skip_camera_profile:
+    value: true
+
+  # ===== Learning Rates =====
+  position_lr_init:
+    distribution: log_uniform_values
+    min: 0.000001
+    max: 0.001
+  position_lr_final:
+    distribution: log_uniform_values
+    min: 1.0e-06
+    max: 1.0e-04
+  opacity_lr:
+    distribution: log_uniform_values
+    min: 0.001
+    max: 0.1
+  scaling_lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.01
+  rotation_lr:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.01
+  feature_lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.01
+
+  # ===== Densification Parameters =====
+  # Gradient threshold for densification (critical for quality)
+  densify_grad_threshold:
+    distribution: log_uniform_values
+    min: 5.0e-06
+    max: 5.0e-04
+  densification_interval:
+    distribution: int_uniform
+    min: 20
+    max: 120
+  densify_from_iter:
+    distribution: int_uniform
+    min: 100
+    max: 600
+  densify_until_iter:
+    distribution: int_uniform
+    min: 1000
+    max: 3000
+  percent_dense:
+    distribution: uniform
+    min: 0.01
+    max: 0.1
+
+  # ===== Regularization Parameters =====
+  lambda_dssim:
+    distribution: uniform
+    min: 0.0
+    max: 0.4
+  tv_weight:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.01
+  tv_unseen_weight:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.01
+
+  # ===== Opacity Management =====
+  opacity_reset_interval:
+    distribution: int_uniform
+    min: 300
+    max: 2000
+
+  # ===== Training Configuration =====
+  iterations:
+    value: 3000
+
+  # ===== WandB Image Logging (minimal to save storage) =====
+  wandb_max_images:
+    value: 5
+  wandb_image_interval:
+    value: 0  # Only log at final iteration
+
+  # Output identifier for organization
+  output-id:
+    value: '14'
+
+command:
+  - ${interpreter}
+  - ${program}
+  - ${args_no_boolean_flags}

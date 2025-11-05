@@ -30,5 +30,5 @@ conda activate gaussian_splatting
 # # iphone
 # wandb agent shamus-team/multiplexed-pixels/6b16mfme
 
-# sweep_iphone_1v
-wandb agent shamus-team/multiplexed-pixels/kmx7ny4i
+# sweep_iphone_30v
+wandb agent shamus-team/multiplexed-pixels/00rpfh6z
