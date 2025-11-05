@@ -66,6 +66,10 @@ def training(
     tb_writer,
     wandb_module,
 ) -> None:
+    if device.type != "cuda":
+        raise RuntimeError(
+            "CUDA device is required for training; no compatible GPU was detected."
+        )
     testing_iterations = list(testing_iterations)
     saving_iterations = list(saving_iterations)
 
@@ -265,8 +269,12 @@ def training(
                         ssim_per_cam = []
                         tv_per_cam = []
 
-                        for rendered_image, tv_loss, cam in zip(rendered_images, tv_losses, viewpoint_cam):
-                            gt_image = cam.original_image.to(device, dtype=torch.float32)
+                        for rendered_image, tv_loss, cam in zip(
+                            rendered_images, tv_losses, viewpoint_cam
+                        ):
+                            gt_image = cam.original_image.to(
+                                device, dtype=torch.float32
+                            )
 
                             rendered_for_loss = (
                                 quantize_14bit(
@@ -279,10 +287,12 @@ def training(
                             )
 
                             L_l1_per_cam.append(
-                                (1.0 - opt.lambda_dssim) * l1_loss(rendered_for_loss, gt_image)
+                                (1.0 - opt.lambda_dssim)
+                                * l1_loss(rendered_for_loss, gt_image)
                             )
                             ssim_per_cam.append(
-                                opt.lambda_dssim * (1.0 - ssim(rendered_for_loss, gt_image))
+                                opt.lambda_dssim
+                                * (1.0 - ssim(rendered_for_loss, gt_image))
                             )
                             tv_per_cam.append(opt.tv_weight * tv_loss)
 
@@ -344,6 +354,7 @@ def training(
                 ) / (1024**2)
 
         iter_end.record()
+        torch.cuda.synchronize()
 
         with torch.no_grad():
             # Progress bar
@@ -491,8 +502,16 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--use_camera_profile",
+        dest="use_camera_profile",
         action="store_true",
-        help="Apply camera-specific hyperparameter presets.",
+        default=True,
+        help="Apply camera-specific hyperparameter presets (enabled by default).",
+    )
+    parser.add_argument(
+        "--skip_camera_profile",
+        dest="use_camera_profile",
+        action="store_false",
+        help="Disable camera-specific hyperparameter presets.",
     )
     parser.add_argument(
         "--skip_train",

@@ -119,44 +119,36 @@ def compute_throughput_map(
     comap_yx: torch.Tensor, num_lens: int, dim_lens_lf_yx: List[int]
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    Compute smooth square-aperture throughput weights for each microlens.
+    Compute per-microlens weights without angular feathering.
 
-    Each microlens contributes with a softly tapered tent profile inside its
-    square footprint. The weights are normalised so that, for every sensor
-    pixel with valid coverage, the contributions across microlenses sum to one.
+    Each microlens contributes uniformly across its footprint; contributions are
+    normalised so that, for every covered sensor pixel, the per-microlens weights
+    sum to one.
     """
     if comap_yx.shape[0] != num_lens:
         raise ValueError("Number of microlenses does not match comap shape")
 
     height = max(int(dim_lens_lf_yx[0]), 1)
     width = max(int(dim_lens_lf_yx[1]), 1)
-    valid_mask = (comap_yx[..., 0] >= 0) & (comap_yx[..., 1] >= 0)
+    valid_mask = (
+        (comap_yx[..., 0] >= 0)
+        & (comap_yx[..., 1] >= 0)
+        & (comap_yx[..., 0] < float(height))
+        & (comap_yx[..., 1] < float(width))
+    )
 
-    local_y = torch.clamp(comap_yx[..., 0], min=0.0)
-    local_x = torch.clamp(comap_yx[..., 1], min=0.0)
-    if height > 1:
-        norm_y = local_y / float(height - 1)
-    else:
-        norm_y = torch.full_like(local_y, 0.5)
-    if width > 1:
-        norm_x = local_x / float(width - 1)
-    else:
-        norm_x = torch.full_like(local_x, 0.5)
-
-    tri_y = 1.0 - torch.abs(2.0 * norm_y - 1.0)
-    tri_x = 1.0 - torch.abs(2.0 * norm_x - 1.0)
-    tri_y = torch.clamp(tri_y, min=0.0)
-    tri_x = torch.clamp(tri_x, min=0.0)
-    weights = tri_y * tri_x
-
-    weights = torch.where(valid_mask, weights, torch.zeros_like(weights))
+    weights = torch.where(
+        valid_mask,
+        torch.ones_like(comap_yx[..., 0]),
+        torch.zeros_like(comap_yx[..., 0]),
+    )
     pixel_weight_sum = weights.sum(dim=0)
-
     safe_coverage = torch.where(
         pixel_weight_sum > 0.0,
         pixel_weight_sum,
         torch.ones_like(pixel_weight_sum),
     )
+
     microlens_weights = weights / safe_coverage.unsqueeze(0)
     microlens_weights = torch.where(
         valid_mask, microlens_weights, torch.zeros_like(microlens_weights)

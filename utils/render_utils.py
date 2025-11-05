@@ -7,8 +7,8 @@ import os
 import shutil
 import subprocess
 import tempfile
-import time
 import threading
+import time
 from argparse import ArgumentParser
 from collections import defaultdict
 from pathlib import Path
@@ -22,7 +22,7 @@ from plyfile import PlyData, PlyElement
 from arguments import PipelineParams
 from gaussian_renderer import render
 from scene.cameras import Camera
-from scene.gaussian_model import BasicPointCloud, GaussianModel
+from scene.gaussian_model import GaussianModel
 from utils.general_utils import get_dataset_name
 from utils.graphics_utils import fov2focal, getWorld2View2
 
@@ -31,7 +31,9 @@ if TYPE_CHECKING:
     from scene.scene_utils import CameraInfo, SceneInfo
 
 PLYS_ROOT = Path("/home/wl757/multiplexed-pixels/plenoxels/plys")
-BLENDER_CACHE_ROOT = Path("/share/monakhova/shamus_data/multiplexed_pixels/blender_cache")
+BLENDER_CACHE_ROOT = Path(
+    "/share/monakhova/shamus_data/multiplexed_pixels/blender_cache"
+)
 
 
 def get_pretrained_splat_path(args: ModelParams) -> Optional[str]:
@@ -261,11 +263,22 @@ def _build_blender_command(
     total_frames: int,
 ) -> List[str]:
     return [
-        "conda", "run", "-n", "blender", "blender", "-b", str(blend_file),
-        "-P", str(render_script), "--",
-        "--transforms-json", str(transforms_path),
-        "--results", str(tmp_root_path),
-        "--views", str(max(total_frames, 1)),
+        "conda",
+        "run",
+        "-n",
+        "blender",
+        "blender",
+        "-b",
+        str(blend_file),
+        "-P",
+        str(render_script),
+        "--",
+        "--transforms-json",
+        str(transforms_path),
+        "--results",
+        str(tmp_root_path),
+        "--views",
+        str(max(total_frames, 1)),
         "--disable-animation",
     ]
 
@@ -302,7 +315,11 @@ def _process_blender_outputs(
                 continue
 
             file_stub = meta["file_stub"]
-            image_name = meta["image_name"] or cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+            image_name = (
+                meta["image_name"]
+                or cam_info.image_name
+                or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+            )
 
             rel_path = file_stub[2:] if file_stub.startswith("./") else file_stub
             rendered_file = (tmp_root_path / Path(rel_path)).with_suffix(".png")
@@ -318,7 +335,9 @@ def _process_blender_outputs(
 
             image_rgb = image_rgba.convert("RGB")
             rendered_count += 1
-            updated_list.append(cam_info._replace(image=image_rgb, image_path=str(final_path)))
+            updated_list.append(
+                cam_info._replace(image=image_rgb, image_path=str(final_path))
+            )
 
         new_train_cameras[view_idx] = updated_list
 
@@ -346,7 +365,9 @@ def render_with_blender(
     blend_file = project_root / "blender" / f"{dataset_name}.blend"
 
     if not blend_file.exists():
-        raise FileNotFoundError(f"Expected Blender scene for '{dataset_name}' at {blend_file}")
+        raise FileNotFoundError(
+            f"Expected Blender scene for '{dataset_name}' at {blend_file}"
+        )
 
     input_views_dir = Path(args.model_path) / "input_views"
     input_views_dir.mkdir(parents=True, exist_ok=True)
@@ -361,7 +382,11 @@ def render_with_blender(
             fp = _camera_fingerprint(cam_info)
             cache_png = cache_dataset_dir / f"{fp}.png"
             meta = frame_lookup.get((view_idx, cam_idx))
-            image_name = meta["image_name"] if meta and meta.get("image_name") else cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+            image_name = (
+                meta["image_name"]
+                if meta and meta.get("image_name")
+                else cam_info.image_name or f"view_{view_idx:03d}_cam_{cam_idx:02d}"
+            )
             fingerprint_info[(view_idx, cam_idx)] = (cache_png, image_name, cam_info)
             if not cache_png.exists():
                 all_cached = False
@@ -376,7 +401,9 @@ def render_with_blender(
             final_path = input_views_dir / f"{image_name}.png"
             shutil.copy2(cache_png, final_path)
             new_train_cameras[view_idx].append(
-                original_cam._replace(image=image_rgba.convert("RGB"), image_path=str(final_path))
+                original_cam._replace(
+                    image=image_rgba.convert("RGB"), image_path=str(final_path)
+                )
             )
         return scene_info._replace(train_cameras=dict(new_train_cameras))
 
@@ -387,7 +414,9 @@ def render_with_blender(
         )
 
         total_views = len(fingerprint_info)
-        print(f"Invoking Blender to render {total_views} training sub-views; this may take a few minutes...")
+        print(
+            f"Invoking Blender to render {total_views} training sub-views; this may take a few minutes..."
+        )
         render_start = time.perf_counter()
 
         process = subprocess.Popen(
@@ -453,14 +482,21 @@ def render_with_blender(
 
         if process.returncode != 0:
             combined_output = stderr.strip() or stdout.strip()
-            raise RuntimeError("Blender rendering failed" + (f": {combined_output}" if combined_output else ""))
+            raise RuntimeError(
+                "Blender rendering failed"
+                + (f": {combined_output}" if combined_output else "")
+            )
 
         new_train_cameras, rendered_count = _process_blender_outputs(
             scene_info, frame_lookup, tmp_root_path, input_views_dir
         )
 
         if rendered_count > 0:
-            for (view_idx, cam_idx), (cache_png, image_name, _) in fingerprint_info.items():
+            for (view_idx, cam_idx), (
+                cache_png,
+                image_name,
+                _,
+            ) in fingerprint_info.items():
                 cam_list = new_train_cameras.get(view_idx)
                 if not cam_list or cam_idx >= len(cam_list):
                     continue
@@ -469,9 +505,13 @@ def render_with_blender(
                 if src_path.exists():
                     shutil.copy2(src_path, cache_png)
         else:
-            raise RuntimeError("Blender returned without producing any training images.")
+            raise RuntimeError(
+                "Blender returned without producing any training images."
+            )
 
-    print(f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}")
+    print(
+        f"Blender render completed: {rendered_count} train frames in {render_elapsed:.1f}s; outputs stored in {input_views_dir}"
+    )
     return scene_info._replace(train_cameras=new_train_cameras)
 
 
@@ -502,78 +542,6 @@ def camera_center(camera: Camera) -> np.ndarray:
     R = _to_numpy(camera.R)
     T = _to_numpy(camera.T)
     return -(R @ T)
-
-
-def find_max_min_dispersion_subset(
-    points: np.ndarray, k: int, initial_point_index: Optional[int]
-) -> np.ndarray:
-    """Finds a near-optimal subset of k points that maximizes the minimum distance."""
-    if k < 1:
-        return np.array([])
-    n_points = len(points)
-    if k >= n_points:
-        return np.arange(n_points)
-
-    # Get a good initial solution using Farthest Point Sampling
-    selected_indices = np.zeros(k, dtype=int)
-    rng = np.random.default_rng(seed=42)
-    selected_indices[0] = (
-        initial_point_index
-        if initial_point_index is not None
-        else rng.integers(n_points)
-    )
-
-    dists = np.linalg.norm(points - points[selected_indices[0]], axis=1)
-    for i in range(1, k):
-        farthest_idx = np.argmax(dists)
-        selected_indices[i] = farthest_idx
-        new_dists = np.linalg.norm(points - points[farthest_idx], axis=1)
-        dists = np.minimum(dists, new_dists)
-
-    # Iteratively improve the solution with a local search (exchange heuristic)
-    for _ in range(10):
-        current_subset = set(selected_indices)
-
-        sub_dist_matrix = np.linalg.norm(
-            points[selected_indices, None] - points[None, selected_indices], axis=-1
-        )
-        np.fill_diagonal(sub_dist_matrix, np.inf)
-        min_dist = sub_dist_matrix.min()
-
-        made_swap = False
-        for i in range(k):
-            for p_out_idx in range(n_points):
-                if p_out_idx in current_subset:
-                    continue
-
-                temp_indices = np.copy(selected_indices)
-                temp_indices[i] = p_out_idx
-                new_sub_dist_matrix = np.linalg.norm(
-                    points[temp_indices, None] - points[None, temp_indices], axis=-1
-                )
-                np.fill_diagonal(new_sub_dist_matrix, np.inf)
-                new_min_dist = new_sub_dist_matrix.min()
-
-                if new_min_dist > min_dist:
-                    selected_indices = temp_indices
-                    min_dist = new_min_dist
-                    made_swap = True
-                    break
-            if made_swap:
-                break
-        if not made_swap:
-            break
-
-    return selected_indices
-
-
-def fetchPly(path) -> BasicPointCloud:
-    plydata = PlyData.read(path)
-    vertices = plydata["vertex"]
-    positions = np.vstack([vertices["x"], vertices["y"], vertices["z"]]).T
-    colors = np.vstack([vertices["red"], vertices["green"], vertices["blue"]]).T / 255.0
-    normals = np.vstack([vertices["nx"], vertices["ny"], vertices["nz"]]).T
-    return BasicPointCloud(points=positions, colors=colors, normals=normals)
 
 
 def storePly(path, xyz, rgb):

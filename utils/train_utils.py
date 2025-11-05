@@ -61,6 +61,7 @@ def _get_lpips_metric(device: torch.device, net_type: str = "vgg") -> LPIPS:
         _LPIPS_METRIC_CACHE[key] = metric
     return metric
 
+
 def compose_run_name(dataset: ModelParams, opt: OptimizationParams, dls: int) -> str:
     """Build a descriptive run name that mirrors previous inline construction."""
     if dataset.use_multiplexing:
@@ -77,16 +78,19 @@ def compose_run_name(dataset: ModelParams, opt: OptimizationParams, dls: int) ->
         f"{dataset.n_train_images}views_{multiplexing_str}_dls{dls}"
     )
 
-    if opt.tv_weight > 0:
-        run_name += f"_tv{opt.tv_weight}"
-    if opt.tv_unseen_weight > 0:
-        run_name += f"_unseen{opt.tv_unseen_weight}"
     if dataset.camera_offset != 0:
-        run_name += f"_offset{dataset.camera_offset}"
+        offset = dataset.camera_offset
+        offset_str = f"{offset:g}" if isinstance(offset, float) else str(offset)
+        run_name += f"_offset{offset_str}"
     if dataset.use_iphone and not dataset.iphone_same_focal_length:
         run_name += "_multifocal"
     if dataset.angle_deg:
-        run_name += f"_{dataset.angle_deg}deg"
+        angle_value = dataset.angle_deg
+        angle_str = (
+            f"{angle_value:g}" if isinstance(angle_value, float) else str(angle_value)
+        )
+        angle_str = angle_str.replace(".", "-")
+        run_name += f"_{angle_str}deg"
     return run_name
 
 
@@ -116,6 +120,7 @@ class WandbImageConfig:
         if self.interval <= 0:
             return iteration == testing_iterations[-1]
         return iteration % self.interval == 0 or iteration == testing_iterations[-1]
+
 
 def group_train_cameras(
     all_train_cameras: Dict[int, List[Camera]],
@@ -347,9 +352,7 @@ def training_report(
 
     img_dict: Dict[str, Any] = {}
     if iteration in testing_iterations:
-        log_images_this_iter = wandb_images.should_log(
-            iteration, testing_iterations
-        )
+        log_images_this_iter = wandb_images.should_log(iteration, testing_iterations)
 
         def _init_metric_accumulator() -> Dict[str, float]:
             return {"l1": 0.0, "psnr": 0.0, "ssim": 0.0, "lpips": 0.0, "count": 0.0}
@@ -364,13 +367,13 @@ def training_report(
             acc["l1"] += float(l1_loss(pred, gt).mean().item())
             acc["psnr"] += float(psnr(pred, gt).mean().item())
             acc["ssim"] += float(ssim(pred, gt).mean().item())
-            lpips_val = lpips_metric(
-                pred.unsqueeze(0), gt.unsqueeze(0)
-            ).mean()
+            lpips_val = lpips_metric(pred.unsqueeze(0), gt.unsqueeze(0)).mean()
             acc["lpips"] += float(lpips_val.item())
             acc["count"] += 1.0
 
-        def _evaluate_split(name: str, samples: Iterable[Dict[str, torch.Tensor]]) -> None:
+        def _evaluate_split(
+            name: str, samples: Iterable[Dict[str, torch.Tensor]]
+        ) -> None:
             metrics = _init_metric_accumulator()
             logged = 0
             lpips_metric = _get_lpips_metric(device, net_type="vgg")
@@ -397,7 +400,9 @@ def training_report(
                                 gt_img.unsqueeze(0),
                                 global_step=iteration,
                             )
-                        img_dict[f"render/{name}_{label}"] = wandb_module.Image(pred_img)
+                        img_dict[f"render/{name}_{label}"] = wandb_module.Image(
+                            pred_img
+                        )
                         logged += 1
 
             if metrics["count"] == 0:
@@ -481,9 +486,7 @@ def training_report(
             for single_viewpoint in train_cameras:
                 render_pkg = render(single_viewpoint, gaussians, pipe, background)
                 image_list.append(render_pkg["render"])
-            multiplexed_image = multiplexing.generate(
-                image_list, *multiplexing_args
-            )
+            multiplexed_image = multiplexing.generate(image_list, *multiplexing_args)
             if tb_writer:
                 tb_writer.add_images(
                     "render/trained_multiplex",

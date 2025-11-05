@@ -1,5 +1,3 @@
-# WandB Sweep Configuration for iPhone Camera Optimization (1 View)
-# Optimizes parameters from arguments/camera_presets.py for iPhone camera training
 program: train_sim_multiviews.py
 method: bayes
 name: sweep_iphone_1v
@@ -17,117 +15,87 @@ parameters:
     value: 1
   camera_offset:
     value: 0
-
-  # Number of training images to test
   n_train_images:
     values: [1]
+  skip_camera_profile:
+    value: true
 
   # ===== Learning Rates =====
-  # Position learning rate (most critical parameter)
   position_lr_init:
     distribution: log_uniform_values
-    min: 0.00008
-    max: 0.0005
-
+    min: 0.000001
+    max: 0.001
   position_lr_final:
     distribution: log_uniform_values
-    min: 2.0e-06
-    max: 2.5e-05
-
-  # Opacity learning rate
+    min: 1.0e-06
+    max: 1.0e-04
   opacity_lr:
-    distribution: uniform
-    min: 0.02
-    max: 0.15
-
-  # Scaling learning rate
+    distribution: log_uniform_values
+    min: 0.001
+    max: 0.1
   scaling_lr:
     distribution: log_uniform_values
-    min: 0.0015
-    max: 0.008
-
-  # Rotation learning rate
+    min: 0.0001
+    max: 0.01
   rotation_lr:
     distribution: log_uniform_values
-    min: 0.0002
-    max: 0.002
-
-  # Feature learning rate
+    min: 0.00001
+    max: 0.01
   feature_lr:
     distribution: log_uniform_values
-    min: 0.0005
-    max: 0.005
+    min: 0.0001
+    max: 0.01
 
   # ===== Densification Parameters =====
   # Gradient threshold for densification (critical for quality)
   densify_grad_threshold:
     distribution: log_uniform_values
     min: 5.0e-06
-    max: 4.0e-05
-
-  # Densification interval (iterations between densification steps)
+    max: 5.0e-04
   densification_interval:
     distribution: int_uniform
     min: 20
-    max: 70
-
-  # Start densification iteration
+    max: 120
   densify_from_iter:
     distribution: int_uniform
     min: 100
-    max: 400
-
-  # Stop densification iteration
+    max: 600
   densify_until_iter:
     distribution: int_uniform
-    min: 2000
-    max: 2900
-
-  # Percent dense threshold
+    min: 1000
+    max: 3000
   percent_dense:
     distribution: uniform
     min: 0.01
     max: 0.1
 
   # ===== Regularization Parameters =====
-  # SSIM loss weight (lambda_dssim)
   lambda_dssim:
     distribution: uniform
     min: 0.0
-    max: 0.3
-
-  # Total Variation weight for rendered views
+    max: 0.4
   tv_weight:
     distribution: log_uniform_values
-    min: 0.0001
+    min: 0.00001
     max: 0.01
-
-  # Total Variation weight for unseen views (regularization)
   tv_unseen_weight:
     distribution: log_uniform_values
     min: 0.00001
-    max: 0.002
+    max: 0.01
 
   # ===== Opacity Management =====
-  # Opacity reset interval (critical for preventing floaters)
   opacity_reset_interval:
     distribution: int_uniform
     min: 300
-    max: 1200
+    max: 2000
 
   # ===== Training Configuration =====
   iterations:
     value: 3000
 
-  # Fixed noise simulation parameters (as per AGENTS.md guidelines)
-  lambda_read:
-    value: 0.01
-  lambda_shot:
-    value: 0.01
-
   # ===== WandB Image Logging (minimal to save storage) =====
   wandb_max_images:
-    value: 1
+    value: 5
   wandb_image_interval:
     value: 0  # Only log at final iteration
 

@@ -38,7 +38,8 @@ from scene.scene_utils import (
 )
 from utils.general_utils import get_dataset_name
 from utils.graphics_utils import focal2fov, fov2focal, getWorld2View2
-from utils.render_utils import fetchPly, find_max_min_dispersion_subset
+from utils.dispersion_utils import find_max_min_dispersion_subset
+from utils.ply_utils import fetchPly
 from utils.sh_utils import SH2RGB
 
 FIRST_VIEW: Dict[str, List[int]] = MULTIVIEW_INDICES[1]
@@ -451,14 +452,9 @@ def create_multiplexed_views(
 
         generated: List[CameraInfo] = []
         for uid, (x_pos, y_pos) in enumerate(grid_positions[:n_multiplexed_images]):
-            if np.isclose(x_pos, -1.0):
-                new_center = base_center - stereo_offset * x_unit
-            elif np.isclose(x_pos, 1.0):
-                new_center = base_center + stereo_offset * x_unit
-            else:
-                x_offset_world = x_unit * (stereo_offset * x_pos)
-                y_offset_world = y_unit * (stereo_offset * y_pos)
-                new_center = base_center + x_offset_world + y_offset_world
+            x_offset_world = x_unit * (stereo_offset * x_pos)
+            y_offset_world = y_unit * (stereo_offset * y_pos)
+            new_center = base_center + x_offset_world + y_offset_world
 
             new_cam = _camera_with_new_center(
                 cam_info,

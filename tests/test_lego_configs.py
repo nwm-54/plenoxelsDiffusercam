@@ -199,6 +199,7 @@ def _maybe_prepare_multiplexing(
     scene.init_multiplexing(dls, int(height), int(width))
 
 
+@unittest.skipUnless(torch.cuda.is_available(), "CUDA device required for training.")
 class LegoConfigEvaluationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

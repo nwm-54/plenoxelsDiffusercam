@@ -8,24 +8,27 @@
 #SBATCH --constraint="gpu-high"
 #SBATCH -N 1
 #SBATCH -n 2
-#SBATCH -t 12:00:00                          
+#SBATCH -t 2-00:00:00
 #SBATCH --mem 32gb
 
 source /home/wl757/.bashrc
 conda activate gaussian_splatting
 
-# n_train_images
-# stereo
-wandb agent shamus-team/multiplexed-pixels/ob61noxo
-# multiplexing
-wandb agent shamus-team/multiplexed-pixels/um9e3psf
-# iphone
-wandb agent shamus-team/multiplexed-pixels/ween6fgc
+# # n_train_images
+# # stereo
+# wandb agent shamus-team/multiplexed-pixels/ob61noxo
+# # multiplexing
+# wandb agent shamus-team/multiplexed-pixels/um9e3psf
+# # iphone
+# wandb agent shamus-team/multiplexed-pixels/ween6fgc
 
-# angles
-# stereo
-wandb agent shamus-team/multiplexed-pixels/a9ptglqq
-# multiplexing
-wandb agent shamus-team/multiplexed-pixels/pju94m22
-# iphone
-wandb agent shamus-team/multiplexed-pixels/6b16mfme
+# # angles
+# # stereo
+# wandb agent shamus-team/multiplexed-pixels/a9ptglqq
+# # multiplexing
+# wandb agent shamus-team/multiplexed-pixels/pju94m22
+# # iphone
+# wandb agent shamus-team/multiplexed-pixels/6b16mfme
+
+# sweep_iphone_1v
+wandb agent shamus-team/multiplexed-pixels/kmx7ny4i

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import os
-from typing import List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 import numpy as np
 import plotly.graph_objects as go
 
-from scene.gaussian_model import BasicPointCloud, GaussianModel
-from scene.scene_utils import CameraInfo, SceneInfo
 from utils.graphics_utils import getWorld2View2
-from utils.render_utils import fetchPly, load_pretrained_splat
+
+if TYPE_CHECKING:
+    from scene.scene_utils import CameraInfo, SceneInfo
 
 
 def get_camera_frustum_vertices(
@@ -25,7 +25,7 @@ def get_camera_frustum_vertices(
     rotation = c2w[:3, :3]
     right = rotation[:, 0]
     up = rotation[:, 1]
-    forward = rotation[:, 2]
+    forward = -rotation[:, 2]
 
     if target_point is not None:
         to_target = np.asarray(target_point, dtype=np.float32) - cam_center
@@ -78,7 +78,7 @@ def create_frustum_mesh_data(
 
 
 def _camera_centers_and_frustums(
-    cameras: Sequence[CameraInfo],
+    cameras: Sequence["CameraInfo"],
     scale: float,
     target_point: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, List[np.ndarray]]:
@@ -146,14 +146,21 @@ def _add_camera_group(
     )
 
 
+def _is_gaussian_model(candidate: object) -> bool:
+    return hasattr(candidate, "get_xyz") and callable(getattr(candidate, "get_xyz"))
+
+
+def _is_basic_point_cloud(candidate: object) -> bool:
+    return hasattr(candidate, "points") and hasattr(candidate, "colors")
+
+
 def save_camera_visualization(
-    scene_info: SceneInfo,
+    scene_info: "SceneInfo",
     output_dir: str,
     filename: str,
     title: Optional[str] = None,
     highlighted_view_indices: Optional[Sequence[int]] = None,
     camera_scale: float = 0.25,
-    ply_override_path: Optional[str] = None,
     point_cloud: Optional[object] = None,
 ) -> Optional[str]:
     """Create a Plotly visualization for the current cameras and point cloud."""
@@ -162,17 +169,12 @@ def save_camera_visualization(
     fig = go.Figure()
 
     pc_data: Optional[object] = point_cloud
-    if pc_data is None and ply_override_path:
-        pc_data = load_pretrained_splat(ply_override_path)
-
     if pc_data is None:
         pc_data = scene_info.point_cloud
-        if pc_data is None and scene_info.ply_path:
-            pc_data = fetchPly(scene_info.ply_path)
 
     pc_center: Optional[np.ndarray] = None
-    if isinstance(pc_data, GaussianModel):
-        pts = pc_data.get_xyz.detach().cpu().numpy()
+    if pc_data is not None and _is_gaussian_model(pc_data):
+        pts = pc_data.get_xyz.detach().cpu().numpy()  # type: ignore[attr-defined]
         pc_center = np.mean(pts, axis=0)
         sampled_pts = _sample_points(pts)
         fig.add_trace(
@@ -185,30 +187,32 @@ def save_camera_visualization(
                 marker=dict(size=1.5, color="#b0b0b0", opacity=0.6),
             )
         )
-    elif isinstance(pc_data, BasicPointCloud) and len(pc_data.points) > 0:
-        pts = np.asarray(pc_data.points)
-        pc_center = np.mean(pts, axis=0)
-        cols = np.asarray(pc_data.colors)
-        sampled_pts = _sample_points(pts)
-        if len(cols) == len(pts):
-            stride = max(1, len(pts) // len(sampled_pts))
-            sampled_cols = cols[::stride][: len(sampled_pts)]
-            marker_colors = [
-                f"rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})"
-                for r, g, b in sampled_cols
-            ]
-        else:
-            marker_colors = "#888888"
-        fig.add_trace(
-            go.Scatter3d(
-                x=sampled_pts[:, 0],
-                y=sampled_pts[:, 1],
-                z=sampled_pts[:, 2],
-                mode="markers",
-                name="Model",
-                marker=dict(size=1.5, color=marker_colors, opacity=0.6),
+    elif pc_data is not None and _is_basic_point_cloud(pc_data):
+        pts_src = getattr(pc_data, "points")  # type: ignore[attr-defined]
+        if pts_src is not None and len(pts_src) > 0:
+            pts = np.asarray(pts_src)
+            pc_center = np.mean(pts, axis=0)
+            cols = np.asarray(getattr(pc_data, "colors"))  # type: ignore[attr-defined]
+            sampled_pts = _sample_points(pts)
+            if len(cols) == len(pts):
+                stride = max(1, len(pts) // max(1, len(sampled_pts)))
+                sampled_cols = cols[::stride][: len(sampled_pts)]
+                marker_colors = [
+                    f"rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})"
+                    for r, g, b in sampled_cols
+                ]
+            else:
+                marker_colors = "#888888"
+            fig.add_trace(
+                go.Scatter3d(
+                    x=sampled_pts[:, 0],
+                    y=sampled_pts[:, 1],
+                    z=sampled_pts[:, 2],
+                    mode="markers",
+                    name="Model",
+                    marker=dict(size=1.5, color=marker_colors, opacity=0.6),
+                )
             )
-        )
     elif scene_info.nerf_normalization and "translate" in scene_info.nerf_normalization:
         translate = np.asarray(
             scene_info.nerf_normalization["translate"], dtype=np.float32
