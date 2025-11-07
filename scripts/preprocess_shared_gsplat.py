@@ -7,6 +7,10 @@ camera shares the same reference frame. After reconstruction it splits the
 results back into per-subset dataset folders, generates metadata describing the
 split, and optionally precomputes covisible masks aligned to the shared frame.
 
+Inputs can be provided as pre-extracted images/, raw videos, or a single .lfr
+file per subset — the script will materialize images/ automatically when
+needed (reusing helpers from preprocess_for_gsplat.py).
+
 Typical usage:
 
     python scripts/preprocess_shared_gsplat.py \
@@ -105,13 +109,137 @@ def ensure_dir(path: Path, overwrite: bool = False) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _has_any_images(images_root: Path) -> bool:
+    return any(p.suffix.lower() in IMAGE_EXTS for p in images_root.rglob("*"))
+
+
+def _symlink_images(src_images: Path, dst_root: Path) -> Path:
+    dst_images = dst_root / "images"
+    if dst_images.exists() or dst_images.is_symlink():
+        if dst_images.is_dir() or dst_images.is_symlink():
+            dst_images.unlink()
+        else:
+            dst_images.unlink()
+    dst_images.parent.mkdir(parents=True, exist_ok=True)
+    rel = os.path.relpath(src_images, dst_images.parent)
+    dst_images.symlink_to(rel, target_is_directory=True)
+    return dst_images
+
+
+def _materialize_images_if_missing(
+    subset: SubsetConfig,
+    *,
+    ffmpeg_bin: str,
+    fps: Optional[float],
+    lf_to_colmap: Path,
+    lf_calib: Optional[Path],
+    lf_inner: Optional[int],
+    lf_downscale: Optional[float],
+    overwrite: bool,
+) -> Path:
+    """Ensure subset.source_dir has an images/ directory with frames.
+
+    Returns the concrete images/ directory path. If a light-field decode creates
+    an inner_XX/images tree, we create an images/ symlink for consistency.
+    """
+    src = subset.source_dir
+    # 1) Direct images/ folder already present with any images inside (recursive)
+    direct_images = src / "images"
+    if direct_images.exists() and _has_any_images(direct_images):
+        return direct_images
+
+    # 2) Look for common LF decode layout: inner_*/images
+    inner_candidates = sorted((p for p in src.glob("inner_*/images") if p.is_dir()))
+    for cand in inner_candidates:
+        if _has_any_images(cand):
+            return _symlink_images(cand, src)
+
+    # 3) Try to infer from provided content (videos or a single .lfr)
+    try:
+        input_spec = base_prep.determine_input_spec(src)
+    except Exception as exc:
+        raise FileNotFoundError(
+            f"Missing images/ in {src} and failed to infer inputs: {exc}"
+        ) from exc
+
+    # Helper: extract frames into images/<label>/ to avoid collisions for multi-video
+    def _extract_video_frames(video_path: Path, label: str) -> None:
+        out_dir = src / "images" / label
+        base_prep.extract_frames(video_path, out_dir, ffmpeg_bin, fps, overwrite=overwrite)
+
+    if input_spec.kind == "multi_video":
+        if shutil.which(ffmpeg_bin) is None:
+            raise RuntimeError(f"ffmpeg binary '{ffmpeg_bin}' not found in PATH.")
+        videos = sorted(
+            p for p in input_spec.path.iterdir() if p.is_file() and p.suffix.lower() in base_prep.VIDEO_EXTS
+        )
+        if not videos:
+            raise RuntimeError(f"No video files found in {input_spec.path}")
+        for vid in videos:
+            task = base_prep.build_task_for_file(input_spec.base, vid)
+            _extract_video_frames(vid, task.label)
+        images_dir = src / "images"
+        if not _has_any_images(images_dir):
+            raise RuntimeError(f"Failed to extract frames into {images_dir}")
+        return images_dir
+
+    if input_spec.kind == "file":
+        task = base_prep.build_task_for_file(input_spec.base, input_spec.path)
+        if task.kind == "video":
+            if shutil.which(ffmpeg_bin) is None:
+                raise RuntimeError(f"ffmpeg binary '{ffmpeg_bin}' not found in PATH.")
+            images_dir = src / "images"
+            base_prep.extract_frames(task.source, images_dir, ffmpeg_bin, fps, overwrite=overwrite)
+            if not _has_any_images(images_dir):
+                raise RuntimeError(f"Failed to extract frames into {images_dir}")
+            return images_dir
+
+        if task.kind == "lfr":
+            # Resolve calibration if not provided
+            calib_tar = lf_calib
+            if calib_tar is None or not calib_tar.exists():
+                calib_tar = base_prep.infer_calibration(base_prep.default_repo_root())
+                if calib_tar:
+                    print(f"Using inferred calibration tar: {calib_tar}")
+            if calib_tar is None or not calib_tar.exists():
+                raise FileNotFoundError(
+                    "Calibration tar is required for LFR preprocessing and was not found."
+                )
+            inner_value = lf_inner if lf_inner is not None else 2
+            # Decode LFR into subset root. This creates inner_XX/images.
+            base_prep.process_lfr(
+                task,
+                out_dir=src,
+                lf_script=lf_to_colmap,
+                calib_tar=calib_tar,
+                inner=inner_value,
+                downscale=lf_downscale,
+            )
+            decoded = src / f"inner_{inner_value:02d}" / "images"
+            if not decoded.exists() or not _has_any_images(decoded):
+                raise RuntimeError(f"Failed to prepare light-field images under {decoded}")
+            return _symlink_images(decoded, src)
+
+    raise RuntimeError(
+        f"{subset.display_name()} has no usable images, videos, or .lfr files under {src}"
+    )
+
+
 def gather_images(
     subset: SubsetConfig,
-    copy_mode: str,
+    args: argparse.Namespace,
 ) -> None:
-    images_dir = subset.source_dir / "images"
-    if not images_dir.exists():
-        raise FileNotFoundError(f"Missing images/ in {subset.source_dir}")
+    # Ensure images/ exists or materialize from inputs (videos/LFR)
+    images_dir = _materialize_images_if_missing(
+        subset,
+        ffmpeg_bin=getattr(args, "ffmpeg_bin", "ffmpeg"),
+        fps=getattr(args, "fps", None),
+        lf_to_colmap=args.lf_to_colmap.expanduser().resolve(),
+        lf_calib=args.lf_calib.expanduser().resolve() if args.lf_calib else None,
+        lf_inner=getattr(args, "lf_inner", 2),
+        lf_downscale=getattr(args, "lf_downscale", None),
+        overwrite=getattr(args, "overwrite", False),
+    )
 
     all_images = sorted(
         p for p in images_dir.rglob("*") if p.suffix.lower() in IMAGE_EXTS
@@ -159,7 +287,7 @@ def gather_images(
         )
     print(
         f"  {subset.display_name()} -> {len(subset.records)} image(s) "
-        f"({copy_mode}, prefix='{subset.prefix}')"
+        f"({args.copy_mode}, prefix='{subset.prefix}')"
     )
 
 
@@ -672,6 +800,44 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--stage", type=str, default="")
     parser.add_argument("--stage-cache", type=str, default=None)
 
+    # Frame extraction / Light-field decode options (parity with preprocess_for_gsplat)
+    parser.add_argument(
+        "--ffmpeg-bin",
+        type=str,
+        default="ffmpeg",
+        help="ffmpeg executable used for frame extraction when inputs are videos.",
+    )
+    parser.add_argument(
+        "--fps",
+        type=float,
+        default=None,
+        help="Frame sampling rate for video extraction (omit to keep native).",
+    )
+    parser.add_argument(
+        "--lf-to-colmap",
+        type=Path,
+        default=base_prep.default_lf_script(base_prep.default_repo_root()),
+        help="Path to lf_to_colmap.py for LFR decoding.",
+    )
+    parser.add_argument(
+        "--lf-calib",
+        type=Path,
+        default=base_prep.default_lf_calib_path(),
+        help="Light-field calibration tarball (caldata-*.tar).",
+    )
+    parser.add_argument(
+        "--lf-inner",
+        type=int,
+        default=2,
+        help="Inner grid crop forwarded to lf_to_colmap.py.",
+    )
+    parser.add_argument(
+        "--lf-downscale",
+        type=float,
+        default=None,
+        help="Optional downscale factor forwarded to lf_to_colmap.py.",
+    )
+
     parser.add_argument(
         "--train-test-every",
         type=int,
@@ -711,6 +877,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
+    print(
+        "[DEPRECATION] preprocess_shared_gsplat.py will be removed soon. "
+        "Use preprocess_for_gsplat.py with --eval-dir to run the shared pipeline."
+    )
     args = parse_args(argv)
 
     train_dir = args.train_dir.expanduser().resolve()
@@ -732,6 +902,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         )
     ensure_dir(output_dir, overwrite=args.overwrite)
 
+    # Normalize lf paths if provided
+    if args.lf_to_colmap is not None:
+        args.lf_to_colmap = args.lf_to_colmap.expanduser().resolve()
+    if args.lf_calib is not None:
+        args.lf_calib = args.lf_calib.expanduser().resolve()
+
     train_subset = SubsetConfig(
         name="train",
         source_dir=train_dir,
@@ -740,7 +916,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         include_list=_parse_include_list(args.train_include_list),
         match=args.train_match,
     )
-    gather_images(train_subset, args.copy_mode)
+    gather_images(train_subset, args)
 
     eval_subsets: List[SubsetConfig] = []
     for raw in eval_specs:
@@ -751,7 +927,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             prefix=args.eval_prefix or name,
             kind="eval",
         )
-        gather_images(subset, args.copy_mode)
+        gather_images(subset, args)
         eval_subsets.append(subset)
 
     all_subsets: List[SubsetConfig] = [train_subset] + eval_subsets
@@ -802,26 +978,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         eval_test_every=args.eval_test_every,
     )
 
-    if args.covisible:
-        covi_base = (
-            args.covisible_output.expanduser().resolve()
-            if args.covisible_output
-            else output_dir / "covisible"
-        )
-        compute_covisible_masks(
-            subsets=all_subsets,
-            subset_dirs=subset_dirs,
-            train_subset=train_subset,
-            output_base=covi_base,
-            examples_root=args.examples_root.expanduser().resolve(),
-            device=args.covisible_device,
-            chunk=args.covisible_chunk,
-            micro_chunk=args.covisible_micro_chunk,
-            train_test_every=args.train_test_every,
-            eval_test_every=args.eval_test_every,
-            factor=args.covisible_factor,
-        )
-        print(f"Covisible masks written under {covi_base}")
+    # In shared preprocessor, compute covisible masks by default.
+    covi_base = (
+        args.covisible_output.expanduser().resolve()
+        if args.covisible_output
+        else output_dir / "covisible"
+    )
+    compute_covisible_masks(
+        subsets=all_subsets,
+        subset_dirs=subset_dirs,
+        train_subset=train_subset,
+        output_base=covi_base,
+        examples_root=args.examples_root.expanduser().resolve(),
+        device=args.covisible_device,
+        chunk=args.covisible_chunk,
+        micro_chunk=args.covisible_micro_chunk,
+        train_test_every=args.train_test_every,
+        eval_test_every=args.eval_test_every,
+        factor=args.covisible_factor,
+    )
+    print(f"Covisible masks written under {covi_base}")
 
     print("\nDone. Combined dataset available at:", output_dir)
 

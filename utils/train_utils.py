@@ -313,9 +313,10 @@ def training_report(
         Tuple[torch.Tensor, List[int], int, int, int, torch.Tensor, torch.Tensor]
     ] = None,
     summary_path: Optional[str] = None,
+    is_final_iteration: bool = False,
 ) -> None:
     full_test_cameras = scene.getFullTestCameras()
-    subset_size = min(10, len(full_test_cameras))
+    subset_size = min(2, len(full_test_cameras))
     l1_subset, psnr_subset = 0.0, 0.0
 
     if subset_size > 0:
@@ -351,8 +352,8 @@ def training_report(
             tb_writer.add_scalar(key, value, iteration)
 
     img_dict: Dict[str, Any] = {}
-    if iteration in testing_iterations:
-        log_images_this_iter = wandb_images.should_log(iteration, testing_iterations)
+    if (iteration in testing_iterations) or is_final_iteration:
+        log_images_this_iter = wandb_images.should_log(iteration, testing_iterations) or is_final_iteration
 
         def _init_metric_accumulator() -> Dict[str, float]:
             return {"l1": 0.0, "psnr": 0.0, "ssim": 0.0, "lpips": 0.0, "count": 0.0}
@@ -371,9 +372,12 @@ def training_report(
             acc["lpips"] += float(lpips_val.item())
             acc["count"] += 1.0
 
+        any_split_images_logged = False
+
         def _evaluate_split(
             name: str, samples: Iterable[Dict[str, torch.Tensor]]
         ) -> None:
+            nonlocal any_split_images_logged
             metrics = _init_metric_accumulator()
             logged = 0
             lpips_metric = _get_lpips_metric(device, net_type="vgg")
@@ -400,10 +404,13 @@ def training_report(
                                 gt_img.unsqueeze(0),
                                 global_step=iteration,
                             )
+                        # Log both prediction and ground-truth frames to W&B
                         img_dict[f"render/{name}_{label}"] = wandb_module.Image(
                             pred_img
                         )
+                        img_dict[f"gt/{name}_{label}"] = wandb_module.Image(gt_img)
                         logged += 1
+                        any_split_images_logged = True
 
             if metrics["count"] == 0:
                 return
@@ -497,7 +504,9 @@ def training_report(
                 multiplexed_image.cpu()
             )
 
-        if gt_image is not None:
+        # Also log a single generic GT frame for quick reference
+        # Only add a generic GT frame if we didn't log any per-split images
+        if (not any_split_images_logged) and (gt_image is not None):
             if tb_writer:
                 tb_writer.add_images(
                     "render/gt_image", gt_image.unsqueeze(0), global_step=iteration

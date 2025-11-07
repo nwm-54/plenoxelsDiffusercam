@@ -23,43 +23,43 @@ parameters:
   # ===== Learning Rates =====
   position_lr_init:
     distribution: log_uniform_values
-    min: 0.000001
-    max: 0.001
+    min: 1e-4
+    max: 1e-1
   position_lr_final:
     distribution: log_uniform_values
-    min: 1.0e-06
-    max: 1.0e-04
+    min: 1e-06
+    max: 1e-03
   opacity_lr:
     distribution: log_uniform_values
-    min: 0.001
-    max: 0.1
+    min: 1e-3
+    max: 1e-1
   scaling_lr:
     distribution: log_uniform_values
-    min: 0.0001
-    max: 0.01
+    min: 1e-4
+    max: 1e-1
   rotation_lr:
     distribution: log_uniform_values
-    min: 0.00001
-    max: 0.01
+    min: 1e-5
+    max: 1e-2
   feature_lr:
     distribution: log_uniform_values
-    min: 0.0001
-    max: 0.01
+    min: 1e-3
+    max: 1e-1
 
   # ===== Densification Parameters =====
   # Gradient threshold for densification (critical for quality)
   densify_grad_threshold:
     distribution: log_uniform_values
-    min: 5.0e-06
-    max: 5.0e-04
+    min: 2e-05
+    max: 5e-03
   densification_interval:
     distribution: int_uniform
     min: 20
     max: 120
   densify_from_iter:
     distribution: int_uniform
-    min: 100
-    max: 600
+    min: 50
+    max: 500
   densify_until_iter:
     distribution: int_uniform
     min: 1000
@@ -72,7 +72,7 @@ parameters:
   # ===== Regularization Parameters =====
   lambda_dssim:
     distribution: uniform
-    min: 0.0
+    min: 0.05
     max: 0.4
   tv_weight:
     distribution: log_uniform_values
@@ -86,8 +86,8 @@ parameters:
   # ===== Opacity Management =====
   opacity_reset_interval:
     distribution: int_uniform
-    min: 300
-    max: 2000
+    min: 1000
+    max: 2500
 
   # ===== Training Configuration =====
   iterations:
@@ -95,7 +95,7 @@ parameters:
 
   # ===== WandB Image Logging (minimal to save storage) =====
   wandb_max_images:
-    value: 5
+    value: 1
   wandb_image_interval:
     value: 0  # Only log at final iteration
 

@@ -12,11 +12,17 @@
 #SBATCH --error=slurm_logs/preprocess_shared_%j.err
 
 # SLURM wrapper for scripts/preprocess_shared_gsplat.py.
+#
+# This script now materializes images/ automatically from raw inputs:
+#   - If <train|eval>-dir contains videos, frames are extracted with ffmpeg.
+#   - If it contains a single .lfr, it is decoded via lf_to_colmap.py.
+#   - If it already contains images/, they are used as-is.
+#
 # Example:
 #   sbatch scripts/preprocess_shared_gsplat.slurm \
 #       --train-dir ../gs7/input_data/dog/iphone4 \
 #       --eval-dir test=../gs7/input_data/dog/eval/test \
-#       --covisible
+#       --fps 10 --covisible
 
 set -euo pipefail
 source ~/.bashrc

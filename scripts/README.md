@@ -193,32 +193,37 @@ Then launch: `python scripts/launch_sweep.py --sweep my_new_sweep --camera_model
 
 ## Shared Reconstruction Pipeline
 
-Use `preprocess_shared_gsplat.py` to rebuild training + evaluation captures into a
-single COLMAP/VGGT reconstruction so every subset shares the same pose frame.
+Use `preprocess_for_gsplat.py` with an optional `--eval-dir` to rebuild training
+and evaluation captures into a single COLMAP/VGGT reconstruction so every
+subset shares the same pose frame. It accepts either pre-extracted `images/`, a
+folder of videos (frames are extracted with ffmpeg), or a single `.lfr` file
+(decoded via `lf_to_colmap.py`). In shared mode the combined `images/` and
+`sparse/` live at the output root, and two subset folders `train/` and `test/`
+are created with their own `images/` and `sparse/`.
 
 ```
-python scripts/preprocess_shared_gsplat.py \
-    --train-dir ../gs7/input_data/dog/iphone4 \
-    --eval-dir test=../gs7/input_data/dog/eval/test \
+python scripts/preprocess_for_gsplat.py \
+    --input ../gs7/input_data/dog/iphone4 \
+    --eval-dir ../gs7/input_data/dog/eval/test \
     --output-dir ../gs7/input_data/dog/iphone4_shared \
     --train-prefix train \
-    --covisible
+    # Covisible masks are computed by default when --eval-dir is present.
 ```
 Or run on a cluster via SLURM:
 
 ```
-sbatch scripts/preprocess_shared_gsplat.slurm \
-    --train-dir ../gs7/input_data/dog/iphone4 \
-    --eval-dir test=../gs7/input_data/dog/eval/test \
-    --covisible
+sbatch scripts/preprocess_for_gsplat.slurm \
+    --input ../gs7/input_data/dog/iphone4 \
+    --eval-dir ../gs7/input_data/dog/eval/test
 ```
 
 Key features:
 
 - Reuses `preprocess_for_gsplat` helpers to run VGGT on the union of all frames.
 - Flattens images into `images/` with subset prefixes (`train__`, `test__`, …).
-- Produces per-subset dataset folders under `subsets/<name>/{images,sparse}` that
-  only contain the relevant views while keeping the shared reference frame.
+- Produces per-subset dataset folders `train/{images,sparse}` and
+  `test/{images,sparse}` that only contain the relevant views while keeping the
+  shared reference frame.
 - Records split metadata in `metadata/summary.json` and `splits/<subset>.txt`.
 - Optionally precomputes covisible masks under `<output>/covisible/<subset>` that can be
   symlinked into run directories.
@@ -226,12 +231,12 @@ Key features:
 ### Training with shared datasets
 
 After preprocessing, launch the dual trainer using the combined root as `DATA_DIR`
-and the subset-specific directory for external evaluation:
+and the `test/` directory for external evaluation:
 
 ```
 MATCH=train
 DATA=../gs7/input_data/dog/iphone4_shared
-EVAL=$DATA/subsets/test
+EVAL=$DATA/test
 sbatch examples/dual_training.slurm "$DATA" "$MATCH" "$EVAL"
 ```
 
@@ -245,5 +250,5 @@ sbatch examples/dual_training.slurm "$DATA" "$MATCH" "$EVAL"
   without re-running RAFT. Dual-training jobs now generate alignment `.npz` files
   on demand inside `$RESULT_DIR/alignments`.
 
-Run `python scripts/preprocess_shared_gsplat.py --help` for the full list of
+Run `python scripts/preprocess_for_gsplat.py --help` for the full list of
 options (copy mode, include lists, chunk sizing, etc.).

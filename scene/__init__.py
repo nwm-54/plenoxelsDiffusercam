@@ -269,13 +269,18 @@ class Scene:
             self.n_multiplexed_images, dls, H, W
         )
         self.dim_lens_lf_yx = dim_lens_lf_yx
-        self.comap_yx = torch.from_numpy(comap_yx.astype(np.float32)).to(device)
-        (
-            self.microlens_weights,
-            self.throughput_map,
-        ) = multiplexing.compute_throughput_map(
+        target_device = torch.device("cpu")
+        for camera_group in self.getTrainCameras().values():
+            if camera_group:
+                target_device = camera_group[0].original_image.device
+                break
+
+        self.comap_yx = torch.from_numpy(comap_yx.astype(np.float32)).to(target_device)
+        weights, throughput = multiplexing.compute_throughput_map(
             self.comap_yx, self.n_multiplexed_images, self.dim_lens_lf_yx
         )
+        self.microlens_weights = weights.to(target_device)
+        self.throughput_map = throughput.to(target_device)
         self.multiplexed_gt = self._load_ground_truth(H, W)
         # Keep test evaluation single-view; no multiplexed composites for these splits.
         self.multiplexed_test_gt = {}
@@ -297,10 +302,8 @@ class Scene:
                 continue
 
             cam_list = sorted(cam_list, key=lambda c: c.uid)
-            imgs = [
-                cam.original_image.to("cpu", dtype=torch.float32) for cam in cam_list
-            ]
-            gt[view_idx] = multiplexing.generate(
+            imgs = [cam.original_image.detach() for cam in cam_list]
+            multiplexed_output = multiplexing.generate(
                 imgs,
                 self.comap_yx,
                 self.dim_lens_lf_yx,
@@ -309,10 +312,14 @@ class Scene:
                 W,
                 self.microlens_weights,
                 self.throughput_map,
-            ).to(dtype=torch.float32)
+            )
+            # Ensure output stays on same device as inputs (GPU)
+            gt[view_idx] = multiplexed_output.to(device=imgs[0].device, dtype=torch.float32)
             iio.imwrite(
                 os.path.join(self.model_path, f"gt_view_{view_idx}.png"),
-                (gt[view_idx].permute(1, 2, 0).cpu().numpy() * 255).astype("uint8"),
+                (gt[view_idx].permute(1, 2, 0).detach().cpu().numpy() * 255).astype(
+                    "uint8"
+                ),
             )
         return gt
 

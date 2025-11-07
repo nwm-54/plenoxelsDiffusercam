@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 import wandb
+from torch.profiler import ProfilerActivity, profile, record_function
 from tqdm import tqdm
 
 from arguments import ModelParams, OptimizationParams, PipelineParams
@@ -62,7 +63,7 @@ def training(
     size_threshold: int,
     extent_multiplier: float,
     wandb_images: WandbImageConfig,
-    profile_memory: bool,
+    profile_gpu: bool,
     tb_writer,
     wandb_module,
 ) -> None:
@@ -119,7 +120,7 @@ def training(
     all_train_cameras = group_train_cameras(raw_train_cameras)
     total_train_views = len(all_train_cameras)
 
-    profile_gpu = profile_memory and torch.cuda.is_available()
+    track_memory = profile_gpu and torch.cuda.is_available()
     # Progress tracking
     progress_bar = tqdm(range(0, opt.iterations), desc="Training progress")
     ema_loss_for_log = 0.0
@@ -127,7 +128,7 @@ def training(
     unseen_tv_queue: List = []
 
     for iteration in range(1, opt.iterations + 1):
-        if profile_gpu:
+        if track_memory:
             torch.cuda.reset_peak_memory_stats()
 
         iter_start.record()
@@ -157,10 +158,7 @@ def training(
             "lambda_read": lambda_read,
             "lambda_shot": lambda_shot,
         }
-        # keep logging minimal to avoid confusion
 
-        iteration_loss_sum = 0.0
-        iteration_tv_sum = 0.0
         iteration_view_count = 0
         last_gt_image: Optional[torch.Tensor] = None
 
@@ -200,9 +198,14 @@ def training(
         if unseen_tv.requires_grad:
             unseen_tv.backward(retain_graph=False)
 
-        mean_train_tv_loss = 0.0
-        iteration_loss_sum = 0.0
-        iteration_tv_sum = 0.0
+        # Use tensors for accumulation to avoid CPU sync overhead
+        mean_train_tv_loss_tensor = torch.tensor(
+            0.0, device=device, dtype=torch.float32
+        )
+        iteration_loss_sum_tensor = torch.tensor(
+            0.0, device=device, dtype=torch.float32
+        )
+        iteration_tv_sum_tensor = torch.tensor(0.0, device=device, dtype=torch.float32)
         iteration_view_count = 0
         cameras_processed = 0
 
@@ -216,7 +219,9 @@ def training(
             batch = group_items[start_idx:end_idx]
             try:
                 micro_sum = torch.zeros((), device=device, dtype=torch.float32)
-                micro_tv_acc = 0.0
+                micro_tv_acc_tensor = torch.tensor(
+                    0.0, device=device, dtype=torch.float32
+                )
                 micro_count = 0
                 micro_render_pkgs: List[Dict[str, torch.Tensor]] = []
                 for group_id, viewpoint_cam in batch:
@@ -239,7 +244,7 @@ def training(
                             raise KeyError(
                                 f"Missing multiplexed ground truth for group {group_id}"
                             )
-                        gt_image = gt_tensor.to(device, dtype=torch.float32)
+                        gt_image = gt_tensor  # Already on GPU in float32
 
                         rendered_for_loss = (
                             quantize_14bit(
@@ -272,9 +277,7 @@ def training(
                         for rendered_image, tv_loss, cam in zip(
                             rendered_images, tv_losses, viewpoint_cam
                         ):
-                            gt_image = cam.original_image.to(
-                                device, dtype=torch.float32
-                            )
+                            gt_image = cam.original_image  # Already on GPU in float32
 
                             rendered_for_loss = (
                                 quantize_14bit(
@@ -302,7 +305,7 @@ def training(
                         train_tv = torch.stack(tv_per_cam).mean()
 
                     micro_sum = micro_sum + L_l1 + ssim_term + train_tv
-                    micro_tv_acc += float(train_tv.item())
+                    micro_tv_acc_tensor += train_tv.detach()
                     micro_count += 1
                     cameras_processed += 1
                     last_gt_image = gt_image
@@ -311,19 +314,19 @@ def training(
                         last_group_scale = float(group_scale)
 
                 if micro_count > 0:
-                    # Accumulate gradients: scale by total number of groups for a true mean
                     (micro_sum / total_groups).backward(retain_graph=False)
-                    mean_train_tv_loss += micro_tv_acc
-                    iteration_loss_sum += micro_sum.detach().item()
-                    iteration_tv_sum += micro_tv_acc
+                    mean_train_tv_loss_tensor += micro_tv_acc_tensor
+                    iteration_loss_sum_tensor += micro_sum.detach()
+                    iteration_tv_sum_tensor += micro_tv_acc_tensor
                     iteration_view_count += micro_count
                     # Update densification stats incrementally to keep memory bounded
                     if micro_render_pkgs:
                         update_densification_stats(gaussians, micro_render_pkgs)
 
                 start_idx = end_idx
-                # Free cached memory aggressively between micro-batches
-                torch.cuda.empty_cache()
+                # Only clear cache if we're actually batching (otherwise it's pure overhead)
+                if micro_bs < total_groups:
+                    torch.cuda.empty_cache()
             except RuntimeError as e:
                 if "out of memory" in str(e) and micro_bs > 1:
                     torch.cuda.empty_cache()
@@ -334,16 +337,17 @@ def training(
         if iteration_view_count == 0:
             continue
 
-        mean_train_tv_loss = mean_train_tv_loss / iteration_view_count
-        train_loss_value = iteration_loss_sum / iteration_view_count
-        # accumulated_loss here mirrors final scalar used in training_report
-        accumulated_loss = train_loss_value + unseen_tv.detach().item()
-        accumulated_train_loss = train_loss_value
-        accumulated_train_tv = mean_train_tv_loss
-        gt_image = last_gt_image
-        unseen_tv_value = unseen_tv.detach().item()
+        mean_train_tv_loss_tensor = mean_train_tv_loss_tensor / iteration_view_count
+        train_loss_tensor = iteration_loss_sum_tensor / iteration_view_count
+        accumulated_loss_tensor = train_loss_tensor + unseen_tv.detach()
 
-        if profile_gpu:
+        accumulated_loss = accumulated_loss_tensor.item()
+        accumulated_train_loss = train_loss_tensor.item()
+        accumulated_train_tv = mean_train_tv_loss_tensor.item()
+        gt_image = last_gt_image
+        unseen_tv_value = unseen_tv.item()
+
+        if track_memory:
             torch.cuda.synchronize()
             extra_log["gpu_max_mem_mb"] = torch.cuda.max_memory_allocated(
                 device=device
@@ -386,6 +390,7 @@ def training(
                 wandb_module=wandb_module,
                 multiplexing_args=multiplexing_args,
                 summary_path=metrics_summary_path,
+                is_final_iteration=(iteration == opt.iterations),
             )
             if iteration in saving_iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
@@ -496,9 +501,9 @@ if __name__ == "__main__":
         help="Disable logging evaluation render images to W&B.",
     )
     parser.add_argument(
-        "--profile_memory",
+        "--profile",
         action="store_true",
-        help="Enable per-iteration GPU memory profiling.",
+        help="Enable PyTorch profiler for detailed performance analysis (CPU/GPU time, memory).",
     )
     parser.add_argument(
         "--use_camera_profile",
@@ -571,24 +576,91 @@ if __name__ == "__main__":
         enable_eval_images=not args.wandb_disable_eval_images,
     )
 
-    training(
-        scene=scene,
-        gaussians=gaussians,
-        dataset=dataset,
-        opt=opt,
-        pipe=pipe,
-        testing_iterations=list(args.test_iterations),
-        saving_iterations=list(args.save_iterations),
-        debug_from=args.debug_from,
-        resolution=args.resolution,
-        dls=args.dls,
-        size_threshold=args.size_threshold,
-        extent_multiplier=args.extent_multiplier,
-        wandb_images=wandb_images,
-        profile_memory=args.profile_memory,
-        tb_writer=tb_writer,
-        wandb_module=wandb,
-    )
+    # Profiling wrapper
+    if args.profile:
+        print(f"\n{'=' * 80}")
+        print(f"Profiling enabled: {args.iterations} iterations")
+        print(f"{'=' * 80}\n")
+
+        with profile(
+            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+            record_shapes=True,
+            profile_memory=True,
+            with_stack=True,
+        ) as prof:
+            with record_function("training_loop"):
+                training(
+                    scene=scene,
+                    gaussians=gaussians,
+                    dataset=dataset,
+                    opt=opt,
+                    pipe=pipe,
+                    testing_iterations=list(args.test_iterations),
+                    saving_iterations=list(args.save_iterations),
+                    debug_from=args.debug_from,
+                    resolution=args.resolution,
+                    dls=args.dls,
+                    size_threshold=args.size_threshold,
+                    extent_multiplier=args.extent_multiplier,
+                    wandb_images=wandb_images,
+                    profile_gpu=args.profile,
+                    tb_writer=tb_writer,
+                    wandb_module=wandb,
+                )
+
+        # Print profiling results
+        print(f"\n{'=' * 80}")
+        print("PROFILING RESULTS - Top 20 operations by CUDA time")
+        print(f"{'=' * 80}\n")
+        ka = prof.key_averages()
+        print(
+            ka.table(
+                sort_by="cuda_time_total", row_limit=20, max_src_column_width=60
+            )
+        )
+
+        print(f"\n{'=' * 80}")
+        print("PROFILING RESULTS - Top 20 operations by CPU time")
+        print(f"{'=' * 80}\n")
+        print(
+            ka.table(
+                sort_by="cpu_time_total", row_limit=20, max_src_column_width=60
+            )
+        )
+
+        print(f"\n{'=' * 80}")
+        print("PROFILING RESULTS - Top 20 memory consumers")
+        print(f"{'=' * 80}\n")
+        print(
+            ka.table(
+                sort_by="cuda_memory_usage", row_limit=20, max_src_column_width=60
+            )
+        )
+
+        # Export trace for visualization
+        trace_file = os.path.join(dataset.model_path, "profile_trace.json")
+        prof.export_chrome_trace(trace_file)
+        print(f"\n✓ Detailed trace exported to: {trace_file}")
+        print("  View in Chrome: chrome://tracing (load the JSON file)\n")
+    else:
+        training(
+            scene=scene,
+            gaussians=gaussians,
+            dataset=dataset,
+            opt=opt,
+            pipe=pipe,
+            testing_iterations=list(args.test_iterations),
+            saving_iterations=list(args.save_iterations),
+            debug_from=args.debug_from,
+            resolution=args.resolution,
+            dls=args.dls,
+            size_threshold=args.size_threshold,
+            extent_multiplier=args.extent_multiplier,
+            wandb_images=wandb_images,
+            profile_gpu=args.profile,
+            tb_writer=tb_writer,
+            wandb_module=wandb,
+        )
 
     if tb_writer:
         tb_writer.close()

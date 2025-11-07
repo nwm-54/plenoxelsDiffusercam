@@ -5,15 +5,22 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
-#SBATCH --gres=gpu:nvidia_h200_nvl:1
+#SBATCH --gres=gpu:nvidia_h100_nvl:1
 #SBATCH --constraint="gpu-high"
 #SBATCH --time=12:00:00
 #SBATCH --output=slurm_logs/preprocess_%j.out
 #SBATCH --error=slurm_logs/preprocess_%j.err
 
 # Simple SLURM wrapper for scripts/preprocess_for_gsplat.py.
-# Example:
+# Examples:
+#   # Single-subset preprocessing from a video
 #   sbatch scripts/preprocess_for_gsplat.slurm --input input_data/dog/iphone1 --fps 15 --overwrite
+#
+#   # Shared reconstruction (train + eval) — videos or .lfr also supported
+#   sbatch scripts/preprocess_for_gsplat.slurm \
+#       --input input_data/dog/iphone4 \
+#       --eval-dir test=input_data/dog/eval/test \
+#       --fps 10 --overwrite
 
 set -euo pipefail
 source ~/.bashrc
