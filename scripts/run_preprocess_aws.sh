@@ -12,13 +12,17 @@
 #   OVERWRITE=1 bash scripts/run_preprocess_aws.sh      # force rebuilds
 #
 # Env vars:
-#   PYTHON_BIN   Python executable to use (default: python)
-#   LOG_DIR      Logs directory (default: <repo>/logs)
-#   DATASET_DIR  Dataset root (default: <repo>/dataset)
-#   FPS_STEREO   FPS for stereo videos (default: 20)
-#   FPS_IPHONE   FPS for iPhone videos (default: 10)
-#   EXAMPLES_ROOT Path to gsplat/examples (default auto-detected)
-#   OVERWRITE    If set, passes --overwrite to the Python script
+#   PYTHON_BIN     Python executable to use (default: python)
+#   LOG_DIR        Logs directory (default: <repo>/logs)
+#   DATASET_DIR    Dataset root (default: <repo>/dataset)
+#   FPS_STEREO     FPS for stereo videos (default: 20)
+#   FPS_IPHONE     FPS for iPhone videos (default: 10)
+#   EXAMPLES_ROOT  Path to gsplat/examples (default auto-detected)
+#   VGGT_SCRIPT    Path to VGGT demo_colmap.py (default: /data/vggt/demo_colmap.py)
+#   CONDA_EXE      Path to conda executable (default: /home/ubuntu/miniconda3/bin/conda)
+#   CONDA_ENV      Conda env name for VGGT (default: transformers)
+#   FFMPEG_BIN     ffmpeg binary name/path (default: ffmpeg)
+#   OVERWRITE      If set, passes --overwrite to the Python script
 
 set -euo pipefail
 
@@ -31,6 +35,10 @@ DATASET_DIR=${DATASET_DIR:-"${REPO_ROOT}/dataset"}
 FPS_STEREO=${FPS_STEREO:-20}
 FPS_IPHONE=${FPS_IPHONE:-10}
 EXAMPLES_ROOT=${EXAMPLES_ROOT:-"${REPO_ROOT}/../gsplat/examples"}
+VGGT_SCRIPT=${VGGT_SCRIPT:-"/data/vggt/demo_colmap.py"}
+CONDA_EXE=${CONDA_EXE:-"/home/ubuntu/miniconda3/bin/conda"}
+CONDA_ENV=${CONDA_ENV:-"transformers"}
+FFMPEG_BIN=${FFMPEG_BIN:-"ffmpeg"}
 
 mkdir -p "${LOG_DIR}"
 
@@ -66,6 +74,10 @@ run_one() {
     --output-dir "${out_dir}"
     --fps "${fps}"
     --examples-root "${EXAMPLES_ROOT}"
+    --vggt-script "${VGGT_SCRIPT}"
+    --conda-exe "${CONDA_EXE}"
+    --conda-env "${CONDA_ENV}"
+    --ffmpeg-bin "${FFMPEG_BIN}"
   )
 
   if [[ "${OVERWRITE:-}" != "" ]]; then
@@ -101,4 +113,3 @@ main() {
 }
 
 main "$@"
-
