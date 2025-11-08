@@ -335,10 +335,20 @@ def process_video_static(
             return
 
     print(f"Processing video capture: {task.source} -> {out_dir}")
-    ensure_ready_dir(out_dir, overwrite=overwrite)
-
+    # If no sparse reconstruction exists yet, force re-extraction of frames
+    # to avoid stale images. Otherwise honor the overwrite flag.
     images_dir = out_dir / "images"
-    extract_frames(task.source, images_dir, ffmpeg_bin, fps, overwrite=overwrite)
+    reextract = not sparse_dir.exists()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    ensure_ready_dir(images_dir, overwrite=(overwrite or reextract))
+
+    extract_frames(
+        task.source,
+        images_dir,
+        ffmpeg_bin,
+        fps,
+        overwrite=(overwrite or reextract),
+    )
 
     vggt_args: List[str] = []
     if stage:
@@ -372,7 +382,8 @@ def process_multiple_videos_static(
     sorted_videos = sorted(video_files)
 
     tmp_root = out_root / "_tmp_frames"
-    if overwrite and tmp_root.exists():
+    need_rebuild = not (out_root / "sparse").exists()
+    if (overwrite or need_rebuild) and tmp_root.exists():
         shutil.rmtree(tmp_root)
     tmp_root.mkdir(parents=True, exist_ok=True)
 
@@ -381,7 +392,13 @@ def process_multiple_videos_static(
     for video_file in sorted_videos:
         task = build_task_for_file(base_root, video_file)
         images_dir = tmp_root / task.label
-        extract_frames(video_file, images_dir, ffmpeg_bin, fps, overwrite=overwrite)
+        extract_frames(
+            video_file,
+            images_dir,
+            ffmpeg_bin,
+            fps,
+            overwrite=(overwrite or need_rebuild),
+        )
         image_dirs.append(images_dir)
         tasks.append(task)
 
@@ -395,10 +412,10 @@ def process_multiple_videos_static(
     print("\n=== Phase 3: Generating combined dataset ===")
     combined_scene = out_root
     combined_images = combined_scene / "images"
-    if not overwrite and (combined_scene / "sparse").exists():
+    if not (overwrite or need_rebuild) and (combined_scene / "sparse").exists():
         print("Combined sparse exists and overwrite disabled; skipping recompute.")
     else:
-        ensure_ready_dir(combined_images, overwrite=overwrite)
+        ensure_ready_dir(combined_images, overwrite=(overwrite or need_rebuild))
         copied = 0
         for task, images_dir in zip(tasks, image_dirs):
             prefix = task.label
@@ -963,6 +980,8 @@ def compute_covisible_masks(
     train_test_every: int,
     eval_test_every: int,
     factor: int,
+    conda_exe: str,
+    covisible_conda_env: str,
 ) -> None:
     script_path = examples_root / "preprocess_covisible_colmap.py"
     if not script_path.exists():
@@ -975,7 +994,11 @@ def compute_covisible_masks(
     train_out = output_base / train_subset.name
     ensure_dir(train_out, overwrite=False)
     cmd = [
-        sys.executable,
+        conda_exe,
+        "run",
+        "-n",
+        covisible_conda_env,
+        "python",
         str(script_path),
         "--base_dir",
         str(train_dir),
@@ -1010,7 +1033,11 @@ def compute_covisible_masks(
         out_dir = output_base / subset.name
         ensure_dir(out_dir, overwrite=False)
         cmd = [
-            sys.executable,
+            conda_exe,
+            "run",
+            "-n",
+            covisible_conda_env,
+            "python",
             str(script_path),
             "--base_dir",
             str(base_dir),
@@ -1245,6 +1272,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--covisible-micro-chunk", type=int, default=None)
     parser.add_argument("--covisible-factor", type=int, default=1)
     parser.add_argument(
+        "--covisible-conda-env",
+        type=str,
+        default="gaussian_splatting",
+        help="Conda environment used to run dycheck/RAFT covisible step.",
+    )
+    parser.add_argument(
         "--examples-root",
         type=Path,
         default=default_gsplat_examples_root(),
@@ -1300,8 +1333,8 @@ def main() -> None:
         output_dir = (
             args.output_dir.expanduser().resolve() if args.output_dir else _default_output_dir(train_dir)
         )
-        # Always rebuild the combined output directory in shared mode
-        ensure_dir(output_dir, overwrite=True)
+        # Do NOT clobber existing reconstructions; create if missing.
+        ensure_dir(output_dir, overwrite=False)
 
         # Normalize lf paths if provided
         if args.lf_to_colmap is not None:
@@ -1350,11 +1383,13 @@ def main() -> None:
 
         all_subsets: list[SubsetConfig] = [train_subset] + eval_subsets
 
+        # If there's no shared sparse yet, rebuild combined images.
+        shared_sparse = output_dir / "sparse"
         mapping = prepare_combined_images(
             output_dir=output_dir,
             subsets=all_subsets,
             copy_mode=args.copy_mode,
-            overwrite=True,
+            overwrite=(args.overwrite or not shared_sparse.exists()),
         )
 
         if not args.skip_reconstruction:
@@ -1365,7 +1400,8 @@ def main() -> None:
                 vggt_script=args.vggt_script,
                 stage=args.stage,
                 stage_cache=args.stage_cache,
-                overwrite=True,
+                # If sparse/ exists, reuse it by default (no BA re-run).
+                overwrite=False,
             )
         else:
             print("Skipping reconstruction (--skip-reconstruction).")
@@ -1417,6 +1453,8 @@ def main() -> None:
             train_test_every=args.train_test_every,
             eval_test_every=args.eval_test_every,
             factor=args.covisible_factor,
+            conda_exe=args.conda_exe,
+            covisible_conda_env=args.covisible_conda_env,
         )
         print(f"Covisible masks written under {covi_base}")
         
@@ -1473,7 +1511,7 @@ def main() -> None:
             args.fps,
             args.stage,
             args.stage_cache,
-            True,
+            args.overwrite,
         )
         return
 
@@ -1503,10 +1541,11 @@ def main() -> None:
         images_dir = inner_scene / "images"
 
         print(f"Processing light field capture: {task.source} -> {out_dir}")
-        ensure_ready_dir(out_dir, overwrite=True)
+        lfr_need_rebuild = not (inner_scene / "sparse").exists()
+        ensure_ready_dir(out_dir, overwrite=(args.overwrite or lfr_need_rebuild))
         existing_images = images_dir.exists() and any(images_dir.glob("*.png"))
 
-        if existing_images and not args.overwrite:
+        if existing_images and not (args.overwrite or lfr_need_rebuild):
             print(f"Reusing existing decoded images at {images_dir}")
         else:
             process_lfr(
@@ -1530,7 +1569,7 @@ def main() -> None:
             args.vggt_script,
             args.stage,
             args.stage_cache,
-            True,
+            args.overwrite,
         )
         return
 
@@ -1545,7 +1584,7 @@ def main() -> None:
         args.fps,
         args.stage,
         args.stage_cache,
-        True,
+        args.overwrite,
     )
 
 
