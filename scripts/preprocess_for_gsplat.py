@@ -510,7 +510,22 @@ def materialize_images_if_missing(
     # 1) Direct images/
     direct_images = src / "images"
     if direct_images.exists() and _has_any_images(direct_images):
-        return direct_images
+        if overwrite:
+            # If overwrite is requested and source contains raw inputs (videos or .lfr),
+            # remove existing materialized frames so we can re-extract with new params (e.g., FPS).
+            has_videos = any(
+                p.is_file() and p.suffix.lower() in VIDEO_EXTS for p in src.iterdir()
+            )
+            has_lfr = any(p.is_file() and p.suffix.lower() == ".lfr" for p in src.iterdir())
+            if has_videos or has_lfr:
+                print(
+                    f"Overwrite enabled; removing existing images at {direct_images} to re-extract frames."
+                )
+                shutil.rmtree(direct_images)
+            else:
+                return direct_images
+        else:
+            return direct_images
 
     # 2) inner_XX/images layout from LFR decode
     inner_candidates = sorted((p for p in src.glob("inner_*/images") if p.is_dir()))
@@ -598,6 +613,10 @@ def link_or_copy(src: Path, dst: Path, mode: str) -> None:
 
 
 def gather_images(subset: SubsetConfig, args: argparse.Namespace) -> None:
+    print(
+        f"[gather] Materializing images for {subset.display_name()} "
+        f"from {subset.source_dir}"
+    )
     images_dir = materialize_images_if_missing(
         subset,
         ffmpeg_bin=args.ffmpeg_bin,
@@ -606,7 +625,7 @@ def gather_images(subset: SubsetConfig, args: argparse.Namespace) -> None:
         lf_calib=args.lf_calib.expanduser().resolve() if args.lf_calib else None,
         lf_inner=args.lf_inner,
         lf_downscale=args.lf_downscale,
-        overwrite=True,
+        overwrite=args.overwrite,
     )
 
     all_images = sorted(
@@ -614,6 +633,7 @@ def gather_images(subset: SubsetConfig, args: argparse.Namespace) -> None:
     )
     if not all_images:
         raise RuntimeError(f"No images found under {images_dir}")
+    print(f"[gather] {subset.display_name()} now has {len(all_images)} frames at {images_dir}")
 
     include = subset.include_list
     if include is not None:
@@ -834,12 +854,32 @@ def _filter_points_txt(lines: list[str], keep_image_ids: set[int]) -> list[str]:
     return headers + filtered
 
 
+def _has_sparse_outputs(path: Path) -> bool:
+    if not path.exists():
+        return False
+    sparse_files = [
+        "cameras.bin",
+        "images.bin",
+        "points3D.bin",
+        "cameras.txt",
+        "images.txt",
+        "points3D.txt",
+    ]
+    return any((path / name).exists() for name in sparse_files)
+
+
 def _filter_sparse_subset(
     combined_sparse: Path,
     combined_txt: Path,
     subset: SubsetConfig,
     output_sparse: Path,
+    *,
+    overwrite: bool,
 ) -> None:
+    if output_sparse.exists() and not overwrite and _has_sparse_outputs(output_sparse):
+        print(f"[subset] Reusing sparse subset for '{subset.name}' at {output_sparse}")
+        return
+
     ensure_dir(output_sparse, overwrite=True)
     txt_subset = combined_txt / f"_subset_{subset.name}"
     ensure_dir(txt_subset, overwrite=True)
@@ -884,6 +924,7 @@ def materialize_subset_dirs(
     combined_txt: Path,
     *,
     top_level_two_subfolders: bool = False,
+    overwrite: bool,
 ) -> dict[str, Path]:
     if not top_level_two_subfolders:
         subset_root = output_dir / "subsets"
@@ -896,18 +937,29 @@ def materialize_subset_dirs(
         else:
             sub_dir = subset_root / subset.name
 
-        ensure_dir(sub_dir / "images", overwrite=True)
+        images_dir = sub_dir / "images"
+        sparse_dir = sub_dir / "sparse"
+        images_ready = images_dir.exists() and _has_any_images(images_dir)
+        sparse_ready = _has_sparse_outputs(sparse_dir)
+
+        if not overwrite and images_ready and sparse_ready:
+            print(f"[subset] Reusing materialized subset '{subset.name}' at {sub_dir}")
+            subset_dirs[subset.name] = sub_dir
+            continue
+
+        ensure_dir(images_dir, overwrite=True)
         for rec in subset.records:
             src = output_dir / "images" / rec.combined_name
-            dst = sub_dir / "images" / rec.combined_name
+            dst = images_dir / rec.combined_name
             # Always materialize images in subset dirs (symlink→symlink, copy otherwise)
-            link_or_copy(src, dst, mode="symlink" if copy_mode == "symlink" else "copy")
+            link_or_copy(src, dst, mode=copy_mode)
 
         _filter_sparse_subset(
             combined_sparse=combined_sparse,
             combined_txt=combined_txt,
             subset=subset,
-            output_sparse=sub_dir / "sparse",
+            output_sparse=sparse_dir,
+            overwrite=True,
         )
         subset_dirs[subset.name] = sub_dir
     return subset_dirs
@@ -982,6 +1034,7 @@ def compute_covisible_masks(
     factor: int,
     conda_exe: str,
     covisible_conda_env: str,
+    overwrite: bool,
 ) -> None:
     script_path = examples_root / "preprocess_covisible_colmap.py"
     if not script_path.exists():
@@ -989,41 +1042,56 @@ def compute_covisible_masks(
 
     ensure_dir(output_base, overwrite=False)
 
+    def _covisible_ready(root: Path, split: str) -> bool:
+        align_ok = (root / "alignment.npz").exists()
+        mask_dir = root / f"{factor}x" / split
+        if not mask_dir.exists():
+            return False
+        has_masks = any(mask_dir.glob("*.png"))
+        return align_ok and has_masks
+
     # Train covisible (val vs train split within train subset)
     train_dir = subset_dirs[train_subset.name]
     train_out = output_base / train_subset.name
     ensure_dir(train_out, overwrite=False)
-    cmd = [
-        conda_exe,
-        "run",
-        "-n",
-        covisible_conda_env,
-        "python",
-        str(script_path),
-        "--base_dir",
-        str(train_dir),
-        "--support_dir",
-        str(train_dir),
-        "--factor",
-        str(factor),
-        "--test_every",
-        str(train_test_every),
-        "--base_split",
-        "val",
-        "--support_split",
-        "train",
-        "--support_test_every",
-        str(train_test_every),
-        "--chunk",
-        str(chunk),
-        "--device",
-        device,
-        "--output_dir",
-        str(train_out),
-    ]
-    if micro_chunk is not None:
-        cmd.extend(["--micro_chunk", str(micro_chunk)])
-    run_command(cmd)
+    if not overwrite and _covisible_ready(train_out, "val"):
+        print(f"[covisible] Reusing existing train split masks at {train_out}")
+    else:
+        print(
+            f"[covisible] Computing train split masks (val vs train) into {train_out} "
+            f"using device={device}, chunk={chunk}"
+        )
+        cmd = [
+            conda_exe,
+            "run",
+            "-n",
+            covisible_conda_env,
+            "python",
+            str(script_path),
+            "--base_dir",
+            str(train_dir),
+            "--support_dir",
+            str(train_dir),
+            "--factor",
+            str(factor),
+            "--test_every",
+            str(train_test_every),
+            "--base_split",
+            "val",
+            "--support_split",
+            "train",
+            "--support_test_every",
+            str(train_test_every),
+            "--chunk",
+            str(chunk),
+            "--device",
+            device,
+            "--output_dir",
+            str(train_out),
+        ]
+        if micro_chunk is not None:
+            cmd.extend(["--micro_chunk", str(micro_chunk)])
+        run_command(cmd)
 
     # External eval subsets
     for subset in subsets:
@@ -1032,6 +1100,13 @@ def compute_covisible_masks(
         base_dir = subset_dirs[subset.name]
         out_dir = output_base / subset.name
         ensure_dir(out_dir, overwrite=False)
+        if not overwrite and _covisible_ready(out_dir, "val"):
+            print(f"[covisible] Reusing eval subset '{subset.name}' masks at {out_dir}")
+            continue
+        print(
+            f"[covisible] Computing eval subset '{subset.name}' masks into {out_dir} "
+            f"(support=train, chunk={chunk})"
+        )
         cmd = [
             conda_exe,
             "run",
@@ -1424,6 +1499,7 @@ def main() -> None:
                 combined_sparse=sparse_dir,
                 combined_txt=combined_txt,
                 top_level_two_subfolders=(len(eval_subsets) == 1),
+                overwrite=args.overwrite,
             )
 
         write_split_lists(output_dir, all_subsets)
@@ -1455,6 +1531,7 @@ def main() -> None:
             factor=args.covisible_factor,
             conda_exe=args.conda_exe,
             covisible_conda_env=args.covisible_conda_env,
+            overwrite=args.overwrite,
         )
         print(f"Covisible masks written under {covi_base}")
         
